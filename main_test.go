@@ -159,6 +159,7 @@ func TestRunCLI_Help(t *testing.T) {
 	assert.Equal(t, 0, code)
 	assert.Contains(t, stdout.String(), "Usage:")
 	assert.Contains(t, stdout.String(), "relay start [--http] [--addr :8080]")
+	assert.Contains(t, stdout.String(), "relay init [--list]")
 	assert.Empty(t, stderr.String())
 }
 

@@ -58,6 +58,8 @@ func runCLI(args []string, stdout, stderr io.Writer) int {
 		return runStartCommand(args[1:], stdout, stderr)
 	case "tools":
 		return runToolsCommand(args[1:], stdout, stderr)
+	case "init":
+		return runInitCommand(args[1:], os.Stdin, stdout, stderr)
 	case "status":
 		return runStatusCommand(args[1:], stdout, stderr)
 	case "version":
@@ -347,6 +349,7 @@ func printUsage(w io.Writer) {
 	fmt.Fprintln(w, "  relay                 Start the MCP server in stdio mode")
 	fmt.Fprintln(w, "  relay start [--http] [--addr :8080]")
 	fmt.Fprintln(w, "  relay tools [--json]")
+	fmt.Fprintln(w, "  relay init [--list]")
 	fmt.Fprintln(w, "  relay status")
 	fmt.Fprintln(w, "  relay version")
 	fmt.Fprintln(w, "  relay help")
@@ -367,6 +370,11 @@ func printStartUsage(w io.Writer) {
 func printToolsUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage:")
 	fmt.Fprintln(w, "  relay tools [--json]")
+}
+
+func printInitUsage(w io.Writer) {
+	fmt.Fprintln(w, "Usage:")
+	fmt.Fprintln(w, "  relay init [--list]")
 }
 
 func printStatusUsage(w io.Writer) {

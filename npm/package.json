@@ -1,0 +1,18 @@
+{
+  "name": "relay-mcp",
+  "version": "0.1.0",
+  "description": "One MCP server. 40 built-in tools. Single Go binary. Zero config.",
+  "bin": {
+    "relay": "./bin/run.js"
+  },
+  "scripts": {
+    "postinstall": "node ./bin/install.js"
+  },
+  "keywords": ["mcp", "ai", "tools", "claude", "cursor", "relay"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/valtors/relay"
+  },
+  "author": "Tamish <tamish560@users.noreply.github.com>"
+}
