@@ -183,6 +183,40 @@ func init() {
 		mcp.WithString("output", mcp.Description("Optional output path")),
 	), ImageFlip)
 
+	defaultRegistry.Register("pdf", mcp.NewTool("pdf_info",
+		mcp.WithDescription("Get PDF metadata including page count, title, author, creator, and page dimensions"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("PDF path")),
+	), PDFInfoTool)
+	defaultRegistry.Register("pdf", mcp.NewTool("pdf_extract_text",
+		mcp.WithDescription("Extract text content from PDF pages"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("PDF path")),
+		mcp.WithString("pages", mcp.Description("Optional page selection like 1-3 or 1,3,5")),
+	), PDFExtractTextTool)
+	defaultRegistry.Register("pdf", mcp.NewTool("pdf_page_count",
+		mcp.WithDescription("Get the number of pages in a PDF"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("PDF path")),
+	), PDFPageCountTool)
+	defaultRegistry.Register("pdf", mcp.NewTool("pdf_merge",
+		mcp.WithDescription("Merge multiple PDFs into one output PDF"),
+		mcp.WithArray("paths",
+			mcp.Required(),
+			mcp.Description("PDF paths to merge"),
+			mcp.Items(map[string]any{"type": "string"}),
+		),
+		mcp.WithString("output", mcp.Required(), mcp.Description("Output PDF path")),
+	), PDFMergeTool)
+	defaultRegistry.Register("pdf", mcp.NewTool("pdf_split",
+		mcp.WithDescription("Split a PDF into individual page files"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("PDF path")),
+		mcp.WithString("output_dir", mcp.Description("Optional output directory")),
+	), PDFSplitTool)
+	defaultRegistry.Register("pdf", mcp.NewTool("pdf_extract_pages",
+		mcp.WithDescription("Extract specific pages from a PDF into a new PDF"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("PDF path")),
+		mcp.WithString("pages", mcp.Required(), mcp.Description("Page selection like 1-3,5")),
+		mcp.WithString("output", mcp.Required(), mcp.Description("Output PDF path")),
+	), PDFExtractPagesTool)
+
 	defaultRegistry.Register("data", mcp.NewTool("data_json_format",
 		mcp.WithDescription("Pretty-print JSON"),
 		mcp.WithString("json", mcp.Required(), mcp.Description("JSON input")),
