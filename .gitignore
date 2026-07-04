@@ -1,0 +1,17 @@
+output/
+.env
+dist/
+*.tmp
+*.lock
+relay
+relay.exe
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+keys/signing_key.pem
+keys/*.private
+*.private.pem

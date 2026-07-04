@@ -1,0 +1,110 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish (e.g. v0.1.0)"
+        required: true
+
+# RELEASE_PUBLISH_TOKEN must be a GitHub PAT with 'contents: write'
+# permission on the PUBLIC release repo (valtors/RELAY-releases).
+# Source code stays in this private repo; only the binary artifacts are
+# published to the public repo so anonymous testers can download them.
+env:
+  PUBLIC_RELEASE_REPO: valtors/RELAY-releases
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+      - run: go vet ./...
+      - run: gofmt -l . | tee /tmp/gofmt.out && test ! -s /tmp/gofmt.out
+      - run: go test -count=1 ./...
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: darwin
+            goarch: arm64
+            ext: ""
+          - goos: darwin
+            goarch: amd64
+            ext: ""
+          - goos: linux
+            goarch: amd64
+            ext: ""
+          - goos: linux
+            goarch: arm64
+            ext: ""
+          - goos: windows
+            goarch: amd64
+            ext: ".exe"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+        run: |
+          mkdir -p dist
+          out="dist/RELAY-${GOOS}-${GOARCH}${{ matrix.ext }}"
+          go build -trimpath -ldflags "-s -w -X main.Version=${GITHUB_REF_NAME}" -o "$out" .
+          (cd dist && sha256sum "$(basename "$out")" > "$(basename "$out").sha256")
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RELAY-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: List built artifacts
+        run: ls -la dist
+      - name: Publish GitHub Release on public repo
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PUBLISH_TOKEN }}
+          TAG: ${{ github.ref_name || inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::RELEASE_PUBLISH_TOKEN secret is not set on this repo."
+            echo "Create a PAT with contents:write on ${PUBLIC_RELEASE_REPO} and add it."
+            exit 1
+          fi
+          # Create the release if it doesn't exist; --notes is generated.
+          if ! gh release view "$TAG" --repo "$PUBLIC_RELEASE_REPO" >/dev/null 2>&1; then
+            gh release create "$TAG" \
+              --repo "$PUBLIC_RELEASE_REPO" \
+              --title "$TAG" \
+              --generate-notes
+          fi
+          # Upload (or overwrite) every binary + checksum.
+          gh release upload "$TAG" dist/* \
+            --repo "$PUBLIC_RELEASE_REPO" \
+            --clobber
+
