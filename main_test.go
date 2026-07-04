@@ -113,7 +113,7 @@ func TestRunCLI_Status(t *testing.T) {
 
 	assert.Equal(t, 0, code)
 	assert.Contains(t, stdout.String(), "relay v"+Version)
-	assert.Contains(t, stdout.String(), "tools: 27 registered (5 categories)")
+	assert.Contains(t, stdout.String(), "tools: 34 registered (6 categories)")
 	assert.Contains(t, stdout.String(), "transport: stdio (default) | http (with --http)")
 	assert.Empty(t, stderr.String())
 }
@@ -128,7 +128,7 @@ func TestRunCLI_ToolsJSON(t *testing.T) {
 
 	var tools []toolInfo
 	require.NoError(t, json.Unmarshal(stdout.Bytes(), &tools))
-	require.Len(t, tools, 27)
+	require.Len(t, tools, 34)
 	assert.Equal(t, "data", tools[0].Category)
 	assert.Equal(t, "data_csv_to_json", tools[0].Name)
 	assert.Equal(t, "workflow", tools[len(tools)-1].Category)
@@ -141,11 +141,13 @@ func TestRunCLI_ToolsText(t *testing.T) {
 
 	assert.Equal(t, 0, code)
 	assert.Empty(t, stderr.String())
-	assert.Contains(t, stdout.String(), "relay tools (27 total)")
+	assert.Contains(t, stdout.String(), "relay tools (34 total)")
 	assert.Contains(t, stdout.String(), "workflow (8)")
 	assert.Contains(t, stdout.String(), "text (6)")
 	assert.Contains(t, stdout.String(), "file (7)")
 	assert.Contains(t, stdout.String(), "data (4)")
+	assert.Contains(t, stdout.String(), "image (7)")
+	assert.Contains(t, stdout.String(), "web (2)")
 }
 
 func TestRunCLI_Help(t *testing.T) {
@@ -197,6 +199,8 @@ func assertHasAllTools(t *testing.T, got []string) {
 		"file_size", "file_zip", "file_unzip",
 		"data_json_format", "data_csv_to_json", "data_json_to_csv", "data_json_query",
 		"web_fetch", "web_status",
+		"image_info", "image_resize", "image_crop", "image_convert",
+		"image_rotate", "image_grayscale", "image_flip",
 	}
 	require.Len(t, got, len(want), "expected exactly %d tools, got %d: %v",
 		len(want), len(got), got)

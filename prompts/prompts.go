@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+//go:embed *.md
 var promptFS embed.FS
 
 func Load(name string) (string, error) {

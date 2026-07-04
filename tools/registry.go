@@ -139,6 +139,50 @@ func init() {
 		mcp.WithString("output_dir", mcp.Description("Output directory")),
 	), FileUnzip)
 
+	defaultRegistry.Register("image", mcp.NewTool("image_info",
+		mcp.WithDescription("Get image metadata including dimensions, format, and file size"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("Image path")),
+	), ImageInfo)
+	defaultRegistry.Register("image", mcp.NewTool("image_resize",
+		mcp.WithDescription("Resize an image using nearest-neighbor scaling"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("Image path")),
+		mcp.WithNumber("width", mcp.Description("Target width in pixels")),
+		mcp.WithNumber("height", mcp.Description("Target height in pixels")),
+		mcp.WithString("output", mcp.Description("Optional output path")),
+	), ImageResize)
+	defaultRegistry.Register("image", mcp.NewTool("image_crop",
+		mcp.WithDescription("Crop an image to the given rectangle"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("Image path")),
+		mcp.WithNumber("x", mcp.Required(), mcp.Description("Left coordinate in pixels")),
+		mcp.WithNumber("y", mcp.Required(), mcp.Description("Top coordinate in pixels")),
+		mcp.WithNumber("width", mcp.Required(), mcp.Description("Crop width in pixels")),
+		mcp.WithNumber("height", mcp.Required(), mcp.Description("Crop height in pixels")),
+		mcp.WithString("output", mcp.Description("Optional output path")),
+	), ImageCrop)
+	defaultRegistry.Register("image", mcp.NewTool("image_convert",
+		mcp.WithDescription("Convert an image to png, jpeg, or gif"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("Image path")),
+		mcp.WithString("format", mcp.Required(), mcp.Description("Target format: png, jpeg, or gif")),
+		mcp.WithNumber("quality", mcp.Description("JPEG quality from 1-100; default 85")),
+	), ImageConvert)
+	defaultRegistry.Register("image", mcp.NewTool("image_rotate",
+		mcp.WithDescription("Rotate an image by 90, 180, or 270 degrees clockwise"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("Image path")),
+		mcp.WithNumber("degrees", mcp.Required(), mcp.Description("Rotation in degrees: 90, 180, or 270")),
+		mcp.WithString("output", mcp.Description("Optional output path")),
+	), ImageRotate)
+	defaultRegistry.Register("image", mcp.NewTool("image_grayscale",
+		mcp.WithDescription("Convert an image to grayscale"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("Image path")),
+		mcp.WithString("output", mcp.Description("Optional output path")),
+	), ImageGrayscale)
+	defaultRegistry.Register("image", mcp.NewTool("image_flip",
+		mcp.WithDescription("Flip an image horizontally or vertically"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("Image path")),
+		mcp.WithString("direction", mcp.Required(), mcp.Description("Flip direction: horizontal or vertical")),
+		mcp.WithString("output", mcp.Description("Optional output path")),
+	), ImageFlip)
+
 	defaultRegistry.Register("data", mcp.NewTool("data_json_format",
 		mcp.WithDescription("Pretty-print JSON"),
 		mcp.WithString("json", mcp.Required(), mcp.Description("JSON input")),
