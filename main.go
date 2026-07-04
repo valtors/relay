@@ -18,7 +18,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/mark3labs/mcp-go/server"
 
-	"relay/internal/license"
 	"relay/internal/logger"
 	"relay/tools"
 )
@@ -26,24 +25,6 @@ import (
 var Version = "dev"
 
 var errHelpRequested = errors.New("help requested")
-
-type apiKeyError struct{}
-
-func (apiKeyError) Error() string {
-	return "\n[relay] ANTHROPIC_API_KEY is not set.\nAdd it to your shell environment or a .env file in the project root."
-}
-
-type startupLicenseError struct {
-	err error
-}
-
-func (e startupLicenseError) Error() string {
-	return e.err.Error()
-}
-
-func (e startupLicenseError) Unwrap() error {
-	return e.err
-}
 
 type startOptions struct {
 	http bool
@@ -106,18 +87,6 @@ func runStartCommand(args []string, stdout, stderr io.Writer) int {
 	}
 
 	if err := runStart(opts); err != nil {
-		var missingAPIKey apiKeyError
-		if errors.As(err, &missingAPIKey) {
-			fmt.Fprintln(stderr, err)
-			return 1
-		}
-
-		var licenseErr startupLicenseError
-		if errors.As(err, &licenseErr) {
-			fmt.Fprint(stderr, license.FriendlyMessage(licenseErr.err))
-			return 1
-		}
-
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
@@ -264,16 +233,6 @@ func validateSimpleCommandArgs(name string, args []string, stdout, stderr io.Wri
 
 func runStart(opts startOptions) error {
 	_ = godotenv.Load()
-
-	lic, err := license.Verify()
-	if err != nil {
-		return startupLicenseError{err: err}
-	}
-	logger.Info("licensed", "subject", lic.Subject, "expires", lic.Expires)
-
-	if os.Getenv("ANTHROPIC_API_KEY") == "" {
-		return apiKeyError{}
-	}
 
 	s := buildServer()
 	if opts.http {
