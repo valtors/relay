@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Questions and contributor help
+    url: https://github.com/valtors/relay/discussions
+    about: Ask here if you are blocked, want a quick sanity check, or are not sure where to start.
+  - name: Start with the add a tool guide
+    url: https://github.com/valtors/relay/blob/main/docs/ADDING_A_TOOL.md
+    about: This is the easiest path to a first PR in Relay.

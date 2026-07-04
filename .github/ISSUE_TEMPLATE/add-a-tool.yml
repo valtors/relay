@@ -1,0 +1,51 @@
+name: I want to add a tool
+description: Pitch a tool idea and get a quick green light before you build it
+labels: ["enhancement"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Tool name
+      placeholder: summarize_brief
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Tool category
+      options:
+        - text
+        - file
+        - data
+        - workflow
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: job
+    attributes:
+      label: What should the tool do?
+      placeholder: It should take... and return...
+    validations:
+      required: true
+  - type: textarea
+    id: io
+    attributes:
+      label: What inputs and outputs do you expect?
+      placeholder: Inputs..., output text..., files written...
+    validations:
+      required: true
+  - type: dropdown
+    id: author
+    attributes:
+      label: Do you want to build this yourself?
+      options:
+        - "Yes"
+        - "Maybe"
+        - "No"
+  - type: checkboxes
+    id: guide
+    attributes:
+      label: Before you submit
+      options:
+        - label: I read docs/ADDING_A_TOOL.md

@@ -9,6 +9,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/valtors/relay)](https://goreportcard.com/report/github.com/valtors/relay)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/valtors/relay)](go.mod)
+[![Contributors welcome](https://img.shields.io/badge/contributors-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Good first issue](https://img.shields.io/github/issues/valtors/relay/good%20first%20issue?label=good%20first%20issue)](https://github.com/valtors/relay/labels/good%20first%20issue)
 
 A multi-agent pipeline that takes your product from idea to launch plan.
 Five stages. Human checkpoints between each. One Go binary. Runs inside any MCP client.
@@ -16,6 +18,18 @@ Five stages. Human checkpoints between each. One Go binary. Runs inside any MCP 
 [Quick Start](#quick-start) · [How It Works](#how-it-works) · [Install](#install) · [Contributing](#contributing)
 
 </div>
+
+---
+
+## New here?
+
+Want the easiest first contribution?
+
+- Read [docs/ADDING_A_TOOL.md](docs/ADDING_A_TOOL.md)
+- Browse [good first issues](https://github.com/valtors/relay/labels/good%20first%20issue)
+- Ask questions in [GitHub Discussions](https://github.com/valtors/relay/discussions)
+
+We try to reply to contributor questions and PRs within 3 business days.
 
 ---
 

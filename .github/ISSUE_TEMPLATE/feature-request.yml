@@ -1,18 +1,31 @@
-name: Feature Request
-description: Suggest an improvement or new capability
+name: Feature request
+description: Suggest a small improvement or a new capability
 labels: ["enhancement"]
 body:
   - type: textarea
     id: problem
     attributes:
-      label: What problem does this solve?
-      placeholder: Describe the pain point
+      label: What are you trying to do?
+      placeholder: I want Relay to...
     validations:
       required: true
   - type: textarea
-    id: solution
+    id: simple
     attributes:
-      label: What would the solution look like?
-      placeholder: Describe your ideal outcome
+      label: What is the smallest useful version of this?
+      placeholder: The first good version could...
     validations:
       required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else we should know?
+      placeholder: Links, screenshots, similar tools, rough API shape
+  - type: dropdown
+    id: contributing
+    attributes:
+      label: Do you want to work on this?
+      options:
+        - "Yes"
+        - "Maybe"
+        - "No"

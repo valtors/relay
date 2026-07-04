@@ -1,28 +1,39 @@
-name: Bug Report
-description: Something is not working as expected
+name: Bug report
+description: Something broke or behaved in a weird way
 labels: ["bug"]
 body:
   - type: textarea
-    id: description
+    id: happened
     attributes:
       label: What happened?
-      placeholder: Describe the bug
+      description: Paste the command, tool call, or error if you have it.
+      placeholder: I ran... and Relay returned...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How can we reproduce it?
+      placeholder: |
+        1. Start Relay with...
+        2. Call tool...
+        3. See error...
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: What did you expect?
-      placeholder: Expected behavior
+      label: What did you expect instead?
+      placeholder: I expected...
     validations:
       required: true
   - type: input
     id: version
     attributes:
-      label: Relay version
-      placeholder: v0.3.0
+      label: Relay version or commit
+      placeholder: v0.3.0 or a1b2c3d
   - type: input
-    id: editor
+    id: client
     attributes:
-      label: Editor / MCP client
-      placeholder: Claude Code, Cursor, VS Code Copilot, etc.
+      label: MCP client and OS
+      placeholder: Claude Code on Windows 11

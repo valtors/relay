@@ -2,16 +2,20 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/signal"
+	"sort"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
 	"relay/internal/license"
@@ -21,42 +25,263 @@ import (
 
 var Version = "dev"
 
-func main() {
-	httpMode := flag.Bool("http", false,
-		"serve over Streamable-HTTP (Claude.ai compatible) instead of stdio")
-	addr := flag.String("addr", ":8080",
-		"HTTP listen address (only used with -http). Endpoint is <addr>/mcp")
-	flag.Parse()
+var errHelpRequested = errors.New("help requested")
 
+type apiKeyError struct{}
+
+func (apiKeyError) Error() string {
+	return "\n[relay] ANTHROPIC_API_KEY is not set.\nAdd it to your shell environment or a .env file in the project root."
+}
+
+type startupLicenseError struct {
+	err error
+}
+
+func (e startupLicenseError) Error() string {
+	return e.err.Error()
+}
+
+func (e startupLicenseError) Unwrap() error {
+	return e.err
+}
+
+type startOptions struct {
+	http bool
+	addr string
+}
+
+type toolsOptions struct {
+	json bool
+}
+
+type toolInfo struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Category    string `json:"category"`
+}
+
+func main() {
+	os.Exit(runCLI(os.Args[1:], os.Stdout, os.Stderr))
+}
+
+func runCLI(args []string, stdout, stderr io.Writer) int {
+	if len(args) == 0 {
+		return runStartCommand(nil, stdout, stderr)
+	}
+
+	switch args[0] {
+	case "help", "-h", "--help":
+		printUsage(stdout)
+		return 0
+	case "start":
+		return runStartCommand(args[1:], stdout, stderr)
+	case "tools":
+		return runToolsCommand(args[1:], stdout, stderr)
+	case "status":
+		return runStatusCommand(args[1:], stdout, stderr)
+	case "version":
+		return runVersionCommand(args[1:], stdout, stderr)
+	default:
+		if strings.HasPrefix(args[0], "-") {
+			return runStartCommand(args, stdout, stderr)
+		}
+
+		fmt.Fprintf(stderr, "relay: unknown command %q\n\n", args[0])
+		printUsage(stderr)
+		return 1
+	}
+}
+
+func runStartCommand(args []string, stdout, stderr io.Writer) int {
+	opts, err := parseStartOptions(args)
+	if err != nil {
+		if errors.Is(err, errHelpRequested) {
+			printStartUsage(stdout)
+			return 0
+		}
+
+		fmt.Fprintf(stderr, "relay start: %v\n\n", err)
+		printStartUsage(stderr)
+		return 1
+	}
+
+	if err := runStart(opts); err != nil {
+		var missingAPIKey apiKeyError
+		if errors.As(err, &missingAPIKey) {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+
+		var licenseErr startupLicenseError
+		if errors.As(err, &licenseErr) {
+			fmt.Fprint(stderr, license.FriendlyMessage(licenseErr.err))
+			return 1
+		}
+
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+
+	return 0
+}
+
+func runToolsCommand(args []string, stdout, stderr io.Writer) int {
+	opts, err := parseToolsOptions(args)
+	if err != nil {
+		if errors.Is(err, errHelpRequested) {
+			printToolsUsage(stdout)
+			return 0
+		}
+
+		fmt.Fprintf(stderr, "relay tools: %v\n\n", err)
+		printToolsUsage(stderr)
+		return 1
+	}
+
+	toolList := registeredTools()
+	if opts.json {
+		enc := json.NewEncoder(stdout)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(toolList); err != nil {
+			fmt.Fprintf(stderr, "relay tools: %v\n", err)
+			return 1
+		}
+		return 0
+	}
+
+	groups := groupToolsByCategory(toolList)
+	categories := sortedCategoryNames(groups)
+
+	fmt.Fprintf(stdout, "relay tools (%d total)\n\n", len(toolList))
+	for i, category := range categories {
+		entries := groups[category]
+		fmt.Fprintf(stdout, "%s (%d)\n", category, len(entries))
+		for _, entry := range entries {
+			fmt.Fprintf(stdout, "  %-18s %s\n", entry.Name, truncateDescription(entry.Description, 60))
+		}
+		if i < len(categories)-1 {
+			fmt.Fprintln(stdout)
+		}
+	}
+
+	return 0
+}
+
+func runStatusCommand(args []string, stdout, stderr io.Writer) int {
+	switch validateSimpleCommandArgs("status", args, stdout, stderr, printStatusUsage) {
+	case commandArgsHelp:
+		return 0
+	case commandArgsInvalid:
+		return 1
+	}
+
+	toolList := registeredTools()
+	fmt.Fprintf(stdout, "relay v%s\n", Version)
+	fmt.Fprintf(stdout, "tools: %d registered (%d categories)\n", len(toolList), categoryCount(toolList))
+	fmt.Fprintln(stdout, "transport: stdio (default) | http (with --http)")
+	return 0
+}
+
+func runVersionCommand(args []string, stdout, stderr io.Writer) int {
+	switch validateSimpleCommandArgs("version", args, stdout, stderr, printVersionUsage) {
+	case commandArgsHelp:
+		return 0
+	case commandArgsInvalid:
+		return 1
+	}
+
+	fmt.Fprintln(stdout, Version)
+	return 0
+}
+
+func parseStartOptions(args []string) (startOptions, error) {
+	fs := flag.NewFlagSet("start", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+
+	opts := startOptions{}
+	fs.BoolVar(&opts.http, "http", false, "serve over Streamable-HTTP instead of stdio")
+	fs.StringVar(&opts.addr, "addr", ":8080", "HTTP listen address")
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return startOptions{}, errHelpRequested
+		}
+		return startOptions{}, err
+	}
+
+	if fs.NArg() != 0 {
+		return startOptions{}, fmt.Errorf("unexpected arguments: %s", strings.Join(fs.Args(), " "))
+	}
+
+	return opts, nil
+}
+
+func parseToolsOptions(args []string) (toolsOptions, error) {
+	fs := flag.NewFlagSet("tools", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+
+	opts := toolsOptions{}
+	fs.BoolVar(&opts.json, "json", false, "emit JSON output")
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return toolsOptions{}, errHelpRequested
+		}
+		return toolsOptions{}, err
+	}
+
+	if fs.NArg() != 0 {
+		return toolsOptions{}, fmt.Errorf("unexpected arguments: %s", strings.Join(fs.Args(), " "))
+	}
+
+	return opts, nil
+}
+
+type commandArgsResult int
+
+const (
+	commandArgsOK commandArgsResult = iota
+	commandArgsHelp
+	commandArgsInvalid
+)
+
+func validateSimpleCommandArgs(name string, args []string, stdout, stderr io.Writer, usage func(io.Writer)) commandArgsResult {
+	if len(args) == 0 {
+		return commandArgsOK
+	}
+
+	for _, arg := range args {
+		if arg == "-h" || arg == "--help" || arg == "help" {
+			usage(stdout)
+			return commandArgsHelp
+		}
+	}
+
+	fmt.Fprintf(stderr, "relay %s: unexpected arguments: %s\n\n", name, strings.Join(args, " "))
+	usage(stderr)
+	return commandArgsInvalid
+}
+
+func runStart(opts startOptions) error {
 	_ = godotenv.Load()
 
 	lic, err := license.Verify()
 	if err != nil {
-		fmt.Fprint(os.Stderr, license.FriendlyMessage(err))
-		os.Exit(1)
+		return startupLicenseError{err: err}
 	}
 	logger.Info("licensed", "subject", lic.Subject, "expires", lic.Expires)
 
 	if os.Getenv("ANTHROPIC_API_KEY") == "" {
-		fmt.Fprintln(os.Stderr,
-			"\n[relay] ANTHROPIC_API_KEY is not set."+
-				"\nAdd it to your shell environment or a .env file in the project root.",
-		)
-		os.Exit(1)
+		return apiKeyError{}
 	}
 
 	s := buildServer()
-
-	if *httpMode {
-		serveHTTP(s, *addr)
-		return
+	if opts.http {
+		return serveHTTP(s, opts.addr)
 	}
 
 	logger.Info("relay starting", "version", Version, "transport", "stdio")
-	if err := server.ServeStdio(s); err != nil {
-		logger.Error("server error", "err", err)
-		os.Exit(1)
-	}
+	return server.ServeStdio(s)
 }
 
 func buildServer() *server.MCPServer {
@@ -65,100 +290,14 @@ func buildServer() *server.MCPServer {
 		Version,
 		server.WithToolCapabilities(true),
 	)
-
-	s.AddTool(mcp.NewTool("run_workflow",
-		mcp.WithDescription(
-			"Run the full multi-agent product launch pipeline end-to-end. "+
-				"Reads product_brief.md from the working directory. "+
-				"Orchestrates PM Plan → Research → Brand → UX → GTM with human review after each stage. "+
-				"Auto-resumes from the last completed stage if called again after a crash. "+
-				"All outputs written to ./output/.",
-		),
-		mcp.WithString("brief_path",
-			mcp.Description("Path to brief file. Defaults to ./product_brief.md"),
-		),
-		mcp.WithBoolean("resume",
-			mcp.Description("Force resume from last stage. Default: true if session exists"),
-		),
-	), tools.RunWorkflow)
-
-	s.AddTool(mcp.NewTool("pm_plan",
-		mcp.WithDescription(
-			"PM Agent reads the product brief and writes a focused brief for Agent 1 (Research). "+
-				"Run this first.",
-		),
-		mcp.WithString("brief_path",
-			mcp.Description("Path to brief file. Defaults to ./product_brief.md"),
-		),
-	), tools.PMPlan)
-
-	s.AddTool(mcp.NewTool("run_research",
-		mcp.WithDescription(
-			"Agent 1: Market research, ICP classification, competitor analysis. "+
-				"Uses web search. Reads pm_brief_for_agent1.md from ./output/. "+
-				"Writes 01_research.md.",
-		),
-		mcp.WithString("extra_notes",
-			mcp.Description("Notes from a prior iterate decision to incorporate"),
-		),
-	), tools.RunResearch)
-
-	s.AddTool(mcp.NewTool("run_brand",
-		mcp.WithDescription(
-			"Agent 2: Positioning statement, brand voice, messaging pillars. "+
-				"Reads 01_research.md. Writes 02_brand_messaging.md.",
-		),
-		mcp.WithString("extra_notes", mcp.Description("Iteration notes")),
-	), tools.RunBrand)
-
-	s.AddTool(mcp.NewTool("run_ux",
-		mcp.WithDescription(
-			"Agent 3: Wireframe briefs, screen list, user flows, image-prototype prompts. "+
-				"Writes 03_ux.md.",
-		),
-		mcp.WithString("extra_notes", mcp.Description("Iteration notes")),
-	), tools.RunUX)
-
-	s.AddTool(mcp.NewTool("run_gtm",
-		mcp.WithDescription(
-			"Agent 4: Social media (4a) and B2B outreach (4b) run in parallel via goroutines. "+
-				"Writes 04_go_to_market.md.",
-		),
-		mcp.WithString("extra_notes", mcp.Description("Iteration notes")),
-	), tools.RunGTM)
-
-	s.AddTool(mcp.NewTool("request_approval",
-		mcp.WithDescription(
-			"Present a stage summary to the human and wait for their approve or iterate decision. "+
-				"Blocks until input is received on stdin.",
-		),
-		mcp.WithString("checkpoint",
-			mcp.Required(),
-			mcp.Description("H1, H2, H3, or H4"),
-		),
-		mcp.WithString("summary",
-			mcp.Required(),
-			mcp.Description("PM Agent summary — 5 to 10 bullets"),
-		),
-		mcp.WithArray("questions",
-			mcp.Required(),
-			mcp.Description("2-3 specific questions for the human"),
-			mcp.Items(map[string]any{"type": "string"}),
-		),
-	), tools.RequestApproval)
-
-	s.AddTool(mcp.NewTool("assemble_plan",
-		mcp.WithDescription(
-			"PM Agent assembles all stage outputs into final_product_plan.md. "+
-				"Call after H4 is approved.",
-		),
-		mcp.WithString("product_name", mcp.Description("Optional product name for the title")),
-	), tools.AssemblePlan)
+	reg := tools.DefaultRegistry()
+	reg.RegisterAll(s)
+	logger.Info("tools loaded", "count", reg.Count())
 
 	return s
 }
 
-func serveHTTP(s *server.MCPServer, addr string) {
+func serveHTTP(s *server.MCPServer, addr string) error {
 	httpSrv := server.NewStreamableHTTPServer(s)
 
 	errCh := make(chan error, 1)
@@ -170,25 +309,113 @@ func serveHTTP(s *server.MCPServer, addr string) {
 		if err := httpSrv.Start(addr); err != nil && err != http.ErrServerClosed {
 			errCh <- err
 		}
-		close(errCh)
 	}()
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+	defer signal.Stop(sigCh)
 
 	select {
 	case err := <-errCh:
-		if err != nil {
-			logger.Error("http server error", "err", err)
-			os.Exit(1)
-		}
+		return err
 	case sig := <-sigCh:
 		logger.Info("shutdown signal received", "signal", sig.String())
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		if err := httpSrv.Shutdown(ctx); err != nil {
-			logger.Error("graceful shutdown failed", "err", err)
-			os.Exit(1)
-		}
+		return httpSrv.Shutdown(ctx)
 	}
+}
+
+func registeredTools() []toolInfo {
+	list := tools.DefaultRegistry().List()
+	out := make([]toolInfo, 0, len(list))
+	for _, entry := range list {
+		out = append(out, toolInfo{
+			Name:        entry.Definition.Name,
+			Description: entry.Definition.Description,
+			Category:    entry.Category,
+		})
+	}
+
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Category != out[j].Category {
+			return out[i].Category < out[j].Category
+		}
+		return out[i].Name < out[j].Name
+	})
+
+	return out
+}
+
+func groupToolsByCategory(toolList []toolInfo) map[string][]toolInfo {
+	groups := make(map[string][]toolInfo, len(toolList))
+	for _, entry := range toolList {
+		groups[entry.Category] = append(groups[entry.Category], entry)
+	}
+	return groups
+}
+
+func sortedCategoryNames(groups map[string][]toolInfo) []string {
+	names := make([]string, 0, len(groups))
+	for category := range groups {
+		names = append(names, category)
+	}
+	sort.Strings(names)
+	return names
+}
+
+func categoryCount(toolList []toolInfo) int {
+	seen := make(map[string]struct{}, len(toolList))
+	for _, entry := range toolList {
+		seen[entry.Category] = struct{}{}
+	}
+	return len(seen)
+}
+
+func truncateDescription(input string, max int) string {
+	runes := []rune(strings.TrimSpace(input))
+	if len(runes) <= max {
+		return string(runes)
+	}
+	if max <= 3 {
+		return string(runes[:max])
+	}
+	return string(runes[:max-3]) + "..."
+}
+
+func printUsage(w io.Writer) {
+	fmt.Fprintln(w, "Usage:")
+	fmt.Fprintln(w, "  relay                 Start the MCP server in stdio mode")
+	fmt.Fprintln(w, "  relay start [--http] [--addr :8080]")
+	fmt.Fprintln(w, "  relay tools [--json]")
+	fmt.Fprintln(w, "  relay status")
+	fmt.Fprintln(w, "  relay version")
+	fmt.Fprintln(w, "  relay help")
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Legacy flags:")
+	fmt.Fprintln(w, "  relay -http           Start in HTTP mode")
+	fmt.Fprintln(w, "  relay -addr :9090     Set HTTP address for legacy start mode")
+}
+
+func printStartUsage(w io.Writer) {
+	fmt.Fprintln(w, "Usage:")
+	fmt.Fprintln(w, "  relay")
+	fmt.Fprintln(w, "  relay start [--http] [--addr :8080]")
+	fmt.Fprintln(w, "  relay -http")
+	fmt.Fprintln(w, "  relay -addr :9090")
+}
+
+func printToolsUsage(w io.Writer) {
+	fmt.Fprintln(w, "Usage:")
+	fmt.Fprintln(w, "  relay tools [--json]")
+}
+
+func printStatusUsage(w io.Writer) {
+	fmt.Fprintln(w, "Usage:")
+	fmt.Fprintln(w, "  relay status")
+}
+
+func printVersionUsage(w io.Writer) {
+	fmt.Fprintln(w, "Usage:")
+	fmt.Fprintln(w, "  relay version")
 }
