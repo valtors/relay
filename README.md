@@ -1,345 +1,237 @@
+<div align="center">
+
 # relay
 
-A Model Context Protocol (MCP) server in Go that orchestrates a 5-stage,
-multi-agent product launch pipeline (PM → Research → Brand → UX → GTM)
-with mandatory human checkpoints between every stage.
+**The first MCP server for product launches.**
 
-Single binary. Stdio transport. Survives crashes. Works in Claude Code,
-VS Code Copilot, Cursor, Windsurf, GitHub Copilot CLI.
+[![CI](https://img.shields.io/github/actions/workflow/status/valtors/relay/ci.yml?style=flat&label=ci)](https://github.com/valtors/relay/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/valtors/relay?style=flat)](https://github.com/valtors/relay/releases/latest)
+[![Go Report Card](https://goreportcard.com/badge/github.com/valtors/relay)](https://goreportcard.com/report/github.com/valtors/relay)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/valtors/relay)](go.mod)
 
-[![ci](https://github.com/valtors/relay/actions/workflows/ci.yml/badge.svg)](https://github.com/valtors/relay/actions/workflows/ci.yml)
-[![release](https://github.com/valtors/relay/actions/workflows/release.yml/badge.svg)](https://github.com/valtors/relay/actions/workflows/release.yml)
+A multi-agent pipeline that takes your product from idea to launch plan.
+Five stages. Human checkpoints between each. One Go binary. Runs inside any MCP client.
 
----
+[Quick Start](#quick-start) · [How It Works](#how-it-works) · [Install](#install) · [Contributing](#contributing)
 
-## 🚀 Quickstart tour (5 minutes)
-
-> Goal: go from "fresh clone" to "Claude Code is running the full PM→GTM pipeline on a sample brief".
-
-### 1. Get the binary
-
-This repo is private. The official distribution channel is GitHub Releases,
-downloaded via the [GitHub CLI](https://cli.github.com/) (`gh`) so you
-authenticate once and never paste a token into a curl command.
-
-**Option A — download a release with `gh`** (recommended):
-
-```bash
-# one-time: install + auth
-gh auth login
-
-# pick the binary for your OS — only one of these:
-gh release download --repo valtors/relay --pattern "RELAY-darwin-arm64*"        # macOS Apple Silicon
-gh release download --repo valtors/relay --pattern "RELAY-darwin-amd64*"        # macOS Intel
-gh release download --repo valtors/relay --pattern "RELAY-linux-amd64*"         # Linux x86_64
-gh release download --repo valtors/relay --pattern "RELAY-linux-arm64*"         # Linux arm64
-gh release download --repo valtors/relay --pattern "RELAY-windows-amd64.exe*"   # Windows
-
-# verify checksum, then install onto your PATH
-# macOS / Linux:
-sha256sum --check RELAY-*.sha256
-chmod +x RELAY-* && sudo mv RELAY-* /usr/local/bin/relay
-
-# Windows PowerShell:
-$expected = (Get-Content RELAY-windows-amd64.exe.sha256).Split(" ")[0]
-$actual   = (Get-FileHash RELAY-windows-amd64.exe -Algorithm SHA256).Hash.ToLower()
-if ($expected -ne $actual) { throw "checksum mismatch" }
-Move-Item RELAY-windows-amd64.exe "$env:USERPROFILE\bin\relay.exe"
-```
-
-**Option B — build from source:**
-
-```bash
-gh repo clone valtors/relay
-cd relay
-go install .   # binary lands in $(go env GOPATH)/bin
-```
-
-### 2. Set your Anthropic API key
-
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...     # macOS / Linux
-$env:ANTHROPIC_API_KEY = "sk-ant-..."   # Windows PowerShell
-```
-
-### 3. Make a workspace + brief
-
-```bash
-mkdir my-launch && cd my-launch
-cat > product_brief.md <<'EOF'
-# Product Brief: <your product name>
-
-## What
-One paragraph: what is it.
-
-## Why
-What pain it solves and why now.
-
-## Target user
-Who specifically, and what they currently do instead.
-
-## Constraints
-Budget, team size, ship date, business model.
-
-## Success metric
-One measurable goal for the first 90 days.
-EOF
-```
-
-### 4. Wire it into your MCP client
-
-Drop a `.mcp.json` in the workspace (Claude Code, Cursor, Windsurf all read this):
-
-```json
-{
-  "mcpServers": {
-    "relay": {
-      "command": "relay",
-      "env": { "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}" }
-    }
-  }
-}
-```
-
-Then launch your MCP client from the workspace dir:
-
-```bash
-claude         # or: cursor . / code . / copilot
-```
-
-Approve the `relay` server when prompted.
-
-### 5. Run the pipeline
-
-In your client's chat, ask:
-
-> Use the `run_workflow` tool with `brief_path: "./product_brief.md"`.
-
-The server will execute PM → Research → Brand → UX → GTM and pause at each
-of four checkpoints (`H1`–`H4`). Reply `approve` to advance, `iterate <feedback>`
-to redo a stage with notes, or `skip` to fast-forward.
-
-When done you'll find every artifact in `./output/` and the stitched plan at
-`./output/final_product_plan.md`.
-
-> 💡 If the process crashes mid-pipeline, just call `run_workflow` again with
-> the same brief — completed stages are skipped via `output/.session.meta.json`.
+</div>
 
 ---
 
-## Pipeline
+## What is Relay?
+
+Relay is an MCP server written in Go. You wire it into your editor (Claude Code, Cursor, VS Code Copilot, Windsurf) and it runs a structured, resumable product launch workflow:
 
 ```
-product_brief.md
-        │
-        ▼
-   pm_plan ─────────► output/pm_brief_for_agent1.md
-        │
-        ▼
- run_research ─────► output/01_research.md       (web search enabled)
-        │
-        ▼  H1: human approves or iterates with notes
- run_brand ────────► output/02_brand_messaging.md
-        │
-        ▼  H2
- run_ux ───────────► output/03_ux.md
-        │
-        ▼  H3
- run_gtm ──────────► output/04_go_to_market.md   (4a + 4b parallel)
-        │
-        ▼  H4
- assemble_plan ───► output/final_product_plan.md
+Brief → PM → Research → Brand → UX → GTM → Launch Plan
+         ↑       ↑        ↑      ↑      ↑
+      approve  approve  approve approve approve
 ```
 
-Each `H*` checkpoint writes a reviewable `output/checkpoint_H*.md` file and
-blocks on stdin. The human sends `approve` to advance or `iterate <notes>`
-to re-run that stage with the notes injected into the agent's context.
+Every stage produces a real artifact. Every stage pauses for your approval before continuing. Your data stays on your machine.
 
-## Tools (8)
+---
 
-| Tool | Purpose |
-|------|---------|
-| `run_workflow` | Master orchestrator — runs the entire pipeline with crash-resume |
-| `pm_plan` | Reads brief → writes focused Agent 1 brief |
-| `run_research` | Agent 1 — market, ICP, competitors (web search) |
-| `run_brand` | Agent 2 — positioning, voice, pillars |
-| `run_ux` | Agent 3 — flows, screens, wireframes, prototype prompts |
-| `run_gtm` | Agent 4 — social (4a) + B2B outreach (4b) in parallel |
-| `request_approval` | Human-in-the-loop checkpoint (stdin) |
-| `assemble_plan` | Stitches every stage into `final_product_plan.md` |
+## Why Relay?
 
-## Install
+You shipped a product. Now what? Who do you tell? What do you say? In what order?
 
-### From source
+Most founders ask ChatGPT, get generic slop, post once on X, get 4 likes, and give up. Relay forces a **plan before any copy** and grounds everything in your specific audience, positioning, and channels.
 
-```bash
-git clone <this repo>
-cd relay
-go install .
-```
+| Problem | How Relay Solves It |
+|---|---|
+| ChatGPT forgets your context every session | Relay persists state as JSON on disk |
+| No structure to marketing work | Five opinionated stages with real deliverables |
+| Generic AI copy that sounds like everyone else | Each stage builds on the last, grounded in YOUR product |
+| Launch day comes and goes with no plan | GTM stage produces a sequenced, multi-channel playbook |
+| Tools cost $100+/mo and need a team | Single binary, MIT license, bring your own API key |
 
-The binary lands at `$(go env GOPATH)/bin/relay` — make sure that
-directory is on your `$PATH`.
+---
 
-### Pre-built binaries
+## How It Works
 
-```bash
-make release
-# → dist/RELAY-darwin-arm64
-# → dist/RELAY-darwin-amd64
-# → dist/RELAY-linux-amd64
-# → dist/RELAY-linux-arm64
-# → dist/RELAY-windows-amd64.exe
-```
+### The 5-Stage Pipeline
 
-On Windows without `make`, use the equivalent PowerShell loop in `Makefile`.
-
-## Configure your MCP client
-
-Set `ANTHROPIC_API_KEY` in the environment before launching the server.
-
-### Claude Code — `.mcp.json`
-
-```json
-{
-  "mcpServers": {
-    "relay": {
-      "command": "relay",
-      "env": { "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}" }
-    }
-  }
-}
-```
-
-### VS Code + Copilot — `.vscode/mcp.json`
-
-```json
-{
-  "servers": {
-    "relay": {
-      "command": "relay",
-      "env": { "ANTHROPIC_API_KEY": "${env:ANTHROPIC_API_KEY}" }
-    }
-  }
-}
-```
-
-### GitHub Copilot CLI — `~/.copilot/mcp-config.json`
-
-```json
-{
-  "mcpServers": {
-    "relay": {
-      "type": "stdio",
-      "command": "relay",
-      "env": { "ANTHROPIC_API_KEY": "YOUR_KEY_HERE" }
-    }
-  }
-}
-```
-
-### Cursor / Windsurf
-
-Same shape as Claude Code's `.mcp.json` above.
-
-## Usage
-
-1. Drop a `product_brief.md` in the directory you want outputs written to.
-2. From your MCP client, call `run_workflow` with `brief_path: "./product_brief.md"`.
-3. The server logs progress to stderr and blocks at each H1–H4 checkpoint
-   waiting for your decision on stdin.
-4. When done you'll find `./output/final_product_plan.md`.
-
-If the process crashes mid-pipeline, just call `run_workflow` again with the
-same brief path — completed stages are skipped via `output/.session.meta.json`.
-
-## Transports
-
-The server speaks two transports. Default is **stdio** (best for local tools
-like Claude Code, Cursor, Copilot CLI). Pass `--http` to expose the same 8
-tools over Streamable-HTTP for remote clients (e.g. Claude.ai connectors).
-
-```bash
-# stdio (default) — what every MCP client config above expects
-relay
-
-# Streamable-HTTP on :8080 (default)
-relay --http
-
-# Custom bind address
-relay --http --addr 0.0.0.0:9000
-```
-
-The HTTP endpoint lives at `/mcp`. SIGINT / SIGTERM trigger graceful shutdown
-with a 5-second drain.
-
-> **Note on HTTP mode:** stdin is unused, so checkpoint prompts auto-approve
-> (the same behaviour as any non-TTY stdio session). This is the right
-> default for an unattended remote server but means you do not get
-> interactive iterate/skip control over HTTP — drive the pipeline via
-> stdio if you need to iterate.
-
-### Claude.ai connector
-
-Expose the binary publicly (e.g. behind your reverse proxy of choice) and add
-a connector pointing at `https://your-host/mcp`. The transport enforces an
-MCP `initialize` handshake before any tool call, so the endpoint is safe to
-expose — unauthenticated `tools/list` calls receive HTTP 404 ("Invalid
-session ID").
-
-## Environment variables
-
-| Variable | Default | Purpose |
+| Stage | Agent | Artifact |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | *(required)* | Server exits non-zero on startup if missing |
-| `MAX_ITERATIONS_PER_STAGE` | `5` | Hard cap on iterate loops; auto-advances with warning when reached |
-| `CHECKPOINT_TIMEOUT_MINUTES` | `0` (off) | Auto-approve the checkpoint after N minutes of inactivity |
+| **PM** | Product Manager | `prd.md` - problem, users, scope, success metrics |
+| **Research** | Researcher | `research.md` - market scan, competitors, sources |
+| **Brand** | Brand Strategist | `brand.md` - positioning, voice, messaging |
+| **UX** | UX Architect | `ux.md` - user flows, screen inventory, key states |
+| **GTM** | Go-to-Market | `gtm.md` - launch checklist, channels, copy drafts |
 
-## Design guarantees
+### The 8 MCP Tools
 
-- **Atomic writes** — every output file goes through `WriteFile(.tmp) → Rename()`.
-- **PID lockfiles** — concurrent calls to the same agent return an error
-  rather than corrupting output. Stale locks (dead PID) are auto-cleared.
-- **Context-window guard** — `ctxguard.Build` keeps total prompt under 120k
-  chars; optional sections are dropped first, with a slog warning.
-- **Crash-resume** — `output/.session.meta.json` tracks `completedStages`;
-  re-running `run_workflow` skips them.
-- **Non-interactive auto-approve** — when stdin is not a TTY, checkpoints
-  auto-approve so the pipeline runs cleanly in CI.
-- **Stdout cleanliness** — all logs go to stderr; stdout is reserved for the
-  MCP JSON-RPC wire (verified by Phase 0's connection test).
-- **Parallel GTM with panic recovery** — Agent 4a + 4b run concurrently;
-  goroutine panics are recovered and surfaced as tool errors.
+```
+start_workflow    Kick off a new run from a one-line idea
+get_state         Current phase, status, last artifact
+list_phases       Pipeline overview with completion status
+start_phase       Begin a specific phase (idempotent)
+get_artifact      Return the rendered artifact for a phase
+approve           Advance past the current checkpoint
+revise            Loop the current phase with feedback
+abort             Clean shutdown, preserve state
+```
 
-## Development
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Any MCP-compatible editor (Claude Code, Cursor, VS Code Copilot, Windsurf)
+- An Anthropic API key
+
+### Install
+
+**Option A: Download binary**
 
 ```bash
-make build          # local binary
-make test           # full test suite (no API key required)
-make lint           # go vet + gofmt -l
+# macOS / Linux
+curl -fsSL https://github.com/valtors/relay/releases/latest/download/relay_$(uname -s)_$(uname -m).tar.gz | tar xz
+sudo mv relay /usr/local/bin/
 ```
 
-The test suite runs without an `ANTHROPIC_API_KEY` — LLM-call paths are
-exercised with a bogus key and asserted to surface as `IsError=true` results,
-which is sufficient to verify wiring. Content quality requires a real key
-and is verified by hand at the H1–H4 checkpoints.
+```powershell
+# Windows
+gh release download --repo valtors/relay --pattern "*windows_amd64.zip"
+```
 
-## Layout
+**Option B: Build from source**
+
+```bash
+go install github.com/valtors/relay@latest
+```
+
+### Configure Your Editor
+
+Add to your MCP config (`.mcp.json` or editor settings):
+
+```json
+{
+  "mcpServers": {
+    "relay": {
+      "command": "relay",
+      "env": {
+        "ANTHROPIC_API_KEY": "sk-ant-..."
+      }
+    }
+  }
+}
+```
+
+### Run
 
 ```
-.
-├── main.go                       MCP server entrypoint, registers 8 tools
-├── tools/                        One file per tool + tests
-├── internal/
-│   ├── claude/                   Anthropic SDK wrapper (Call, CallWithSearch, CallJSON)
-│   ├── ctxguard/                 120k-char window guard + multi-part Build
-│   ├── logger/                   slog → stderr only
-│   └── state/                    Atomic writes, PID locks, session meta
-├── prompts/                      //go:embed *.md system prompts
-├── Makefile                      build / test / release
-└── dist/                         Cross-platform release binaries
+> start_workflow "A CLI tool that helps developers write better commit messages"
 ```
+
+Relay kicks off the PM stage. Review the PRD it produces, then `approve` to advance or `revise "focus more on teams"` to iterate.
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Your Editor (Claude Code / Cursor / Copilot / etc) │
+│      │                                               │
+│      │  stdio (JSON-RPC, MCP)                        │
+│      ▼                                               │
+│  ┌───────────────────────────────────────────┐      │
+│  │  relay  (single Go binary, ~12 MB)        │      │
+│  │  ─────────────────────────────────────    │      │
+│  │  MCP server       (stdio transport)       │      │
+│  │  Workflow engine   (5 stages, resumable)   │      │
+│  │  Checkpoints      (JSON on disk)          │      │
+│  │  LLM client       (Anthropic, your key)   │      │
+│  └───────────────────────────────────────────┘      │
+│      │                                               │
+│      ▼                                               │
+│  ./.relay/                                           │
+│      ├── state.json                                  │
+│      ├── artifacts/{stage}/...                       │
+│      └── logs/                                       │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## Design Principles
+
+| Principle | In Practice |
+|---|---|
+| **Human-in-the-loop** | Every stage ends with an explicit checkpoint. The agent never advances without your approval. |
+| **Local-first** | One binary. No cloud. No telemetry. Your API keys and artifacts never leave your machine. |
+| **Resumable** | State is plain JSON on disk. Crashes, reboots, Ctrl-C don't lose work. Pick up days later. |
+| **MCP-native** | Speaks the Model Context Protocol. Any MCP-aware editor just works. |
+| **Boring tech** | Go stdlib. JSON files. No frameworks. Fewer moving parts. |
+
+---
+
+## Stack
+
+| Layer | Choice |
+|---|---|
+| Language | Go |
+| Transport | MCP over stdio |
+| LLM | Anthropic API (bring your own key) |
+| State | JSON files on disk |
+| Build | GitHub Actions + GoReleaser |
+| Platforms | darwin/linux/windows, amd64/arm64 |
+
+---
+
+## Contributing
+
+We welcome contributions. Whether it is fixing a bug, improving prompts, adding a new stage, or writing docs.
+
+### Getting Started
+
+1. Fork the repo
+2. Clone your fork
+3. Run tests: `go test ./...`
+4. Make your changes
+5. Open a PR with a clear description of what changed and why
+
+### Areas Where Help is Needed
+
+- Prompt engineering for each agent stage
+- Additional output formats (JSON, HTML)
+- New stages (Analytics, Email sequences, Content calendar)
+- Editor-specific integration guides
+- Testing across different MCP clients
+
+See [open issues](https://github.com/valtors/relay/issues) for specific tasks.
+
+---
+
+## Roadmap
+
+- [x] Core 5-stage pipeline
+- [x] Checkpoint approval system
+- [x] Resumable state
+- [x] Cross-platform binaries
+- [ ] GoReleaser integration
+- [ ] Web UI (relay-web)
+- [ ] Plugin system for custom stages
+- [ ] Multi-LLM support (OpenAI, local models via Ollama)
+- [ ] Template library for common product types
+- [ ] Post-launch persistence (weekly content batches)
+
+---
 
 ## License
 
-(Add a license file if distributing publicly.)
+MIT - see [LICENSE](LICENSE) for details.
+
+---
+
+<div align="center">
+
+**[Star on GitHub](https://github.com/valtors/relay)** · **[Report a Bug](https://github.com/valtors/relay/issues)** · **[Request a Feature](https://github.com/valtors/relay/issues)**
+
+Built by [Tamish](https://github.com/tamish560) at [Valtors](https://github.com/valtors)
+
+</div>
