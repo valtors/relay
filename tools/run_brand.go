@@ -1,13 +1,3 @@
-// Package tools — run_brand is Agent 2: positioning, brand voice, messaging
-// pillars, audience variants, tagline options.
-//
-// Reads pm_brief_for_agent1.md + 01_research.md from ./output/.
-// Writes 02_brand_messaging.md atomically.
-//
-// No web search — brand work is grounded in the research dossier from Agent 1.
-//
-// Lock: 02_brand_messaging.md is guarded with a PID lockfile so concurrent
-// invocations cannot corrupt the output mid-write.
 package tools
 
 import (
@@ -49,10 +39,6 @@ func RunBrand(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, 
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 
-	// Use ctxguard.Build so each labelled section is independently guarded
-	// against the 120k-char window. Both sections are required — the dossier
-	// can grow large after web search but we cannot make brand decisions
-	// without it.
 	contextBlock := ctxguard.Build([]ctxguard.Part{
 		{Label: "PM Brief", Content: pmBrief, Required: true},
 		{Label: "Research Dossier", Content: research, Required: true},

@@ -12,8 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// chdirTemp swaps cwd to a fresh temp dir for the duration of the test so the
-// state package's ./output/ writes don't pollute the repo.
 func chdirTemp(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
@@ -24,8 +22,6 @@ func chdirTemp(t *testing.T) string {
 	return dir
 }
 
-// withStdin replaces os.Stdin with the given content (as a non-TTY pipe) for
-// the duration of the test.
 func withStdin(t *testing.T, content string) {
 	t.Helper()
 	r, w, err := os.Pipe()
@@ -42,8 +38,6 @@ func withStdin(t *testing.T, content string) {
 	})
 }
 
-// makeReq builds a CallToolRequest carrying the given Arguments map, mimicking
-// what the MCP server passes to a tool handler.
 func makeReq(args map[string]any) mcp.CallToolRequest {
 	var req mcp.CallToolRequest
 	req.Params.Name = "request_approval"
@@ -62,7 +56,6 @@ func parseResult(t *testing.T, res *mcp.CallToolResult) CheckpointResult {
 	return cr
 }
 
-// textOf extracts the .Text field from a tool result's first content block.
 func textOf(t *testing.T, res *mcp.CallToolResult) string {
 	t.Helper()
 	require.NotNil(t, res)
@@ -74,7 +67,7 @@ func textOf(t *testing.T, res *mcp.CallToolResult) string {
 
 func TestRequestApproval_NonInteractiveAutoApproves(t *testing.T) {
 	dir := chdirTemp(t)
-	withStdin(t, "") // empty pipe — non-TTY, auto-approve path
+	withStdin(t, "")
 
 	res, err := RequestApproval(t.Context(), makeReq(map[string]any{
 		"checkpoint": "H1",
@@ -87,7 +80,6 @@ func TestRequestApproval_NonInteractiveAutoApproves(t *testing.T) {
 	assert.Equal(t, "approve", cr.Decision)
 	assert.Contains(t, cr.Notes, "non-interactive")
 
-	// Checkpoint file is written and includes the decision footer.
 	body, err := os.ReadFile(filepath.Join(dir, "output", "checkpoint_H1.md"))
 	require.NoError(t, err)
 	assert.Contains(t, string(body), "# Checkpoint H1")
@@ -116,18 +108,16 @@ func TestRequestApproval_QuestionsAcceptsAnySlice(t *testing.T) {
 	chdirTemp(t)
 	withStdin(t, "")
 
-	// MCP servers often deliver array args as []any after JSON unmarshaling.
 	res, err := RequestApproval(t.Context(), makeReq(map[string]any{
 		"checkpoint": "H2",
 		"summary":    "brand done",
 		"questions":  []any{"voice OK?", "pillars OK?"},
 	}))
 	require.NoError(t, err)
-	parseResult(t, res) // shouldn't panic / shouldn't error
+	parseResult(t, res)
 
 	body, err := os.ReadFile(filepath.Join(t.TempDir()+"/..", "checkpoint_H2.md"))
 	if err != nil {
-		// Recover: re-derive cwd based output dir
 		body, err = os.ReadFile(filepath.Join("output", "checkpoint_H2.md"))
 		require.NoError(t, err)
 	}

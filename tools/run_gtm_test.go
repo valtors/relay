@@ -44,8 +44,6 @@ func TestRunGTM_WithUpstreamFilesReachesLLMCall(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.True(t, res.IsError, "bogus API key should surface as LLM error")
-	// Either the social or b2b goroutine wins the race to fail — both are
-	// valid signals that the parallel call wiring reached the LLM.
 	body := textOf(t, res)
 	assert.True(t,
 		strings.Contains(body, "social agent:") || strings.Contains(body, "b2b agent:"),
@@ -62,8 +60,6 @@ func TestRunGTM_LockReleasedOnFailure(t *testing.T) {
 	res1, _ := RunGTM(context.Background(), makeReq(map[string]any{}))
 	require.True(t, res1.IsError)
 
-	// If the lock had leaked from the first call the second call would error
-	// with "lock held by ...". Instead it should reach the LLM stage again.
 	res2, _ := RunGTM(context.Background(), makeReq(map[string]any{}))
 	require.True(t, res2.IsError)
 	body := textOf(t, res2)

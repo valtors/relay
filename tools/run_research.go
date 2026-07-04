@@ -1,12 +1,3 @@
-// Package tools — run_research is Agent 1: market snapshot, ICP classification,
-// competitor analysis, strategic insights — backed by Claude's web_search tool.
-//
-// Reads pm_brief_for_agent1.md from ./output/ (produced by pm_plan).
-// Writes 01_research.md atomically.
-//
-// Lock: 01_research.md is guarded with a PID lockfile so concurrent invocations
-// (e.g. an accidental double-call from a flaky MCP client) cannot corrupt the
-// output mid-write.
 package tools
 
 import (

@@ -22,20 +22,14 @@ import (
 var Version = "dev"
 
 func main() {
-	// CLI flags decide the transport. Defaults preserve Phase 0 behaviour
-	// (stdio) so existing MCP client configs keep working unchanged.
 	httpMode := flag.Bool("http", false,
 		"serve over Streamable-HTTP (Claude.ai compatible) instead of stdio")
 	addr := flag.String("addr", ":8080",
 		"HTTP listen address (only used with -http). Endpoint is <addr>/mcp")
 	flag.Parse()
 
-	// Load .env if present — ignore error (file may not exist in prod).
 	_ = godotenv.Load()
 
-	// License check FIRST. Closed-beta builds refuse to run for users we
-	// haven't issued a key to. Failure here prints a friendly multi-line
-	// box telling the user how to request access.
 	lic, err := license.Verify()
 	if err != nil {
 		fmt.Fprint(os.Stderr, license.FriendlyMessage(err))
@@ -43,8 +37,6 @@ func main() {
 	}
 	logger.Info("licensed", "subject", lic.Subject, "expires", lic.Expires)
 
-	// Fail fast before registering any tools. A missing API key discovered
-	// mid-pipeline wastes minutes of LLM calls.
 	if os.Getenv("ANTHROPIC_API_KEY") == "" {
 		fmt.Fprintln(os.Stderr,
 			"\n[relay] ANTHROPIC_API_KEY is not set."+
@@ -67,10 +59,6 @@ func main() {
 	}
 }
 
-// buildServer constructs the MCPServer and registers all 8 tools. Extracted
-// so the same registration runs under both stdio and HTTP transports — and
-// so HTTP smoke tests can spin up an isolated server without re-listing the
-// tool definitions.
 func buildServer() *server.MCPServer {
 	s := server.NewMCPServer(
 		"relay",
@@ -170,16 +158,9 @@ func buildServer() *server.MCPServer {
 	return s
 }
 
-// serveHTTP starts the Streamable-HTTP transport (the Claude.ai-compatible
-// remote MCP transport). It honours SIGINT/SIGTERM for graceful shutdown.
-//
-// Stdin is unused in HTTP mode — request_approval will detect the non-TTY
-// stdin and auto-approve checkpoints, which is the right behaviour for an
-// unattended remote server.
 func serveHTTP(s *server.MCPServer, addr string) {
 	httpSrv := server.NewStreamableHTTPServer(s)
 
-	// Run the listener in a goroutine so we can also wait on signals.
 	errCh := make(chan error, 1)
 	go func() {
 		logger.Info("relay starting",

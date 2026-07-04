@@ -54,8 +54,6 @@ func TestRunBrand_LockReleasedOnFailure(t *testing.T) {
 	require.NoError(t, state.WriteOutput("01_research.md", "# Research\nfindings"))
 	t.Setenv("ANTHROPIC_API_KEY", "sk-bogus-not-real")
 
-	// First call fails at the LLM stage. Second call must still acquire the
-	// lock — proving defer ReleaseLock fired even on the error path.
 	res1, _ := RunBrand(context.Background(), makeReq(map[string]any{}))
 	require.True(t, res1.IsError)
 

@@ -9,8 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Without pm_brief_for_agent1.md present, the tool reports the missing
-// upstream output as a tool error (NOT a Go error).
 func TestRunResearch_MissingPMBriefReturnsToolError(t *testing.T) {
 	chdirTemp(t)
 
@@ -24,9 +22,6 @@ func TestRunResearch_MissingPMBriefReturnsToolError(t *testing.T) {
 	assert.Contains(t, body, "run the prior stage first")
 }
 
-// When pm_brief is present, the brief-load path succeeds and the next failure
-// (the LLM call with a bogus key) surfaces — proving the upstream wiring,
-// prompt loading, and lock acquisition all work.
 func TestRunResearch_WithBriefReachesLLMCall(t *testing.T) {
 	dir := chdirTemp(t)
 
@@ -48,7 +43,6 @@ func TestRunResearch_WithBriefReachesLLMCall(t *testing.T) {
 	assert.Contains(t, body, "LLM error", "should fail at LLM call, not earlier")
 }
 
-// Lock is released on the happy *and* failure paths so a second call can run.
 func TestRunResearch_LockReleasedOnFailure(t *testing.T) {
 	dir := chdirTemp(t)
 	require.NoError(t, os.MkdirAll(filepath.Join(dir, "output"), 0o755))
@@ -59,17 +53,13 @@ func TestRunResearch_LockReleasedOnFailure(t *testing.T) {
 	))
 	t.Setenv("ANTHROPIC_API_KEY", "sk-ant-test-invalid")
 
-	// First call fails at LLM step; defer should release the lock.
 	res1, err := RunResearch(t.Context(), makeReq(map[string]any{}))
 	require.NoError(t, err)
 	require.True(t, res1.IsError)
 
-	// Lock file should be gone.
 	_, statErr := os.Stat(filepath.Join(dir, "output", "01_research.md.lock"))
 	assert.True(t, os.IsNotExist(statErr), "lock should be released after failure")
 
-	// Second call must NOT trip the "is locked" guard — it should reach the
-	// LLM call again (and fail there).
 	res2, err := RunResearch(t.Context(), makeReq(map[string]any{}))
 	require.NoError(t, err)
 	require.True(t, res2.IsError)

@@ -1,9 +1,3 @@
-// genlicense mints early-tester license keys. PRIVATE TOOL — never ship.
-//
-// Usage:
-//
-//	go run ./cmd/genlicense -email alice@example.com
-//	go run ./cmd/genlicense -email bob@x.com -days 60
 package main
 
 import (
@@ -46,7 +40,6 @@ func main() {
 		die("sign: %v", err)
 	}
 
-	// Sanity-verify what we just minted (catches subtle key/embed mismatches).
 	embeddedPub, err := os.ReadFile("internal/license/embedded_public_key.pem")
 	if err == nil {
 		if _, err := license.VerifyWithKey(tok, embeddedPub); err != nil {

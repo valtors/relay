@@ -1,5 +1,3 @@
-// Package claude wraps the official Anthropic SDK with retry, timeout,
-// structured error types, and a JSON extraction helper.
 package claude
 
 import (
@@ -54,7 +52,6 @@ func envDuration(k string, defSec int) time.Duration {
 	return time.Duration(defSec)
 }
 
-// ErrorKind classifies LLM failures.
 type ErrorKind string
 
 const (
@@ -64,7 +61,6 @@ const (
 	ErrParseJSON ErrorKind = "parse_error"
 )
 
-// Error is a structured LLM error with retry guidance.
 type Error struct {
 	Kind      ErrorKind
 	Message   string
@@ -75,18 +71,10 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("llm %s: %s", e.Kind, e.Message)
 }
 
-// Client wraps the Anthropic SDK.
 type Client struct {
 	inner anthropic.Client
 }
 
-// New constructs a Client. Reads ANTHROPIC_API_KEY from the environment.
-// If relay_ANTHROPIC_BASE_URL is set, the SDK is pointed at that URL instead
-// of api.anthropic.com — useful for Anthropic-compatible proxies (mega, etc.).
-//
-// The SDK's per-request timeout is widened to match relay_TIMEOUT_SECONDS so
-// large streaming responses (e.g. assemble_plan, which can take many minutes
-// on slower models / proxies) aren't capped by the SDK's internal default.
 func New() *Client {
 	var opts []option.RequestOption
 	if base := os.Getenv("relay_ANTHROPIC_BASE_URL"); base != "" {
@@ -100,7 +88,6 @@ func New() *Client {
 	return &Client{inner: anthropic.NewClient(opts...)}
 }
 
-// Call sends a standard completion request with retry + exponential backoff.
 func (c *Client) Call(ctx context.Context, system, user string) (string, error) {
 	logger.Info("calling claude", "model", Model)
 	return c.withRetry(ctx, func() (string, error) {
@@ -108,15 +95,9 @@ func (c *Client) Call(ctx context.Context, system, user string) (string, error) 
 	})
 }
 
-// CallWithSearch sends a completion request with a web_search tool enabled.
-// Falls back to a plain Call if the response is empty (some Anthropic-compatible
-// proxies, e.g. megallm, return 200 with empty content when they don't honour
-// the web_search tool).
 func (c *Client) CallWithSearch(ctx context.Context, system, user string) (string, error) {
 	logger.Info("calling claude + web search", "model", Model)
 
-	// Proxy mode: provider doesn't expose web_search server-side, so we run
-	// our own DuckDuckGo search and inject the results into the user prompt.
 	if os.Getenv("relay_ANTHROPIC_BASE_URL") != "" {
 		return c.callWithDDG(ctx, system, user)
 	}
@@ -146,14 +127,6 @@ func (c *Client) CallWithSearch(ctx context.Context, system, user string) (strin
 	return out, nil
 }
 
-// callWithDDG performs in-MCP web research:
-//  1. Asks the LLM for a small set of search queries (cheap JSON call).
-//  2. Runs them via DuckDuckGo's HTML SERP.
-//  3. Injects the results into the user prompt and calls the LLM normally.
-//
-// If query generation or search both fail, falls back to the plain
-// "training knowledge with [unverified] tags" prompt so the agent still
-// produces something usable.
 func (c *Client) callWithDDG(ctx context.Context, system, user string) (string, error) {
 	queries, qErr := c.generateSearchQueries(ctx, system, user)
 	if qErr != nil || len(queries) == 0 {
@@ -179,8 +152,6 @@ func (c *Client) callWithDDG(ctx context.Context, system, user string) (string, 
 	return c.Call(ctx, system, augUser)
 }
 
-// generateSearchQueries asks the LLM to produce 3-5 focused web search queries
-// for the given task. Uses a small token budget; falls back to nothing on parse error.
 func (c *Client) generateSearchQueries(ctx context.Context, system, user string) ([]string, error) {
 	prompt := "You will be given a research task. Produce 3 to 5 focused web search queries " +
 		"that would gather the strongest evidence for the task. Output ONLY a JSON object " +
@@ -190,7 +161,6 @@ func (c *Client) generateSearchQueries(ctx context.Context, system, user string)
 	var dest struct {
 		Queries []string `json:"queries"`
 	}
-	// Use a tighter call: small system, JSON-only.
 	raw, err := c.Call(ctx, "You produce JSON-only responses. No markdown fences.", prompt)
 	if err != nil {
 		return nil, err
@@ -211,8 +181,6 @@ func fallbackSystemPrompt(system string) string {
 		"figures are illustrative and require verification.'"
 }
 
-// CallJSON calls Claude and unmarshals the response into dest.
-// Retries once with a stricter prompt if JSON parsing fails.
 func (c *Client) CallJSON(ctx context.Context, system, user string, dest any) error {
 	raw, err := c.Call(ctx, system, user)
 	if err != nil {
@@ -258,11 +226,6 @@ func (c *Client) doCall(ctx context.Context, system, user string, tools []anthro
 		params.Tools = tools
 	}
 
-	// Stream the response. Streaming gives the SDK a per-chunk read deadline
-	// (instead of a single end-to-end deadline), which is critical for slow
-	// proxies and long generations like assemble_plan that can take 5-10+
-	// minutes. It also lets us emit progress logs so the operator knows the
-	// call is alive.
 	stream := c.inner.Messages.NewStreaming(callCtx, params)
 	defer stream.Close()
 

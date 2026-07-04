@@ -1,11 +1,3 @@
-// Package state manages all file I/O for the pipeline.
-//
-// Design decisions:
-//   - Atomic writes: write to .tmp then rename(). rename() is atomic on POSIX
-//     and NTFS. A crash mid-write leaves the original file intact.
-//   - PID lockfile: prevents concurrent tool calls from corrupting shared state.
-//     Stale locks (dead process) are auto-cleared.
-//   - Session meta: tracks completed stages so run_workflow can resume after a crash.
 package state
 
 import (
@@ -21,7 +13,6 @@ import (
 	"relay/internal/logger"
 )
 
-// StageKey identifies a pipeline stage.
 type StageKey string
 
 const (
@@ -33,7 +24,6 @@ const (
 	StageAssembled StageKey = "assembled"
 )
 
-// SessionMeta is persisted to .session.meta.json.
 type SessionMeta struct {
 	StartedAt       string            `json:"startedAt"`
 	BriefPath       string            `json:"briefPath"`
@@ -60,7 +50,6 @@ func cwd() string {
 	return d
 }
 
-// WriteOutput writes content to output/filename atomically.
 func WriteOutput(filename, content string) error {
 	dir, err := OutputDir()
 	if err != nil {
@@ -81,7 +70,6 @@ func WriteOutput(filename, content string) error {
 	return nil
 }
 
-// ReadOutput reads output/filename. Returns a descriptive error if not found.
 func ReadOutput(filename string) (string, error) {
 	dir, err := OutputDir()
 	if err != nil {
@@ -98,7 +86,6 @@ func ReadOutput(filename string) (string, error) {
 	return string(b), nil
 }
 
-// ReadBrief reads the product brief from briefPath, defaulting to ./product_brief.md.
 func ReadBrief(briefPath string) (string, error) {
 	if briefPath == "" {
 		briefPath = filepath.Join(cwd(), "product_brief.md")
@@ -130,7 +117,6 @@ func lockPath(filename string) (string, error) {
 	return filepath.Join(dir, filename+".lock"), nil
 }
 
-// AcquireLock creates a PID lockfile. Auto-clears stale locks (dead process).
 func AcquireLock(filename string) error {
 	lp, err := lockPath(filename)
 	if err != nil {
@@ -154,7 +140,6 @@ func AcquireLock(filename string) error {
 	return os.WriteFile(lp, []byte(strconv.Itoa(os.Getpid())), 0o644)
 }
 
-// ReleaseLock removes the lockfile. Always call via defer.
 func ReleaseLock(filename string) {
 	if lp, err := lockPath(filename); err == nil {
 		os.Remove(lp)

@@ -1,6 +1,3 @@
-// Package tools — pm_plan implements the PM Agent's first job:
-// read the user's product brief and produce a focused brief for Agent 1
-// (Research). Output is written atomically to ./output/pm_brief_for_agent1.md.
 package tools
 
 import (
@@ -43,8 +40,6 @@ No padding. Every sentence must inform Agent 1.
 Write the Agent 1 brief now, titled "Brief for Agent 1 — Research".`, brief)
 
 	c := claude.New()
-	// Use a fresh background context so the LLM call isn't cancelled if the
-	// MCP client disconnects mid-stream — matches spec.
 	result, err := c.Call(context.Background(), system, user)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("LLM error: %v", err)), nil

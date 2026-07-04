@@ -1,6 +1,3 @@
-// Package search provides lightweight web search for use when the underlying
-// LLM provider does not support a server-side web_search tool (e.g. proxies
-// like megallm). DuckDuckGo's HTML SERP is scraped — no API key required.
 package search
 
 import (
@@ -29,7 +26,6 @@ var (
 	reSpaces  = regexp.MustCompile(`\s+`)
 )
 
-// DDG runs a DuckDuckGo HTML search and returns up to `limit` results.
 func DDG(ctx context.Context, query string, limit int) ([]Result, error) {
 	if limit <= 0 {
 		limit = 5
@@ -81,8 +77,6 @@ func DDG(ctx context.Context, query string, limit int) ([]Result, error) {
 	return out, nil
 }
 
-// DDGMulti runs several queries and returns a flat de-duplicated result list,
-// capped at `perQuery` results per query.
 func DDGMulti(ctx context.Context, queries []string, perQuery int) []Result {
 	seen := map[string]bool{}
 	out := []Result{}
@@ -106,7 +100,6 @@ func DDGMulti(ctx context.Context, queries []string, perQuery int) []Result {
 	return out
 }
 
-// FormatForPrompt renders results as a compact markdown block.
 func FormatForPrompt(results []Result) string {
 	if len(results) == 0 {
 		return "(no search results)"

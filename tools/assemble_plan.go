@@ -1,9 +1,3 @@
-// Package tools — assemble_plan stitches every stage output and the human-
-// review artifacts into a single shippable document: final_product_plan.md.
-//
-// It deliberately does NOT bail on a missing stage file: a partial pipeline
-// (e.g. the user only ran research + brand) should still produce a useful
-// document with whatever data is available. Empty sections are tolerated.
 package tools
 
 import (
@@ -33,16 +27,12 @@ func AssemblePlan(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResu
 		briefPath = strings.TrimSpace(sessionMeta.BriefPath)
 	}
 
-	// Read every stage output. Errors are deliberately swallowed: assembly
-	// runs even with missing pieces (the LLM is told to mark gaps explicitly).
 	research, _ := state.ReadOutput("01_research.md")
 	brand, _ := state.ReadOutput("02_brand_messaging.md")
 	ux, _ := state.ReadOutput("03_ux.md")
 	gtm, _ := state.ReadOutput("04_go_to_market.md")
 	brief, _ := state.ReadBrief(briefPath)
 
-	// Appendix A prefers canonical notes saved in session meta, with the older
-	// checkpoint-file reconstruction retained as a fallback for legacy runs.
 	humanNotes := buildHumanNotesAppendix(sessionMeta)
 
 	system, err := loadPrompt("pm_agent.md")
@@ -50,7 +40,6 @@ func AssemblePlan(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResu
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 
-	// All source materials, labeled. ctxguard drops UX/GTM first if overflow.
 	sources := ctxguard.Build([]ctxguard.Part{
 		{Label: "Original Brief", Content: brief, Required: true},
 		{Label: "Research", Content: research, Required: true},
@@ -59,11 +48,6 @@ func AssemblePlan(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResu
 		{Label: "GTM", Content: gtm, Required: false},
 	})
 
-	// Multi-pass assembly. A single call (or even two) lets opus produce
-	// some sections verbosely and then "naturally stop" before later
-	// sections get written, even when well under max_tokens. Splitting
-	// into four passes (one per section pair) forces each section to be
-	// attempted independently and produces a reliably complete plan.
 	c := claude.New()
 
 	type pass struct {
@@ -130,7 +114,6 @@ Be comprehensive within these sections. Do NOT include the title, sections 0-5, 
 		parts[i] = strings.TrimSpace(out)
 	}
 
-	// Stitch all four passes + Appendix A (human approval notes).
 	final := strings.Join(parts, "\n\n") + "\n\n---\n\n" +
 		"## Appendix A. Human Notes Log\n\n" + humanNotes
 

@@ -1,14 +1,3 @@
-// Package tools — run_gtm is Agent 4: parallel social-media (4a) +
-// B2B outreach (4b) plans, merged with a unified launch calendar.
-//
-// Reads 01_research.md + 02_brand_messaging.md from ./output/.
-// Writes 04_go_to_market.md atomically.
-//
-// Concurrency: 4a and 4b run in two goroutines that hit Claude in parallel.
-// Both must succeed before we write the merged document — partial output
-// would mislead the human reviewer at the H4 checkpoint.
-//
-// Lock: 04_go_to_market.md is guarded with a PID lockfile.
 package tools
 
 import (
@@ -58,8 +47,6 @@ func RunGTM(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, er
 		contextBlock += "\n\n## Iteration Notes\n" + extraNotes
 	}
 
-	// Channel buffered to 1 so the goroutine never blocks even if we return
-	// early on the partner's error.
 	type agentResult struct {
 		output string
 		err    error
@@ -70,9 +57,6 @@ func RunGTM(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, er
 	c := claude.New()
 	ctx := context.Background()
 
-	// callAgent invokes one sub-agent and recovers from panics so a bug in
-	// either branch can never crash the whole MCP server (Edge Case Matrix
-	// row "Goroutine panic in GTM").
 	callAgent := func(label, intro string, ch chan<- agentResult) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -98,8 +82,6 @@ func RunGTM(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, er
 		b2bCh,
 	)
 
-	// Always drain BOTH channels before returning so neither goroutine leaks
-	// even when one of them errors first.
 	social := <-socialCh
 	b2b := <-b2bCh
 
@@ -126,10 +108,6 @@ func RunGTM(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, er
 	), nil
 }
 
-// buildGTMMerge stitches Agent 4a and 4b outputs together with the standard
-// 5-week launch calendar. The calendar is deterministic so the human reviewer
-// always sees the same skeleton at H4 — qualitative content varies, the
-// timeline doesn't.
 func buildGTMMerge(social, b2b string) string {
 	return "# 04 — Go-to-Market Plan\n\n" + social +
 		"\n\n---\n\n" + b2b +

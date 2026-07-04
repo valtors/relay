@@ -15,18 +15,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestBuildServer_RegistersAllEightTools is a smoke test that confirms the
-// registration helper produces a fully-loaded MCPServer regardless of which
-// transport main() chooses. Behaviourally identical to Phase 0's
-// verify_phase0.ps1 but driven from Go.
 func TestBuildServer_RegistersAllEightTools(t *testing.T) {
 	t.Setenv("ANTHROPIC_API_KEY", "sk-bogus-not-real")
 	s := buildServer()
 	require.NotNil(t, s)
 
-	// Use the in-process client to enumerate tools — same code path as a
-	// remote client, just without the HTTP hop. This is the cheapest way
-	// to verify registration without coupling to mcp-go internals.
 	c, err := client.NewInProcessClient(s)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = c.Close() })
@@ -44,10 +37,6 @@ func TestBuildServer_RegistersAllEightTools(t *testing.T) {
 	assertHasAllEightTools(t, names)
 }
 
-// TestStreamableHTTP_ToolsListEndpoint exercises the actual HTTP transport
-// end-to-end: spin up the server on an ephemeral port, do a real MCP
-// initialize handshake over Streamable-HTTP, then list tools. This is the
-// transport real Claude.ai / remote MCP clients use.
 func TestStreamableHTTP_ToolsListEndpoint(t *testing.T) {
 	t.Setenv("ANTHROPIC_API_KEY", "sk-bogus-not-real")
 	s := buildServer()
@@ -74,10 +63,6 @@ func TestStreamableHTTP_ToolsListEndpoint(t *testing.T) {
 	assertHasAllEightTools(t, names)
 }
 
-// TestStreamableHTTP_RejectsRequestWithoutSessionID proves that the
-// transport correctly enforces the session-ID requirement — a request that
-// skips the initialize handshake must NOT be allowed to reach a tool. This
-// is the property that makes the remote endpoint safe to expose.
 func TestStreamableHTTP_RejectsRequestWithoutSessionID(t *testing.T) {
 	t.Setenv("ANTHROPIC_API_KEY", "sk-bogus-not-real")
 	s := buildServer()
@@ -94,20 +79,12 @@ func TestStreamableHTTP_RejectsRequestWithoutSessionID(t *testing.T) {
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
-	// Spec says no session ID → 4xx. Either 400 (bad request) or 404
-	// (invalid session) is acceptable; what matters is the request did
-	// not reach a tool handler.
 	assert.GreaterOrEqual(t, resp.StatusCode, 400,
 		"unauthenticated tool call must be refused, got %d", resp.StatusCode)
 	assert.Less(t, resp.StatusCode, 500,
 		"refusal should be 4xx (client error), not 5xx, got %d", resp.StatusCode)
 }
 
-// TestMain_FailsFastWithoutAPIKey re-asserts Phase 0's startup contract is
-// preserved after the HTTP refactor: missing ANTHROPIC_API_KEY → exit 1
-// before any tool registers. Subprocess re-exec is environment-specific so
-// this primarily documents the contract; the fail-fast behaviour itself is
-// also verified by Phase 0's verify_phase0.ps1.
 func TestMain_FailsFastWithoutAPIKey(t *testing.T) {
 	if os.Getenv("MAIN_FAILS_FAST_CHILD") == "1" {
 		os.Unsetenv("ANTHROPIC_API_KEY")
@@ -117,10 +94,6 @@ func TestMain_FailsFastWithoutAPIKey(t *testing.T) {
 	t.Skip("subprocess re-exec is environment-specific; covered by Phase 0 smoke test")
 }
 
-// ── helpers ──────────────────────────────────────────────────────────────
-
-// mcpEndpoint returns the canonical Streamable-HTTP MCP endpoint for a base
-// URL. The transport mounts the JSON-RPC handler at `/mcp` by default.
 func mcpEndpoint(baseURL string) string {
 	return strings.TrimRight(baseURL, "/") + "/mcp"
 }

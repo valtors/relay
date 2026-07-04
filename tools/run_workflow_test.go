@@ -15,8 +15,6 @@ import (
 	"relay/internal/state"
 )
 
-// ── Tests for the small in-process plumbing (runTool / callApproval) ──────
-
 func TestRunTool_PropagatesIsErrorAsGoError(t *testing.T) {
 	failing := func(_ context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		return mcp.NewToolResultError("synthetic failure"), nil
@@ -55,13 +53,9 @@ type assertErr string
 
 func (e assertErr) Error() string { return string(e) }
 
-// ── Tests for callApproval (parses RequestApproval's JSON output) ────────
-
 func TestCallApproval_AutoApprovesOnNonTTYStdin(t *testing.T) {
-	// On a non-TTY stdin RequestApproval auto-approves and writes a checkpoint
-	// document to ./output/. Use chdirTemp so we don't touch the real repo.
 	chdirTemp(t)
-	withStdin(t, "") // pipe → non-TTY → auto-approve path inside waitForDecision
+	withStdin(t, "")
 
 	cr, err := callApproval(context.Background(), "H1", "summary", []string{"q1", "q2", "q3"})
 	require.NoError(t, err)
@@ -70,11 +64,6 @@ func TestCallApproval_AutoApprovesOnNonTTYStdin(t *testing.T) {
 	assert.Contains(t, cr.Notes, "auto-approved")
 }
 
-// ── Tests for runStage orchestration ─────────────────────────────────────
-
-// fakeAgent records the `notes` arg of every invocation and writes the i-th
-// element of `outputs` into the stage output file each time, simulating an
-// agent that produces fresh content per iteration.
 type fakeAgent struct {
 	outputFile string
 	runCalls   []string
@@ -93,13 +82,9 @@ func (f *fakeAgent) run(notes string) error {
 func TestRunStage_HappyPathApprovesOnFirstIteration(t *testing.T) {
 	chdirTemp(t)
 	require.NoError(t, state.InitSession("brief.md"))
-	// Non-TTY stdin → request_approval auto-approves on every call.
 	withStdin(t, "")
 	t.Setenv("ANTHROPIC_API_KEY", "sk-bogus-not-real")
 
-	// pmSummarize will fail without a real API key; runStage falls back to a
-	// synthetic summary + 3 default questions and proceeds. That fallback
-	// path is itself part of the contract we want to verify works.
 	f := &fakeAgent{
 		outputFile: "01_research.md",
 		outputs:    []string{"# Research dossier\n\nlots of content"},
@@ -140,7 +125,6 @@ func TestRunStage_MissingOutputFileIsError(t *testing.T) {
 	chdirTemp(t)
 	require.NoError(t, state.InitSession("brief.md"))
 
-	// Agent "succeeds" but never writes the expected output file.
 	noop := func(_ string) error { return nil }
 
 	err := runStage(context.Background(), stageConfig{
@@ -153,25 +137,16 @@ func TestRunStage_MissingOutputFileIsError(t *testing.T) {
 	assert.Contains(t, strings.ToLower(err.Error()), "read 04_go_to_market.md")
 }
 
-// ── Tests for RunWorkflow crash-resume ────────────────────────────────────
-
 func TestRunWorkflow_ResumesByCheckingMeta(t *testing.T) {
 	chdirTemp(t)
 	t.Setenv("ANTHROPIC_API_KEY", "sk-bogus-not-real")
 
-	// Pre-create a session meta with all four stages already complete so the
-	// orchestrator should skip every stage and only call AssemblePlan.
 	require.NoError(t, state.InitSession("nonexistent_brief.md"))
 	require.NoError(t, state.MarkStageComplete(state.StageResearch))
 	require.NoError(t, state.MarkStageComplete(state.StageBrand))
 	require.NoError(t, state.MarkStageComplete(state.StageUX))
 	require.NoError(t, state.MarkStageComplete(state.StageGTM))
 
-	// AssemblePlan is now real and will attempt an LLM call. With a bogus
-	// key it surfaces an LLM error — that's our signal that the orchestrator
-	// correctly *skipped* every agent stage and went straight to assembly.
-	// (If any agent stage had run, we would see an agent-specific error
-	// message instead, e.g. "read pm brief".)
 	res, err := RunWorkflow(context.Background(), makeReq(map[string]any{
 		"brief_path": "nonexistent_brief.md",
 	}))
@@ -191,8 +166,6 @@ func TestRunWorkflow_FailsFastWhenBriefMissingOnFreshSession(t *testing.T) {
 	chdirTemp(t)
 	t.Setenv("ANTHROPIC_API_KEY", "sk-bogus-not-real")
 
-	// No session meta and no brief file — first thing run_workflow does for a
-	// new session is run pm_plan, which will fail to read the brief.
 	res, err := RunWorkflow(context.Background(), makeReq(map[string]any{
 		"brief_path": "missing_brief.md",
 	}))
@@ -200,7 +173,6 @@ func TestRunWorkflow_FailsFastWhenBriefMissingOnFreshSession(t *testing.T) {
 	require.NotNil(t, res)
 	require.True(t, res.IsError, "expected tool error for missing brief")
 
-	// Session meta should still have been created (init happens before pm_plan).
 	dir, err := state.OutputDir()
 	require.NoError(t, err)
 	_, err = os.Stat(filepath.Join(dir, ".session.meta.json"))
@@ -213,8 +185,6 @@ func TestRunWorkflow_StageMetaIsPersisted(t *testing.T) {
 	require.NoError(t, state.InitSession("brief.md"))
 	require.NoError(t, state.MarkStageComplete(state.StageResearch))
 
-	// Round-trip the on-disk meta to confirm completion is durable across
-	// process restarts (the property crash-resume relies on).
 	dir, err := state.OutputDir()
 	require.NoError(t, err)
 	raw, err := os.ReadFile(filepath.Join(dir, ".session.meta.json"))

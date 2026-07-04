@@ -1,15 +1,3 @@
-// Package tools — request_approval implements the human-in-the-loop checkpoint.
-//
-// Behaviour:
-//   - Writes a checkpoint_<NAME>.md file before blocking on input so the human
-//     always has a persistent artifact to review.
-//   - Prints the prompt UI to stderr (stdout is reserved for the MCP wire).
-//   - Reads one line from stdin: empty/"approve" → approve; "iterate <notes>" →
-//     iterate with notes; anything else → approve treating the line as a note.
-//   - Non-interactive stdin (CI / piped input) auto-approves so the pipeline can
-//     still complete in unattended environments.
-//   - Optional CHECKPOINT_TIMEOUT_MINUTES env var auto-approves on timeout.
-//   - Returns a JSON-encoded CheckpointResult so run_workflow can parse it.
 package tools
 
 import (
@@ -35,9 +23,8 @@ const (
 	maxIterateNotesLen = 2000
 )
 
-// CheckpointResult holds the human's decision and notes.
 type CheckpointResult struct {
-	Decision string `json:"decision"` // "approve" | "iterate"
+	Decision string `json:"decision"`
 	Notes    string `json:"notes"`
 }
 
@@ -59,14 +46,11 @@ func RequestApproval(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolR
 
 	checkpointFile := fmt.Sprintf("checkpoint_%s.md", checkpoint)
 
-	// Write checkpoint to disk before blocking on input — guarantees a
-	// reviewable artifact even if the user closes the terminal.
 	doc := buildCheckpointDoc(checkpoint, summary, questions)
 	if err := state.WriteOutput(checkpointFile, doc); err != nil {
 		logger.Warn("could not write checkpoint file", "err", err)
 	}
 
-	// Render the prompt to stderr — stdout is the MCP JSON-RPC wire.
 	logger.Raw("\n" + border + "\n")
 	logger.Raw(fmt.Sprintf("  CHECKPOINT %s — REVIEW REQUIRED\n", checkpoint))
 	logger.Raw(border + "\n\n")
@@ -111,8 +95,6 @@ func RequestApproval(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolR
 	return mcp.NewToolResultText(string(b)), nil
 }
 
-// extractQuestions pulls the questions array from the request, accepting
-// either a []string (when the SDK already typed it) or a []any of strings.
 func extractQuestions(req mcp.CallToolRequest) []string {
 	if qs := req.GetStringSlice("questions", nil); len(qs) > 0 {
 		return qs
@@ -141,8 +123,6 @@ func extractQuestions(req mcp.CallToolRequest) []string {
 }
 
 func waitForDecision() (*CheckpointResult, error) {
-	// Non-interactive stdin (CI, piped input) — auto-approve so the pipeline
-	// completes in unattended runs instead of hanging forever.
 	fi, err := os.Stdin.Stat()
 	if err == nil && (fi.Mode()&os.ModeCharDevice) == 0 {
 		logger.Warn("non-interactive stdin — auto-approving checkpoint")
@@ -162,8 +142,6 @@ func waitForDecision() (*CheckpointResult, error) {
 
 	go func() {
 		scanner := bufio.NewScanner(os.Stdin)
-		// Allow long iterate notes (default scanner buffer is 64KB which is
-		// fine, but be explicit so the cap matches maxIterateNotesLen+slack).
 		scanner.Buffer(make([]byte, 0, 8*1024), 64*1024)
 
 		if !scanner.Scan() {
@@ -171,7 +149,6 @@ func waitForDecision() (*CheckpointResult, error) {
 				ch <- readResult{err: serr}
 				return
 			}
-			// EOF — stdin closed by the caller mid-prompt.
 			ch <- readResult{r: &CheckpointResult{
 				Decision: "approve",
 				Notes:    "(stdin closed)",
@@ -214,13 +191,6 @@ func notesOrNone(s string) string {
 	return s
 }
 
-// parseDecisionLine maps one trimmed user input line to a CheckpointResult.
-//
-// Rules (matches spec):
-//   - "" or "approve" (case-insensitive)        → approve, no notes
-//   - "iterate" alone                            → iterate, no notes
-//   - "iterate <text>"                           → iterate, notes = <text> (capped)
-//   - anything else                              → approve, notes = original line
 func parseDecisionLine(line string) *CheckpointResult {
 	lower := strings.ToLower(line)
 	switch {
@@ -242,7 +212,6 @@ func parseDecisionLine(line string) *CheckpointResult {
 	}
 }
 
-// getEnvInt parses an int env var, returning the default on missing/invalid.
 func getEnvInt(key string, def int) int {
 	raw := strings.TrimSpace(os.Getenv(key))
 	if raw == "" {

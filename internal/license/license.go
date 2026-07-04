@@ -1,13 +1,3 @@
-// Package license verifies offline-signed early-tester licenses.
-//
-// License format:  RELAY-<base64url(payload-json)>.<base64url(ed25519-sig)>
-//
-// Payload is JSON: {"sub":"alice@x.com","iat":"2026-05-05","exp":"2026-06-04"}.
-// The signature is over the raw payload bytes (NOT the base64 wrapping).
-//
-// Verification is purely offline against the embedded public key — no
-// callout, no telemetry. A revocation list could be added later by
-// embedding a slice of revoked subject IDs.
 package license
 
 import (
@@ -25,34 +15,23 @@ import (
 	"time"
 )
 
-//go:embed embedded_public_key.pem
 var embeddedPubKeyPEM []byte
 
 const (
 	prefix     = "RELAY-"
 	dateLayout = "2006-01-02"
 
-	// EnvVar is the canonical environment variable name. Stays consistent
-	// across CLI/HTTP modes so users only have to learn one knob.
 	EnvVar = "RELAY_LICENSE"
 
-	// FormURL is shown in error messages. Replace once the public form
-	// exists; the placeholder is intentionally obvious.
 	FormURL = "https://tally.so/r/jaGYNa"
 )
 
-// Payload is the public claim set inside a license. Dates are
-// YYYY-MM-DD strings to keep the encoded license short and human-readable.
 type Payload struct {
 	Subject  string `json:"sub"`
 	IssuedAt string `json:"iat"`
 	Expires  string `json:"exp"`
 }
 
-// Verify is the only function callers need. It pulls the license from the
-// env var (preferred) or ~/.relay/license, parses + verifies
-// the Ed25519 signature against the embedded public key, then checks
-// expiry. Every failure path returns a user-actionable error.
 func Verify() (*Payload, error) {
 	raw, source, err := load()
 	if err != nil {
@@ -65,16 +44,10 @@ func Verify() (*Payload, error) {
 	return p, nil
 }
 
-// VerifyString verifies a license string in isolation. Exposed so the
-// genlicense CLI can sanity-check what it just minted, and so tests can
-// drive verification without touching the filesystem.
 func VerifyString(raw string) (*Payload, error) {
 	return verify(strings.TrimSpace(raw), embeddedPubKeyPEM)
 }
 
-// VerifyWithKey is the testing seam: same as VerifyString but takes the
-// public key explicitly so tests can use a throwaway keypair without
-// having to swap the embedded one.
 func VerifyWithKey(raw string, pubKeyPEM []byte) (*Payload, error) {
 	return verify(strings.TrimSpace(raw), pubKeyPEM)
 }
@@ -123,17 +96,12 @@ func verify(raw string, pubKeyPEM []byte) (*Payload, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse expiry %q: %w", p.Expires, err)
 	}
-	// Inclusive end-of-day so a license dated 2026-06-04 is valid until
-	// 2026-06-04 23:59:59 in the user's local timezone.
 	if time.Now().After(exp.Add(24 * time.Hour)) {
 		return nil, fmt.Errorf("license expired on %s (subject: %s)", p.Expires, p.Subject)
 	}
 	return &p, nil
 }
 
-// load returns (raw, source, error) — source is a human-readable string
-// like "$RELAY_LICENSE" or the file path, used to make error messages
-// tell the user *where* to fix the problem.
 func load() (string, string, error) {
 	if v := strings.TrimSpace(os.Getenv(EnvVar)); v != "" {
 		return v, "$" + EnvVar, nil
@@ -148,18 +116,12 @@ func load() (string, string, error) {
 	return "", "", &MissingError{}
 }
 
-// MissingError is its own type so main.go can format it specially —
-// missing license is "you haven't installed yet", invalid is "what you
-// installed is broken", they deserve different copy.
 type MissingError struct{}
 
 func (MissingError) Error() string {
 	return "no license found"
 }
 
-// FriendlyMessage returns a multi-line block suitable for printing to
-// stderr when verification fails. The exact wording is centralised here
-// so error copy stays consistent across stdio and HTTP transports.
 func FriendlyMessage(err error) string {
 	var sb strings.Builder
 	sb.WriteString("\n┌── relay ───────────────────────────────────┐\n")
@@ -209,9 +171,6 @@ func parsePublicKey(pemBytes []byte) (ed25519.PublicKey, error) {
 	return edPub, nil
 }
 
-// Sign produces a license string. Lives here (not in cmd/genlicense) so
-// tests can mint test licenses without depending on the CLI binary.
-// Pass a private key in PKCS8 PEM form.
 func Sign(privKeyPEM []byte, p Payload) (string, error) {
 	if p.Subject == "" || p.IssuedAt == "" || p.Expires == "" {
 		return "", errors.New("payload missing required fields")

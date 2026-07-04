@@ -1,7 +1,3 @@
-// genkeys is a one-shot tool: generates an Ed25519 keypair, writes
-// signing_key.pem (PRIVATE — gitignored) and public_key.pem (embedded
-// into the released binary). Run this once, never again, unless you
-// want to invalidate every license you've ever issued.
 package main
 
 import (

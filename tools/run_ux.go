@@ -1,14 +1,3 @@
-// Package tools — run_ux is Agent 3: user flows, screen list, wireframe briefs,
-// image-prototype prompts, and interaction notes.
-//
-// Reads 01_research.md + 02_brand_messaging.md from ./output/.
-// Writes 03_ux.md atomically.
-//
-// No web search — UX work is grounded in the research dossier (for ICPs/needs)
-// and the brand document (for voice and visual tone in the prototype prompts).
-//
-// Lock: 03_ux.md is guarded with a PID lockfile so concurrent invocations
-// cannot corrupt the output mid-write.
 package tools
 
 import (
@@ -50,9 +39,6 @@ func RunUX(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, err
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 
-	// ctxguard.Build labels each upstream so the LLM can cite them by name,
-	// and applies the per-part 120k-char guard. Both required: UX without
-	// either ICP data or brand voice would just be generic wireframes.
 	contextBlock := ctxguard.Build([]ctxguard.Part{
 		{Label: "Research Dossier", Content: research, Required: true},
 		{Label: "Brand & Messaging", Content: brand, Required: true},

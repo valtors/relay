@@ -11,8 +11,6 @@ import (
 	"time"
 )
 
-// genTestKeypair returns matching PKCS8 PEM blobs for tests so we can
-// mint and verify licenses without touching the real signing key.
 func genTestKeypair(t *testing.T) (privPEM, pubPEM []byte) {
 	t.Helper()
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
@@ -65,8 +63,6 @@ func TestVerify_RejectsTamperedPayload(t *testing.T) {
 	priv, pub := genTestKeypair(t)
 	tok, _ := Sign(priv, Payload{Subject: "a@b.com", IssuedAt: today(), Expires: daysOut(30)})
 
-	// flip a character in the middle of the payload, picking a different
-	// char than what's there so the change is guaranteed.
 	parts := strings.SplitN(strings.TrimPrefix(tok, "RELAY-"), ".", 2)
 	if len(parts) != 2 {
 		t.Fatal("setup")
@@ -101,7 +97,7 @@ func TestVerify_RejectsExpired(t *testing.T) {
 	tok, _ := Sign(priv, Payload{
 		Subject:  "a@b.com",
 		IssuedAt: daysOut(-60),
-		Expires:  daysOut(-2), // expired 2 days ago
+		Expires:  daysOut(-2),
 	})
 	_, err := VerifyWithKey(tok, pub)
 	if err == nil || !strings.Contains(err.Error(), "expired") {
@@ -110,8 +106,6 @@ func TestVerify_RejectsExpired(t *testing.T) {
 }
 
 func TestVerify_AcceptsExpiringToday(t *testing.T) {
-	// A license that says exp=today must still work — users shouldn't be
-	// surprised at 00:01 on day 30 of a "30-day key" by a hard refusal.
 	priv, pub := genTestKeypair(t)
 	tok, _ := Sign(priv, Payload{Subject: "a@b.com", IssuedAt: daysOut(-30), Expires: today()})
 	if _, err := VerifyWithKey(tok, pub); err != nil {
@@ -136,9 +130,6 @@ func TestVerify_FromEnv(t *testing.T) {
 	tok, _ := Sign(priv, Payload{Subject: "a@b.com", IssuedAt: today(), Expires: daysOut(30)})
 	t.Setenv(EnvVar, tok)
 
-	// Verify() uses the embedded pubkey, not ours, so this should fail —
-	// the point is to prove env loading works, not that verification
-	// passes. Use the dedicated env-loader path through VerifyWithKey.
 	got, src, err := load()
 	if err != nil {
 		t.Fatal(err)
@@ -153,8 +144,8 @@ func TestVerify_FromEnv(t *testing.T) {
 
 func TestVerify_MissingErrorIsTyped(t *testing.T) {
 	t.Setenv(EnvVar, "")
-	t.Setenv("HOME", t.TempDir())        // *nix
-	t.Setenv("USERPROFILE", t.TempDir()) // windows
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("USERPROFILE", t.TempDir())
 
 	_, err := Verify()
 	var miss *MissingError
