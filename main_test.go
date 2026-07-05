@@ -144,13 +144,13 @@ func TestRunCLI_ToolsText(t *testing.T) {
 	assert.Equal(t, 0, code)
 	assert.Empty(t, stderr.String())
 	assert.Contains(t, stdout.String(), "relay tools (40 total)")
-	assert.Contains(t, stdout.String(), "🤖 Workflow (8)")
-	assert.Contains(t, stdout.String(), "✍️ Text (6)")
-	assert.Contains(t, stdout.String(), "📁 File (7)")
-	assert.Contains(t, stdout.String(), "📊 Data (4)")
-	assert.Contains(t, stdout.String(), "🖼️ Image (7)")
-	assert.Contains(t, stdout.String(), "📄 PDF (6)")
-	assert.Contains(t, stdout.String(), "🌐 Web (2)")
+	assert.Contains(t, stdout.String(), "> Workflow (8)")
+	assert.Contains(t, stdout.String(), "> Text (6)")
+	assert.Contains(t, stdout.String(), "> File (7)")
+	assert.Contains(t, stdout.String(), "> Data (4)")
+	assert.Contains(t, stdout.String(), "> Image (7)")
+	assert.Contains(t, stdout.String(), "> PDF (6)")
+	assert.Contains(t, stdout.String(), "> Web (2)")
 }
 
 func TestRunCLI_Help(t *testing.T) {

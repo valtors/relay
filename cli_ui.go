@@ -145,21 +145,21 @@ func runeLen(value string) int {
 func categoryMeta(category string) (icon, label string) {
 	switch category {
 	case "data":
-		return "📊", "Data"
+		return ">", "Data"
 	case "file":
-		return "📁", "File"
+		return ">", "File"
 	case "image":
-		return "🖼️", "Image"
+		return ">", "Image"
 	case "pdf":
-		return "📄", "PDF"
+		return ">", "PDF"
 	case "text":
-		return "✍️", "Text"
+		return ">", "Text"
 	case "web":
-		return "🌐", "Web"
+		return ">", "Web"
 	case "workflow":
-		return "🤖", "Workflow"
+		return ">", "Workflow"
 	default:
-		return "•", titleCaseWord(category)
+		return ">", titleCaseWord(category)
 	}
 }
 
