@@ -39,7 +39,7 @@ No pile of single-purpose servers. No plugin hunt. Just one binary with 40 built
 ### Fastest way (recommended)
 
 ```bash
-npx relaymcp
+npx userelay
 ```
 
 That's it. Downloads the binary, starts the server. Works on macOS, Linux, and Windows.
@@ -47,7 +47,7 @@ That's it. Downloads the binary, starts the server. Works on macOS, Linux, and W
 To set up your editor:
 
 ```bash
-npx relaymcp init
+npx userelay init
 ```
 
 **macOS / Linux**
