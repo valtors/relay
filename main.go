@@ -96,6 +96,7 @@ func runStartCommand(args []string, stdout, stderr io.Writer, ui cliUI, showBann
 	if showBanner && isTerminalWriter(stderr) {
 		toolList := registeredTools()
 		fmt.Fprint(stderr, ui.renderBanner(Version, len(toolList), "stdio"))
+		logger.Quiet = true
 	}
 
 	if err := runStart(opts); err != nil {
