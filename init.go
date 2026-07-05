@@ -41,7 +41,7 @@ var defaultInitDeps = initDeps{
 	lookPath:   exec.LookPath,
 }
 
-func runInitCommand(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+func runInitCommand(args []string, stdin io.Reader, stdout, stderr io.Writer, ui cliUI) int {
 	opts, err := parseInitOptions(args)
 	if err != nil {
 		if errors.Is(err, errHelpRequested) {
@@ -54,10 +54,10 @@ func runInitCommand(args []string, stdin io.Reader, stdout, stderr io.Writer) in
 		return 1
 	}
 
-	return runInitCommandWithDeps(opts, stdin, stdout, stderr, defaultInitDeps)
+	return runInitCommandWithDeps(opts, stdin, stdout, stderr, defaultInitDeps, ui)
 }
 
-func runInitCommandWithDeps(opts initOptions, stdin io.Reader, stdout, stderr io.Writer, deps initDeps) int {
+func runInitCommandWithDeps(opts initOptions, stdin io.Reader, stdout, stderr io.Writer, deps initDeps, ui cliUI) int {
 	editors, err := detectEditors(deps)
 	if err != nil {
 		fmt.Fprintf(stderr, "relay init: %v\n", err)
@@ -70,7 +70,7 @@ func runInitCommandWithDeps(opts initOptions, stdin io.Reader, stdout, stderr io
 		return 0
 	}
 
-	fmt.Fprintln(stdout, "relay init")
+	fmt.Fprintln(stdout, ui.bold("relay init"))
 	fmt.Fprintln(stdout)
 
 	if len(editors) == 0 {
@@ -93,24 +93,24 @@ func runInitCommandWithDeps(opts initOptions, stdin io.Reader, stdout, stderr io
 		return 1
 	}
 
-	fmt.Fprintf(stdout, "configuring %s...\n", selected.Name)
 	result, err := configureEditor(*selected, filepath.Clean(exePath))
 	if err != nil {
 		fmt.Fprintf(stderr, "relay init: %v\n", err)
 		return 1
 	}
 
+	fmt.Fprintf(stdout, "  %s Detected: %s\n", ui.green("✓"), selected.Name)
 	if result.alreadyConfigured {
-		fmt.Fprintf(stdout, "  already configured: %s\n\n", displayPath(result.path))
+		fmt.Fprintf(stdout, "  %s Already configured: %s\n\n", ui.green("✓"), displayPath(result.path))
 	} else {
 		if result.backupPath != "" {
-			fmt.Fprintf(stdout, "  backup: %s\n", displayPath(result.backupPath))
+			fmt.Fprintf(stdout, "  %s Backup created: %s\n", ui.green("✓"), displayPath(result.backupPath))
 		}
-		fmt.Fprintf(stdout, "  wrote: %s\n\n", displayPath(result.path))
+		fmt.Fprintf(stdout, "  %s Config written: %s\n\n", ui.green("✓"), displayPath(result.path))
 	}
 
-	fmt.Fprintf(stdout, "done. %s and relay is ready.\n", selected.NextStep())
-	fmt.Fprintf(stdout, "%d tools available. try: \"resize screenshot.png to 800px wide\"\n", len(registeredTools()))
+	fmt.Fprintf(stdout, "%s\n", ui.bold("You're ready!"))
+	fmt.Fprintf(stdout, "%s and start using Relay.\n", sentenceCase(selected.NextStep()))
 	return 0
 }
 
@@ -414,4 +414,13 @@ func (e editorTarget) NextStep() string {
 	default:
 		return "restart VS Code"
 	}
+}
+
+func sentenceCase(value string) string {
+	if value == "" {
+		return value
+	}
+	runes := []rune(value)
+	runes[0] = []rune(strings.ToUpper(string(runes[0])))[0]
+	return string(runes)
 }

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"sort"
 	"strings"
 	"syscall"
@@ -46,22 +47,25 @@ func main() {
 }
 
 func runCLI(args []string, stdout, stderr io.Writer) int {
+	args, noColor := extractGlobalNoColorFlag(args)
+	ui := newCLIUI(stdout, noColor)
+
 	if len(args) == 0 {
 		return runStartCommand(nil, stdout, stderr)
 	}
 
 	switch args[0] {
 	case "help", "-h", "--help":
-		printUsage(stdout)
+		printUsage(stdout, ui)
 		return 0
 	case "start":
 		return runStartCommand(args[1:], stdout, stderr)
 	case "tools":
-		return runToolsCommand(args[1:], stdout, stderr)
+		return runToolsCommand(args[1:], stdout, stderr, ui)
 	case "init":
-		return runInitCommand(args[1:], os.Stdin, stdout, stderr)
+		return runInitCommand(args[1:], os.Stdin, stdout, stderr, ui)
 	case "status":
-		return runStatusCommand(args[1:], stdout, stderr)
+		return runStatusCommand(args[1:], stdout, stderr, ui)
 	case "version":
 		return runVersionCommand(args[1:], stdout, stderr)
 	default:
@@ -70,7 +74,7 @@ func runCLI(args []string, stdout, stderr io.Writer) int {
 		}
 
 		fmt.Fprintf(stderr, "relay: unknown command %q\n\n", args[0])
-		printUsage(stderr)
+		printUsage(stderr, ui)
 		return 1
 	}
 }
@@ -96,7 +100,7 @@ func runStartCommand(args []string, stdout, stderr io.Writer) int {
 	return 0
 }
 
-func runToolsCommand(args []string, stdout, stderr io.Writer) int {
+func runToolsCommand(args []string, stdout, stderr io.Writer, ui cliUI) int {
 	opts, err := parseToolsOptions(args)
 	if err != nil {
 		if errors.Is(err, errHelpRequested) {
@@ -123,13 +127,16 @@ func runToolsCommand(args []string, stdout, stderr io.Writer) int {
 	groups := groupToolsByCategory(toolList)
 	categories := sortedCategoryNames(groups)
 
-	fmt.Fprintf(stdout, "relay tools (%d total)\n\n", len(toolList))
+	fmt.Fprintf(stdout, "%s\n\n", ui.bold(fmt.Sprintf("relay tools (%d total)", len(toolList))))
 	for i, category := range categories {
-		entries := groups[category]
-		fmt.Fprintf(stdout, "%s (%d)\n", category, len(entries))
+		entries := sortToolsForDisplay(groups[category])
+		items := make([]string, 0, len(entries))
 		for _, entry := range entries {
-			fmt.Fprintf(stdout, "  %-18s %s\n", entry.Name, truncateDescription(entry.Description, 60))
+			items = append(items, shortToolName(entry))
 		}
+		icon, label := categoryMeta(category)
+		fmt.Fprintf(stdout, "  %s %s (%d)\n", icon, ui.bold(label), len(entries))
+		fmt.Fprintln(stdout, wrapJoinedItems(items, 76, "     "))
 		if i < len(categories)-1 {
 			fmt.Fprintln(stdout)
 		}
@@ -138,7 +145,7 @@ func runToolsCommand(args []string, stdout, stderr io.Writer) int {
 	return 0
 }
 
-func runStatusCommand(args []string, stdout, stderr io.Writer) int {
+func runStatusCommand(args []string, stdout, stderr io.Writer, ui cliUI) int {
 	switch validateSimpleCommandArgs("status", args, stdout, stderr, printStatusUsage) {
 	case commandArgsHelp:
 		return 0
@@ -147,9 +154,7 @@ func runStatusCommand(args []string, stdout, stderr io.Writer) int {
 	}
 
 	toolList := registeredTools()
-	fmt.Fprintf(stdout, "relay v%s\n", Version)
-	fmt.Fprintf(stdout, "tools: %d registered (%d categories)\n", len(toolList), categoryCount(toolList))
-	fmt.Fprintln(stdout, "transport: stdio (default) | http (with --http)")
+	fmt.Fprint(stdout, formatStatusBox(ui, Version, len(toolList), categoryCount(toolList)))
 	return 0
 }
 
@@ -161,7 +166,7 @@ func runVersionCommand(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	fmt.Fprintln(stdout, Version)
+	fmt.Fprintf(stdout, "relay v%s (%s/%s)\n", Version, runtime.GOOS, runtime.GOARCH)
 	return 0
 }
 
@@ -344,19 +349,35 @@ func truncateDescription(input string, max int) string {
 	return string(runes[:max-3]) + "..."
 }
 
-func printUsage(w io.Writer) {
-	fmt.Fprintln(w, "Usage:")
-	fmt.Fprintln(w, "  relay                 Start the MCP server in stdio mode")
-	fmt.Fprintln(w, "  relay start [--http] [--addr :8080]")
-	fmt.Fprintln(w, "  relay tools [--json]")
-	fmt.Fprintln(w, "  relay init [--list]")
-	fmt.Fprintln(w, "  relay status")
-	fmt.Fprintln(w, "  relay version")
-	fmt.Fprintln(w, "  relay help")
+func printUsage(w io.Writer, ui cliUI) {
+	fmt.Fprintln(w, ui.bold("Usage:"))
+	fmt.Fprintln(w, "  relay [command] [flags]")
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, "Legacy flags:")
-	fmt.Fprintln(w, "  relay -http           Start in HTTP mode")
-	fmt.Fprintln(w, "  relay -addr :9090     Set HTTP address for legacy start mode")
+
+	printCommandGroup(w, ui, "Commands", []commandSummary{
+		{usage: "relay", description: "Start the MCP server over stdio"},
+		{usage: "relay start", description: "Start over stdio or Streamable HTTP"},
+		{usage: "relay tools", description: "List available tools by category"},
+		{usage: "relay init", description: "Detect and configure supported editors"},
+		{usage: "relay status", description: "Show version, transports, and tool count"},
+		{usage: "relay version", description: "Print relay version and platform"},
+		{usage: "relay help", description: "Show this help message"},
+	})
+
+	printCommandGroup(w, ui, "Flags", []commandSummary{
+		{usage: "--no-color", description: "Disable ANSI styling"},
+	})
+
+	printCommandGroup(w, ui, "Legacy start flags", []commandSummary{
+		{usage: "-http", description: "Start the server in HTTP mode"},
+		{usage: "-addr :9090", description: "Set the HTTP listen address"},
+	})
+
+	fmt.Fprintln(w, ui.bold("Examples"))
+	fmt.Fprintln(w, "  relay")
+	fmt.Fprintln(w, "  relay status")
+	fmt.Fprintln(w, "  relay tools --json")
+	fmt.Fprintln(w, "  relay init")
 }
 
 func printStartUsage(w io.Writer) {

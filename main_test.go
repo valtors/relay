@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -102,7 +103,7 @@ func TestRunCLI_Version(t *testing.T) {
 	code := runCLI([]string{"version"}, &stdout, &stderr)
 
 	assert.Equal(t, 0, code)
-	assert.Equal(t, Version+"\n", stdout.String())
+	assert.Equal(t, "relay v"+Version+" ("+runtime.GOOS+"/"+runtime.GOARCH+")\n", stdout.String())
 	assert.Empty(t, stderr.String())
 }
 
@@ -113,8 +114,9 @@ func TestRunCLI_Status(t *testing.T) {
 
 	assert.Equal(t, 0, code)
 	assert.Contains(t, stdout.String(), "relay v"+Version)
-	assert.Contains(t, stdout.String(), "tools: 40 registered (7 categories)")
-	assert.Contains(t, stdout.String(), "transport: stdio (default) | http (with --http)")
+	assert.Contains(t, stdout.String(), "Tools:      40 (7 categories)")
+	assert.Contains(t, stdout.String(), "Transport:  stdio | http")
+	assert.Contains(t, stdout.String(), "Status:     ready")
 	assert.Empty(t, stderr.String())
 }
 
@@ -142,13 +144,13 @@ func TestRunCLI_ToolsText(t *testing.T) {
 	assert.Equal(t, 0, code)
 	assert.Empty(t, stderr.String())
 	assert.Contains(t, stdout.String(), "relay tools (40 total)")
-	assert.Contains(t, stdout.String(), "workflow (8)")
-	assert.Contains(t, stdout.String(), "text (6)")
-	assert.Contains(t, stdout.String(), "file (7)")
-	assert.Contains(t, stdout.String(), "data (4)")
-	assert.Contains(t, stdout.String(), "image (7)")
-	assert.Contains(t, stdout.String(), "pdf (6)")
-	assert.Contains(t, stdout.String(), "web (2)")
+	assert.Contains(t, stdout.String(), "🤖 Workflow (8)")
+	assert.Contains(t, stdout.String(), "✍️ Text (6)")
+	assert.Contains(t, stdout.String(), "📁 File (7)")
+	assert.Contains(t, stdout.String(), "📊 Data (4)")
+	assert.Contains(t, stdout.String(), "🖼️ Image (7)")
+	assert.Contains(t, stdout.String(), "📄 PDF (6)")
+	assert.Contains(t, stdout.String(), "🌐 Web (2)")
 }
 
 func TestRunCLI_Help(t *testing.T) {
@@ -158,8 +160,19 @@ func TestRunCLI_Help(t *testing.T) {
 
 	assert.Equal(t, 0, code)
 	assert.Contains(t, stdout.String(), "Usage:")
-	assert.Contains(t, stdout.String(), "relay start [--http] [--addr :8080]")
-	assert.Contains(t, stdout.String(), "relay init [--list]")
+	assert.Contains(t, stdout.String(), "relay start")
+	assert.Contains(t, stdout.String(), "relay init")
+	assert.Contains(t, stdout.String(), "--no-color")
+	assert.Empty(t, stderr.String())
+}
+
+func TestRunCLI_NoColorFlag(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	code := runCLI([]string{"--no-color", "version"}, &stdout, &stderr)
+
+	assert.Equal(t, 0, code)
+	assert.Equal(t, "relay v"+Version+" ("+runtime.GOOS+"/"+runtime.GOARCH+")\n", stdout.String())
 	assert.Empty(t, stderr.String())
 }
 

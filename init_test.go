@@ -109,13 +109,15 @@ func TestRunInitCommandWithDeps_AutoSelectsSingleEditor(t *testing.T) {
 	}
 
 	var stdout, stderr bytes.Buffer
-	code := runInitCommandWithDeps(initOptions{}, bytes.NewBuffer(nil), &stdout, &stderr, deps)
+	code := runInitCommandWithDeps(initOptions{}, bytes.NewBuffer(nil), &stdout, &stderr, deps, cliUI{})
 
 	require.Equal(t, 0, code)
 	assert.Empty(t, stderr.String())
 	assert.Contains(t, stdout.String(), "relay init")
-	assert.Contains(t, stdout.String(), "configuring Claude Desktop...")
-	assert.Contains(t, stdout.String(), "done. restart Claude Desktop and relay is ready.")
+	assert.Contains(t, stdout.String(), "✓ Detected: Claude Desktop")
+	assert.Contains(t, stdout.String(), "✓ Config written:")
+	assert.Contains(t, stdout.String(), "You're ready!")
+	assert.Contains(t, stdout.String(), "Restart Claude Desktop and start using Relay.")
 
 	var config map[string]map[string]map[string]string
 	body, err := os.ReadFile(configPath)
