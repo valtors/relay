@@ -1,14 +1,22 @@
 {
-  "name": "@valtors/relay",
+  "name": "relaymcp",
   "version": "0.3.0",
-  "description": "One MCP server. 40 tools. One command: npx @valtors/relay",
+  "description": "One MCP server. 40 tools. One command: npx relaymcp",
   "bin": {
     "relay": "./bin/run.js"
   },
   "scripts": {
     "postinstall": "node ./bin/install.js"
   },
-  "keywords": ["mcp", "ai", "tools", "claude", "cursor", "relay", "mcp-server"],
+  "keywords": [
+    "mcp",
+    "ai",
+    "tools",
+    "claude",
+    "cursor",
+    "relay",
+    "mcp-server"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
