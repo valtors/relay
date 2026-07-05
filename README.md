@@ -36,6 +36,20 @@ No pile of single-purpose servers. No plugin hunt. Just one binary with 40 built
 
 ### 1) Install
 
+### Fastest way (recommended)
+
+```bash
+npx @valtors/relay
+```
+
+That's it. Downloads the binary, starts the server. Works on macOS, Linux, and Windows.
+
+To set up your editor:
+
+```bash
+npx @valtors/relay init
+```
+
 **macOS / Linux**
 
 ```bash

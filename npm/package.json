@@ -1,18 +1,25 @@
 {
-  "name": "relay-mcp",
-  "version": "0.1.0",
-  "description": "One MCP server. 40 built-in tools. Single Go binary. Zero config.",
+  "name": "@valtors/relay",
+  "version": "0.3.0",
+  "description": "One MCP server. 40 tools. One command: npx @valtors/relay",
   "bin": {
     "relay": "./bin/run.js"
   },
   "scripts": {
     "postinstall": "node ./bin/install.js"
   },
-  "keywords": ["mcp", "ai", "tools", "claude", "cursor", "relay"],
+  "keywords": ["mcp", "ai", "tools", "claude", "cursor", "relay", "mcp-server"],
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/valtors/relay"
   },
-  "author": "Tamish <tamish560@users.noreply.github.com>"
+  "homepage": "https://relay-landing-weld.vercel.app",
+  "author": "Tamish <tamish560@users.noreply.github.com>",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }

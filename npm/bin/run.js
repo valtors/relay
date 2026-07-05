@@ -1,20 +1,57 @@
 #!/usr/bin/env node
 
-// Thin wrapper that runs the relay binary
-// Usage: npx relay-mcp [args...]
+const { spawnSync } = require("child_process");
+const {
+  PACKAGE_VERSION,
+  fileExists,
+  getCacheBinaryPath,
+  getFallbackBinaryPath,
+  isCachedVersionInstalled,
+} = require("./lib");
+const { install } = require("./install");
 
-const { execFileSync } = require("child_process");
-const path = require("path");
-
-const BIN_NAME = process.platform === "win32" ? "relay.exe" : "relay";
-const BIN_PATH = path.join(__dirname, BIN_NAME);
-
-try {
-  execFileSync(BIN_PATH, process.argv.slice(2), { stdio: "inherit" });
-} catch (e) {
-  if (e.status !== null) {
-    process.exit(e.status);
+function resolveBinaryPath() {
+  if (isCachedVersionInstalled(PACKAGE_VERSION)) {
+    return getCacheBinaryPath();
   }
-  console.error("could not run relay. try: npx relay-mcp install");
+
+  const fallbackPath = getFallbackBinaryPath();
+  return fileExists(fallbackPath) ? fallbackPath : "";
+}
+
+async function main() {
+  let binaryPath = resolveBinaryPath();
+
+  if (!binaryPath || binaryPath !== getCacheBinaryPath()) {
+    try {
+      binaryPath = await install({ version: PACKAGE_VERSION });
+    } catch (error) {
+      const fallback = getFallbackBinaryPath();
+      if (!fileExists(fallback)) {
+        console.error(error.message);
+        process.exit(1);
+      }
+
+      console.error(`${error.message}\nStarting bundled binary instead...`);
+      binaryPath = fallback;
+    }
+  }
+
+  const result = spawnSync(binaryPath, process.argv.slice(2), { stdio: "inherit" });
+
+  if (typeof result.status === "number") {
+    process.exit(result.status);
+  }
+
+  if (result.error) {
+    console.error(`Could not start Relay from ${binaryPath}.\n${result.error.message}`);
+    process.exit(1);
+  }
+
   process.exit(1);
 }
+
+main().catch((error) => {
+  console.error(`Relay launcher failed.\n${error.message}`);
+  process.exit(1);
+});
