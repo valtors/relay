@@ -48,38 +48,39 @@ func main() {
 
 func runCLI(args []string, stdout, stderr io.Writer) int {
 	args, noColor := extractGlobalNoColorFlag(args)
-	ui := newCLIUI(stdout, noColor)
+	stdoutUI := newCLIUI(stdout, noColor)
+	stderrUI := newCLIUI(stderr, noColor)
 
 	if len(args) == 0 {
-		return runStartCommand(nil, stdout, stderr)
+		return runStartCommand(nil, stdout, stderr, stderrUI, true)
 	}
 
 	switch args[0] {
 	case "help", "-h", "--help":
-		printUsage(stdout, ui)
+		printUsage(stdout, stdoutUI)
 		return 0
 	case "start":
-		return runStartCommand(args[1:], stdout, stderr)
+		return runStartCommand(args[1:], stdout, stderr, stderrUI, false)
 	case "tools":
-		return runToolsCommand(args[1:], stdout, stderr, ui)
+		return runToolsCommand(args[1:], stdout, stderr, stdoutUI)
 	case "init":
-		return runInitCommand(args[1:], os.Stdin, stdout, stderr, ui)
+		return runInitCommand(args[1:], os.Stdin, stdout, stderr, stdoutUI)
 	case "status":
-		return runStatusCommand(args[1:], stdout, stderr, ui)
+		return runStatusCommand(args[1:], stdout, stderr, stdoutUI)
 	case "version":
 		return runVersionCommand(args[1:], stdout, stderr)
 	default:
 		if strings.HasPrefix(args[0], "-") {
-			return runStartCommand(args, stdout, stderr)
+			return runStartCommand(args, stdout, stderr, stderrUI, false)
 		}
 
 		fmt.Fprintf(stderr, "relay: unknown command %q\n\n", args[0])
-		printUsage(stderr, ui)
+		printUsage(stderr, stderrUI)
 		return 1
 	}
 }
 
-func runStartCommand(args []string, stdout, stderr io.Writer) int {
+func runStartCommand(args []string, stdout, stderr io.Writer, ui cliUI, showBanner bool) int {
 	opts, err := parseStartOptions(args)
 	if err != nil {
 		if errors.Is(err, errHelpRequested) {
@@ -90,6 +91,11 @@ func runStartCommand(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "relay start: %v\n\n", err)
 		printStartUsage(stderr)
 		return 1
+	}
+
+	if showBanner && isTerminalWriter(stderr) {
+		toolList := registeredTools()
+		fmt.Fprint(stderr, ui.renderBanner(Version, len(toolList), "stdio"))
 	}
 
 	if err := runStart(opts); err != nil {
@@ -154,7 +160,7 @@ func runStatusCommand(args []string, stdout, stderr io.Writer, ui cliUI) int {
 	}
 
 	toolList := registeredTools()
-	fmt.Fprint(stdout, formatStatusBox(ui, Version, len(toolList), categoryCount(toolList)))
+	fmt.Fprint(stdout, ui.renderBanner(Version, len(toolList), "stdio | http"))
 	return 0
 }
 

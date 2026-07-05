@@ -113,11 +113,23 @@ func TestRunCLI_Status(t *testing.T) {
 	code := runCLI([]string{"status"}, &stdout, &stderr)
 
 	assert.Equal(t, 0, code)
-	assert.Contains(t, stdout.String(), "relay v"+Version)
-	assert.Contains(t, stdout.String(), "Tools:      40 (7 categories)")
-	assert.Contains(t, stdout.String(), "Transport:  stdio | http")
-	assert.Contains(t, stdout.String(), "Status:     ready")
+	assert.Contains(t, stdout.String(), "██████╗")
+	assert.Contains(t, stdout.String(), "v"+Version)
+	assert.Contains(t, stdout.String(), "tools 40")
+	assert.Contains(t, stdout.String(), "transport stdio | http")
+	assert.NotContains(t, stdout.String(), "╭")
+	assert.NotContains(t, stdout.String(), "╰")
 	assert.Empty(t, stderr.String())
+}
+
+func TestRenderBanner_StylingToggle(t *testing.T) {
+	plain := (cliUI{}).renderBanner(Version, 40, "stdio")
+	colored := (cliUI{color: true}).renderBanner(Version, 40, "stdio")
+
+	assert.Contains(t, plain, "██████╗")
+	assert.Contains(t, plain, "transport stdio")
+	assert.NotContains(t, plain, "\x1b[")
+	assert.Contains(t, colored, "\x1b[")
 }
 
 func TestRunCLI_ToolsJSON(t *testing.T) {

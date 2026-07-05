@@ -6,10 +6,14 @@ import (
 	"os"
 	"sort"
 	"strings"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 )
 
 type cliUI struct {
-	color bool
+	color    bool
+	renderer *lipgloss.Renderer
 }
 
 type commandSummary struct {
@@ -24,8 +28,10 @@ type namedValue struct {
 }
 
 func newCLIUI(w io.Writer, noColor bool) cliUI {
+	color := !noColor && os.Getenv("NO_COLOR") == "" && isTerminalWriter(w)
 	return cliUI{
-		color: !noColor && os.Getenv("NO_COLOR") == "" && isTerminalWriter(w),
+		color:    color,
+		renderer: lipgloss.NewRenderer(w, termenv.WithTTY(color)),
 	}
 }
 
@@ -57,71 +63,62 @@ func extractGlobalNoColorFlag(args []string) ([]string, bool) {
 }
 
 func (ui cliUI) bold(text string) string {
-	return ui.wrap(text, "1")
-}
-
-func (ui cliUI) green(text string) string {
-	return ui.wrap(text, "32")
-}
-
-func (ui cliUI) cyan(text string) string {
-	return ui.wrap(text, "36")
-}
-
-func (ui cliUI) dim(text string) string {
-	return ui.wrap(text, "2")
-}
-
-func (ui cliUI) wrap(text, code string) string {
 	if !ui.color || text == "" {
 		return text
 	}
-	return "\x1b[" + code + "m" + text + "\x1b[0m"
+	return ui.lipglossRenderer().NewStyle().Bold(true).Render(text)
 }
 
-func renderBox(rawLines, styledLines []string) string {
-	width := 0
-	for _, line := range rawLines {
-		if l := runeLen(line); l > width {
-			width = l
-		}
+func (ui cliUI) green(text string) string {
+	if !ui.color || text == "" {
+		return text
 	}
-
-	var b strings.Builder
-	b.WriteString("  ╭")
-	b.WriteString(strings.Repeat("─", width+4))
-	b.WriteString("╮\n")
-	for i, line := range styledLines {
-		padding := strings.Repeat(" ", width-runeLen(rawLines[i]))
-		b.WriteString("  │  ")
-		b.WriteString(line)
-		b.WriteString(padding)
-		b.WriteString("  │\n")
-	}
-	b.WriteString("  ╰")
-	b.WriteString(strings.Repeat("─", width+4))
-	b.WriteString("╯\n")
-	return b.String()
+	return ui.lipglossRenderer().NewStyle().Foreground(lipgloss.Color("#6EE7FF")).Render(text)
 }
 
-func formatStatusBox(ui cliUI, version string, toolCount, categories int) string {
-	rawLines := []string{
-		"relay v" + version,
-		"",
-		fmt.Sprintf("%-11s %d (%d categories)", "Tools:", toolCount, categories),
-		fmt.Sprintf("%-11s stdio | http", "Transport:"),
-		fmt.Sprintf("%-11s ready", "Status:"),
+func (ui cliUI) lipglossRenderer() *lipgloss.Renderer {
+	if ui.renderer != nil {
+		return ui.renderer
 	}
+	return lipgloss.NewRenderer(io.Discard, termenv.WithTTY(ui.color))
+}
 
-	styledLines := []string{
-		ui.bold(rawLines[0]),
-		rawLines[1],
-		ui.bold("Tools:") + rawLines[2][len("Tools:"):],
-		ui.bold("Transport:") + rawLines[3][len("Transport:"):],
-		ui.bold("Status:") + rawLines[4][len("Status:"):len(rawLines[4])-len("ready")] + ui.green("ready"),
+func (ui cliUI) renderStyled(style lipgloss.Style, text string) string {
+	if !ui.color || text == "" {
+		return text
 	}
+	return style.Renderer(ui.lipglossRenderer()).Render(text)
+}
 
-	return renderBox(rawLines, styledLines)
+func (ui cliUI) renderBanner(version string, toolCount int, transport string) string {
+	const logo = "" +
+		"██████╗ ███████╗██╗      █████╗ ██╗   ██╗\n" +
+		"██╔══██╗██╔════╝██║     ██╔══██╗╚██╗ ██╔╝\n" +
+		"██████╔╝█████╗  ██║     ███████║ ╚████╔╝ \n" +
+		"██╔══██╗██╔══╝  ██║     ██╔══██║  ╚██╔╝  \n" +
+		"██║  ██║███████╗███████╗██║  ██║   ██║   \n" +
+		"╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝   ╚═╝   "
+
+	ice := lipgloss.Color("#E6EDF3")
+	cyan := lipgloss.Color("#6EE7FF")
+	violet := lipgloss.Color("#B65CFF")
+	dim := lipgloss.Color("#5B6472")
+
+	logoStyle := lipgloss.NewStyle().Foreground(ice)
+	keyStyle := lipgloss.NewStyle().Foreground(cyan)
+	valStyle := lipgloss.NewStyle().Foreground(ice)
+	dotStyle := lipgloss.NewStyle().Foreground(dim)
+	edgeStyle := lipgloss.NewStyle().Foreground(violet)
+
+	meta := ui.renderStyled(keyStyle, "v") + ui.renderStyled(valStyle, version) +
+		ui.renderStyled(dotStyle, "  ·  ") +
+		ui.renderStyled(keyStyle, "tools ") + ui.renderStyled(valStyle, fmt.Sprintf("%d", toolCount)) +
+		ui.renderStyled(dotStyle, "  ·  ") +
+		ui.renderStyled(keyStyle, "transport ") + ui.renderStyled(valStyle, transport)
+
+	rule := ui.renderStyled(edgeStyle, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+	return "\n" + ui.renderStyled(logoStyle, logo) + "\n" + rule + "\n" + meta + "\n"
 }
 
 func printCommandGroup(w io.Writer, ui cliUI, title string, commands []commandSummary) {
