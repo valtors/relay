@@ -1,15 +1,28 @@
 <div align="center">
 
-# relay
+<img src="https://raw.githubusercontent.com/valtors/relay-landing/master/assets/images/relay-logo.png" alt="Relay mascot" width="160" />
 
-**Give your AI agent one local MCP server that can actually do useful work.**
+# Relay
 
-[![CI](https://img.shields.io/github/actions/workflow/status/valtors/relay/ci.yml?style=flat&label=ci)](https://github.com/valtors/relay/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/valtors/relay)](go.mod)
-[![Contributors welcome](https://img.shields.io/badge/contributors-welcome-brightgreen.svg)](CONTRIBUTING.md)
+### One local-first MCP server for files, images, PDFs, web, and workflow magic ✨
 
-[Install](#install) · [5-minute quickstart](#5-minute-quickstart) · [Workflows](#3-workflows-to-try-first) · [Client configs](#client-configs) · [Contributing](CONTRIBUTING.md)
+```text
+┌─────────────────────────────────────┐
+│  npx userelay                       │
+│  That's it. You're ready.           │
+└─────────────────────────────────────┘
+```
+
+[![npm version](https://img.shields.io/npm/v/userelay?style=for-the-badge&logo=npm&label=npm)](https://www.npmjs.com/package/userelay)
+[![npm downloads](https://img.shields.io/npm/dm/userelay?style=for-the-badge&logo=npm&label=downloads)](https://www.npmjs.com/package/userelay)
+[![GitHub stars](https://img.shields.io/github/stars/valtors/relay?style=for-the-badge&logo=github)](https://github.com/valtors/relay/stargazers)
+[![GitHub release](https://img.shields.io/github/v/release/valtors/relay?style=for-the-badge&logo=github&label=release)](https://github.com/valtors/relay/releases)
+[![CI](https://img.shields.io/github/actions/workflow/status/valtors/relay/ci.yml?style=for-the-badge&logo=githubactions&label=ci)](https://github.com/valtors/relay/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-16a34a?style=for-the-badge)](LICENSE)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/valtors/relay?style=for-the-badge&logo=go)](go.mod)
+[![Contributors welcome](https://img.shields.io/badge/contributors-welcome-brightgreen?style=for-the-badge)](CONTRIBUTING.md)
+
+**[Quickstart](#quickstart) · [Tools](#tools) · [Why Relay](#why-relay) · [Client Configs](#client-configs) · [Roadmap](#roadmap)**
 
 </div>
 
@@ -25,18 +38,44 @@ Install one Go binary and your agent can:
 
 No pile of single-purpose servers. No plugin hunt. Just one binary with 40 built-in tools.
 
-## Why people use Relay
+<a id="why-relay"></a>
+
+## ⚡ Why Relay
 
 - **Fast first run** - install it, run `relay init`, restart your editor, start using it
 - **Local-first** - your files stay on your machine
 - **Broad utility** - file, image, PDF, text, data, and web tools in one place
 - **Simple ops** - single Go binary, cross-platform releases, no extra runtime to manage
 
-## 5-minute quickstart
+### Relay vs stitching servers together
+
+| Capability | Relay | Stitching servers together |
+|---|---:|---:|
+| One-command install | ✅ | ❌ |
+| One repo / one binary | ✅ | ❌ |
+| 40 built-in tools | ✅ | ❌ |
+| Minutes to first result | ✅ | ❌ |
+| Local file workflows | ✅ | ❌ |
+| Cross-platform release | ✅ | ❌ |
+| Low ops overhead | ✅ | ❌ |
+
+Relay is the practical option if you want one MCP server that covers the common local tasks an agent actually needs.
+
+<a id="quickstart"></a>
+
+## 🚀 Quickstart
+
+### The hero moment
+
+```bash
+npx userelay
+```
+
+That is the fast path. Relay downloads the binary, starts the server, and gets you from zero to useful in one command.
 
 ### 1) Install
 
-### Fastest way (recommended)
+#### Fastest way (recommended)
 
 ```bash
 npx userelay
@@ -157,7 +196,9 @@ A file you can open, review, and share immediately.
 
 ---
 
-## Client configs
+<a id="client-configs"></a>
+
+## 📦 Client Configs
 
 **Best option:** use `relay init`.
 
@@ -167,13 +208,13 @@ If you want to paste config manually, use the snippets below. They assume `relay
 
 ### Claude Desktop
 
-**macOS**
+**macOS**  
 `~/Library/Application Support/Claude/claude_desktop_config.json`
 
-**Windows**
+**Windows**  
 `%APPDATA%\Claude\claude_desktop_config.json`
 
-**Linux**
+**Linux**  
 `~/.config/Claude/claude_desktop_config.json`
 
 ```json
@@ -188,10 +229,10 @@ If you want to paste config manually, use the snippets below. They assume `relay
 
 ### Cursor
 
-**Project config**
+**Project config**  
 `<project>/.cursor/mcp.json`
 
-**Global config**
+**Global config**  
 `~/.cursor/mcp.json` or `%USERPROFILE%\.cursor\mcp.json`
 
 ```json
@@ -206,7 +247,7 @@ If you want to paste config manually, use the snippets below. They assume `relay
 
 ### VS Code
 
-**Project config**
+**Project config**  
 `<project>/.vscode/mcp.json`
 
 ```json
@@ -240,22 +281,21 @@ If you want the built-in planning and workflow tools (`run_workflow`, `pm_plan`,
 
 ---
 
-## What Relay does today
+<a id="tools"></a>
+
+## 🛠️ Tools
 
 Relay ships with **40 tools across 7 categories**.
 
-### Local utility tools
-
-- **File (7)** - read, write, list, size, hash, zip, unzip
-- **Image (7)** - info, resize, crop, convert, rotate, grayscale, flip
-- **PDF (6)** - info, extract text, page count, merge, split, extract pages
-- **Text (6)** - word count, replace, regex extract, base64 encode/decode, markdown to HTML
-- **Data (4)** - format JSON, CSV to JSON, JSON to CSV, JSON query
-- **Web (2)** - fetch page content, check status
-
-### Workflow tools
-
-- **Workflow (8)** - higher-level planning and orchestration helpers for product/strategy flows
+| Category | Included tools |
+|---|---|
+| 📁 **File (7)** | read, write, list, size, hash, zip, unzip |
+| 🖼️ **Image (7)** | info, resize, crop, convert, rotate, grayscale, flip |
+| 📄 **PDF (6)** | info, extract, pages, merge, split, extract pages |
+| ✏️ **Text (6)** | word count, replace, regex, base64, md→html |
+| 📊 **Data (4)** | JSON format, CSV↔JSON, query |
+| 🌐 **Web (2)** | fetch, status check |
+| 🔄 **Workflow (8)** | planning & orchestration |
 
 See everything:
 
@@ -263,23 +303,6 @@ See everything:
 relay tools
 relay tools --json
 ```
-
----
-
-## Why Relay instead of stitching servers together?
-
-| | Relay | Typical setup |
-|---|---|---|
-| Install | One binary | Multiple repos, runtimes, and configs |
-| Scope | 40 built-in tools | Usually one narrow tool per server |
-| Setup time | Minutes | Often a half hour of glue work |
-| Local file workflows | First-class | Varies |
-| Cross-platform release | Yes | Inconsistent |
-| Ops overhead | Low | Higher |
-
-Relay is the practical option if you want one MCP server that covers the common local tasks an agent actually needs.
-
----
 
 ## CLI
 
@@ -314,9 +337,11 @@ If you want to add a tool, start here:
 
 ---
 
-## Roadmap
+<a id="roadmap"></a>
 
-What is solid now:
+## 🗺️ Roadmap
+
+### What is solid now
 
 - 40 built-in tools
 - cross-platform install scripts
@@ -324,7 +349,7 @@ What is solid now:
 - editor config helper with `relay init`
 - GoReleaser and CI
 
-What is next:
+### What is next
 
 - tighter onboarding assets
 - demo GIF
@@ -341,8 +366,7 @@ MIT. See [LICENSE](LICENSE).
 
 <div align="center">
 
-Built by [Tamish](https://github.com/tamish560) at [Valtors](https://github.com/valtors)
-
-If Relay saves you setup time, give it a star.
+**Built with ❤️ by [Tamish](https://github.com/tamish560) at [Valtors](https://github.com/valtors)**  
+If Relay saves you setup time, **give it a star** ⭐
 
 </div>
