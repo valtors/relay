@@ -123,9 +123,13 @@ func AcquireLock(filename string) error {
 		return err
 	}
 
+	currentPid := os.Getpid()
 	if b, err := os.ReadFile(lp); err == nil {
 		pid, err := strconv.Atoi(strings.TrimSpace(string(b)))
 		if err == nil {
+			if pid == currentPid {
+				return fmt.Errorf("%s is locked by process %d — retry in a moment", filename, pid)
+			}
 			proc, err := os.FindProcess(pid)
 			if err == nil {
 				if err := proc.Signal(os.Signal(nil)); err == nil {
@@ -137,7 +141,7 @@ func AcquireLock(filename string) error {
 		}
 	}
 
-	return os.WriteFile(lp, []byte(strconv.Itoa(os.Getpid())), 0o644)
+	return os.WriteFile(lp, []byte(strconv.Itoa(currentPid)), 0o644)
 }
 
 func ReleaseLock(filename string) {
