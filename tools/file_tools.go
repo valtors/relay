@@ -239,14 +239,29 @@ func resolveToolPath(path string) (string, error) {
 	if strings.TrimSpace(path) == "" {
 		return "", errors.New("path is required")
 	}
-	if filepath.IsAbs(path) {
-		return filepath.Clean(path), nil
-	}
+
 	wd, err := os.Getwd()
 	if err != nil {
 		return "", fmt.Errorf("get current directory: %w", err)
 	}
-	return filepath.Clean(filepath.Join(wd, path)), nil
+	wd = filepath.Clean(wd)
+
+	var resolved string
+	if filepath.IsAbs(path) {
+		resolved = filepath.Clean(path)
+	} else {
+		resolved = filepath.Clean(filepath.Join(wd, path))
+	}
+
+	rel, err := filepath.Rel(wd, resolved)
+	if err != nil {
+		return "", fmt.Errorf("path outside working directory: %s", path)
+	}
+	if strings.HasPrefix(rel, "..") {
+		return "", fmt.Errorf("path outside working directory: %s", path)
+	}
+
+	return resolved, nil
 }
 
 func readFileCapped(path string, maxBytes int64) ([]byte, bool, error) {

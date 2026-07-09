@@ -5,7 +5,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	neturl "net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -16,6 +19,10 @@ func WebFetch(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult
 	url := strings.TrimSpace(req.GetString("url", ""))
 	if url == "" {
 		return mcp.NewToolResultError("url is required"), nil
+	}
+
+	if err := validateURL(url); err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
 	}
 
 	method := strings.TrimSpace(req.GetString("method", ""))
@@ -55,6 +62,10 @@ func WebStatus(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResul
 	url := strings.TrimSpace(req.GetString("url", ""))
 	if url == "" {
 		return mcp.NewToolResultError("url is required"), nil
+	}
+
+	if err := validateURL(url); err != nil {
+		return mcp.NewToolResultError(err.Error()), nil
 	}
 
 	client := &http.Client{Timeout: 15 * time.Second}
@@ -106,4 +117,50 @@ func readResponseCapped(reader io.Reader, maxBytes int64) ([]byte, bool, error) 
 		return data[:maxBytes], true, nil
 	}
 	return data, false, nil
+}
+
+func validateURL(raw string) error {
+	if os.Getenv("RELAY_SKIP_URL_VALIDATION") != "" {
+		return nil
+	}
+
+	parsed, err := neturl.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("invalid url: %w", err)
+	}
+
+	scheme := strings.ToLower(parsed.Scheme)
+	if scheme != "http" && scheme != "https" {
+		return fmt.Errorf("url scheme must be http or https")
+	}
+
+	host := parsed.Hostname()
+	if host == "" {
+		return fmt.Errorf("url must have a hostname")
+	}
+
+	if ip := net.ParseIP(host); ip != nil {
+		if ip.IsLoopback() || ip.IsPrivate() || ip.IsUnspecified() || ip.IsLinkLocalUnicast() {
+			return fmt.Errorf("url resolves to a non-public address: %s", host)
+		}
+	}
+
+	ips, err := net.LookupIP(host)
+	if err != nil {
+		return fmt.Errorf("dns lookup failed for %s: %w", host, err)
+	}
+	for _, ip := range ips {
+		if ip.IsLoopback() || ip.IsPrivate() || ip.IsUnspecified() || ip.IsLinkLocalUnicast() {
+			return fmt.Errorf("url resolves to a non-public address: %s -> %s", host, ip)
+		}
+	}
+
+	blocked := []string{"169.254.169.254", "metadata.google.internal", "metadata.aws.internal"}
+	for _, b := range blocked {
+		if strings.EqualFold(host, b) {
+			return fmt.Errorf("url points to a cloud metadata endpoint: %s", host)
+		}
+	}
+
+	return nil
 }

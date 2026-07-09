@@ -15,8 +15,8 @@ import (
 )
 
 func TestPdfPageCount(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "three-pages.pdf")
+	tempWorkDir(t)
+	path := "three-pages.pdf"
 	writeTestPDF(t, path, testPDFSpec{Pages: 3})
 
 	result := callTool(t, PDFPageCountTool, map[string]any{"path": path})
@@ -25,8 +25,8 @@ func TestPdfPageCount(t *testing.T) {
 }
 
 func TestPdfInfo(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "info.pdf")
+	tempWorkDir(t)
+	path := "info.pdf"
 	writeTestPDF(t, path, testPDFSpec{
 		Pages:   2,
 		Title:   "Quarterly Report",
@@ -61,8 +61,8 @@ func TestPdfInfo(t *testing.T) {
 }
 
 func TestPdfExtractText(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "text.pdf")
+	tempWorkDir(t)
+	path := "text.pdf"
 	writeTestPDF(t, path, testPDFSpec{
 		Pages: 2,
 		PageText: []string{
@@ -80,10 +80,10 @@ func TestPdfExtractText(t *testing.T) {
 }
 
 func TestPdfMerge(t *testing.T) {
-	dir := t.TempDir()
-	first := filepath.Join(dir, "first.pdf")
-	second := filepath.Join(dir, "second.pdf")
-	output := filepath.Join(dir, "merged.pdf")
+	tempWorkDir(t)
+	first := "first.pdf"
+	second := "second.pdf"
+	output := "merged.pdf"
 	writeTestPDF(t, first, testPDFSpec{Pages: 1})
 	writeTestPDF(t, second, testPDFSpec{Pages: 2})
 
@@ -92,7 +92,7 @@ func TestPdfMerge(t *testing.T) {
 		"output": output,
 	})
 	require.False(t, result.IsError)
-	assert.Equal(t, output, resultText(t, result))
+	assert.Contains(t, resultText(t, result), "merged.pdf")
 
 	count, err := api.PageCountFile(output)
 	require.NoError(t, err)
@@ -100,9 +100,9 @@ func TestPdfMerge(t *testing.T) {
 }
 
 func TestPdfSplit(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "split.pdf")
-	outputDir := filepath.Join(dir, "parts")
+	tempWorkDir(t)
+	path := "split.pdf"
+	outputDir := "parts"
 	writeTestPDF(t, path, testPDFSpec{Pages: 3})
 
 	result := callTool(t, PDFSplitTool, map[string]any{
@@ -120,9 +120,9 @@ func TestPdfSplit(t *testing.T) {
 }
 
 func TestPdfExtractPages(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "source.pdf")
-	output := filepath.Join(dir, "extracted.pdf")
+	tempWorkDir(t)
+	path := "source.pdf"
+	output := "extracted.pdf"
 	writeTestPDF(t, path, testPDFSpec{Pages: 3})
 
 	result := callTool(t, PDFExtractPagesTool, map[string]any{
@@ -131,7 +131,7 @@ func TestPdfExtractPages(t *testing.T) {
 		"output": output,
 	})
 	require.False(t, result.IsError)
-	assert.Equal(t, output, resultText(t, result))
+	assert.Contains(t, resultText(t, result), "extracted.pdf")
 
 	count, err := api.PageCountFile(output)
 	require.NoError(t, err)
@@ -140,18 +140,17 @@ func TestPdfExtractPages(t *testing.T) {
 
 func TestPdfErrors(t *testing.T) {
 	t.Run("missing file", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "missing.pdf")
-		result := callTool(t, PDFPageCountTool, map[string]any{"path": path})
+		tempWorkDir(t)
+		result := callTool(t, PDFPageCountTool, map[string]any{"path": "missing.pdf"})
 		require.True(t, result.IsError)
 		assert.Contains(t, resultText(t, result), "count pdf pages")
 	})
 
 	t.Run("invalid pdf", func(t *testing.T) {
-		dir := t.TempDir()
-		path := filepath.Join(dir, "invalid.pdf")
-		require.NoError(t, os.WriteFile(path, []byte("not a real pdf"), 0o644))
+		tempWorkDir(t)
+		require.NoError(t, os.WriteFile("invalid.pdf", []byte("not a real pdf"), 0o644))
 
-		result := callTool(t, PDFInfoTool, map[string]any{"path": path})
+		result := callTool(t, PDFInfoTool, map[string]any{"path": "invalid.pdf"})
 		require.True(t, result.IsError)
 		assert.Contains(t, resultText(t, result), "read pdf info")
 	})
@@ -245,3 +244,5 @@ func escapePDFString(s string) string {
 	)
 	return replacer.Replace(s)
 }
+
+var _ = filepath.Join

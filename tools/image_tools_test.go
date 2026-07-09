@@ -15,8 +15,8 @@ import (
 )
 
 func TestImageInfoReturnsDimensionsAndFormat(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "sample.png")
+	tempWorkDir(t)
+	path := "sample.png"
 	writeTestImage(t, path)
 
 	res, err := ImageInfo(t.Context(), makeImageReq(map[string]any{"path": path}))
@@ -38,8 +38,8 @@ func TestImageInfoReturnsDimensionsAndFormat(t *testing.T) {
 }
 
 func TestImageResizeScalesProportionally(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "sample.png")
+	tempWorkDir(t)
+	path := "sample.png"
 	writeTestImage(t, path)
 
 	res, err := ImageResize(t.Context(), makeImageReq(map[string]any{
@@ -66,8 +66,8 @@ func TestImageResizeScalesProportionally(t *testing.T) {
 }
 
 func TestImageCropReturnsCroppedRegion(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "sample.png")
+	tempWorkDir(t)
+	path := "sample.png"
 	writeTestImage(t, path)
 
 	res, err := ImageCrop(t.Context(), makeImageReq(map[string]any{
@@ -96,8 +96,8 @@ func TestImageCropReturnsCroppedRegion(t *testing.T) {
 }
 
 func TestImageConvertRoundTripFormats(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "sample.png")
+	tempWorkDir(t)
+	path := "sample.png"
 	writeTestImage(t, path)
 
 	jpegRes, err := ImageConvert(t.Context(), makeImageReq(map[string]any{
@@ -133,8 +133,8 @@ func TestImageConvertRoundTripFormats(t *testing.T) {
 }
 
 func TestImageRotateVariants(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "sample.png")
+	tempWorkDir(t)
+	path := "sample.png"
 	writeTestImage(t, path)
 
 	cases := []struct {
@@ -196,8 +196,8 @@ func TestImageRotateVariants(t *testing.T) {
 }
 
 func TestImageGrayscaleProducesGrayPixels(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "sample.png")
+	tempWorkDir(t)
+	path := "sample.png"
 	writeTestImage(t, path)
 
 	res, err := ImageGrayscale(t.Context(), makeImageReq(map[string]any{"path": path}))
@@ -218,8 +218,8 @@ func TestImageGrayscaleProducesGrayPixels(t *testing.T) {
 }
 
 func TestImageFlipDirections(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "sample.png")
+	tempWorkDir(t)
+	path := "sample.png"
 	writeTestImage(t, path)
 
 	hRes, err := ImageFlip(t.Context(), makeImageReq(map[string]any{
@@ -257,15 +257,16 @@ func TestImageFlipDirections(t *testing.T) {
 
 func TestImageErrors(t *testing.T) {
 	t.Run("missing file", func(t *testing.T) {
-		res, err := ImageInfo(t.Context(), makeImageReq(map[string]any{"path": filepath.Join(t.TempDir(), "missing.png")}))
+		tempWorkDir(t)
+		res, err := ImageInfo(t.Context(), makeImageReq(map[string]any{"path": "missing.png"}))
 		require.NoError(t, err)
 		require.True(t, res.IsError)
 		assert.Contains(t, textOf(t, res), "load image")
 	})
 
 	t.Run("invalid format", func(t *testing.T) {
-		dir := t.TempDir()
-		path := filepath.Join(dir, "sample.png")
+		tempWorkDir(t)
+		path := "sample.png"
 		writeTestImage(t, path)
 
 		res, err := ImageConvert(t.Context(), makeImageReq(map[string]any{
@@ -278,8 +279,8 @@ func TestImageErrors(t *testing.T) {
 	})
 
 	t.Run("crop outside bounds", func(t *testing.T) {
-		dir := t.TempDir()
-		path := filepath.Join(dir, "sample.png")
+		tempWorkDir(t)
+		path := "sample.png"
 		writeTestImage(t, path)
 
 		res, err := ImageCrop(t.Context(), makeImageReq(map[string]any{
@@ -336,3 +337,5 @@ func assertColorEquals(t *testing.T, want, got color.Color) {
 	t.Helper()
 	assert.Equal(t, color.NRGBAModel.Convert(want), color.NRGBAModel.Convert(got))
 }
+
+var _ = filepath.Join
