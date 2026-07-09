@@ -283,6 +283,7 @@ If you want the built-in planning and workflow tools (`run_workflow`, `pm_plan`,
 
 ```text
 relay              start MCP server in stdio mode
+relay tui          launch interactive TUI (same as no args in a TTY)
 relay start        same as above
 relay start --http serve over Streamable HTTP
 relay init         detect editor and write config
@@ -324,6 +325,36 @@ go install github.com/valtors/relay@latest
 
 ---
 
+## Interactive mode
+
+When you run `npx userelay` without arguments in a terminal, Relay launches an interactive TUI:
+
+```text
+  ╭───────────────────────────────────╮
+  │  relay v0.3.0                    │
+  │  40 tools · 7 categories         │
+  ╰───────────────────────────────────╯
+
+  ❯ Start MCP server (stdio)
+    Start MCP server (HTTP)
+    Initialize — detect & configure editors
+    Browse tools
+    Status
+    Quit
+```
+
+- Animated RELAY wordmark on launch (shimmer effect)
+- Keyboard-navigable menus
+- Init wizard with editor detection and config writing
+- Tools browser — all 40 tools organized by category
+- Status dashboard — version, transport, tool count
+
+If stdin is not a TTY (piped, CI, or MCP client), Relay starts the server directly — no TUI.
+
+To explicitly launch the TUI: `npx userelay tui`
+
+---
+
 ## Roadmap
 
 Solid now:
@@ -333,6 +364,7 @@ Solid now:
 - MCP server over stdio and HTTP
 - editor config helper with `relay init`
 - GoReleaser and CI
+- interactive TUI mode
 
 Next:
 
