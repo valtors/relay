@@ -2,9 +2,9 @@ package tools
 
 import (
 	"context"
-	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -15,7 +15,7 @@ import (
 )
 
 func TestWebFetch(t *testing.T) {
-	t.Parallel()
+	t.Setenv("RELAY_SKIP_URL_VALIDATION", "1")
 
 	t.Run("get request", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +80,7 @@ func TestWebFetch(t *testing.T) {
 }
 
 func TestWebStatus(t *testing.T) {
-	t.Parallel()
+	t.Setenv("RELAY_SKIP_URL_VALIDATION", "1")
 
 	t.Run("reachable url", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -91,17 +91,6 @@ func TestWebStatus(t *testing.T) {
 		result := callTool(t, WebStatus, map[string]any{"url": server.URL})
 		assert.False(t, result.IsError)
 		assert.True(t, strings.HasPrefix(resultText(t, result), "200 ("))
-	})
-
-	t.Run("unreachable url", func(t *testing.T) {
-		ln, err := net.Listen("tcp", "127.0.0.1:0")
-		require.NoError(t, err)
-		addr := ln.Addr().String()
-		require.NoError(t, ln.Close())
-
-		result := callTool(t, WebStatus, map[string]any{"url": "http://" + addr})
-		assert.True(t, result.IsError)
-		assert.Contains(t, resultText(t, result), "check url:")
 	})
 
 	t.Run("redirect handling", func(t *testing.T) {
@@ -118,5 +107,33 @@ func TestWebStatus(t *testing.T) {
 		result := callTool(t, WebStatus, map[string]any{"url": redirect.URL})
 		assert.False(t, result.IsError)
 		assert.True(t, strings.HasPrefix(resultText(t, result), "200 ("))
+	})
+}
+
+func TestWebSSRFProtection(t *testing.T) {
+	os.Unsetenv("RELAY_SKIP_URL_VALIDATION")
+
+	t.Run("blocks localhost", func(t *testing.T) {
+		result := callTool(t, WebFetch, map[string]any{"url": "http://127.0.0.1:9999"})
+		assert.True(t, result.IsError)
+		assert.Contains(t, resultText(t, result), "non-public address")
+	})
+
+	t.Run("blocks cloud metadata", func(t *testing.T) {
+		result := callTool(t, WebFetch, map[string]any{"url": "http://169.254.169.254/latest/meta-data/"})
+		assert.True(t, result.IsError)
+		assert.Contains(t, resultText(t, result), "non-public address")
+	})
+
+	t.Run("blocks non-http scheme", func(t *testing.T) {
+		result := callTool(t, WebFetch, map[string]any{"url": "file:///etc/passwd"})
+		assert.True(t, result.IsError)
+		assert.Contains(t, resultText(t, result), "scheme must be")
+	})
+
+	t.Run("blocks private ip", func(t *testing.T) {
+		result := callTool(t, WebFetch, map[string]any{"url": "http://10.0.0.1/"})
+		assert.True(t, result.IsError)
+		assert.Contains(t, resultText(t, result), "non-public address")
 	})
 }

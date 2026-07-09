@@ -106,9 +106,19 @@ func FormatForPrompt(results []Result) string {
 	}
 	var sb strings.Builder
 	for i, r := range results {
-		fmt.Fprintf(&sb, "[%d] %s\n    %s\n    %s\n", i+1, r.Title, r.URL, r.Snippet)
+		title := sanitizeForPrompt(r.Title)
+		snippet := sanitizeForPrompt(r.Snippet)
+		fmt.Fprintf(&sb, "<result index=\"%d\">\n  <title>%s</title>\n  <url>%s</url>\n  <snippet>%s</snippet>\n</result>\n", i+1, title, r.URL, snippet)
 	}
 	return sb.String()
+}
+
+func sanitizeForPrompt(s string) string {
+	s = strings.ReplaceAll(s, "--- WEB_SEARCH_RESULTS ---", "")
+	s = strings.ReplaceAll(s, "--- END WEB_SEARCH_RESULTS ---", "")
+	s = strings.ReplaceAll(s, "</result>", "")
+	s = strings.ReplaceAll(s, "<result", "")
+	return s
 }
 
 func cleanURL(u string) string {

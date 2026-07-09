@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -163,11 +164,31 @@ func renderMarkdownHTML(input string) string {
 
 func applyInlineMarkdown(text string) string {
 	escaped := html.EscapeString(text)
-	escaped = linkPattern.ReplaceAllString(escaped, `<a href="$2">$1</a>`)
+	escaped = linkPattern.ReplaceAllStringFunc(escaped, func(match string) string {
+		parts := linkPattern.FindStringSubmatch(match)
+		if len(parts) != 3 {
+			return match
+		}
+		href := sanitizeURL(parts[2])
+		return fmt.Sprintf(`<a href="%s">%s</a>`, href, parts[1])
+	})
 	escaped = boldPattern.ReplaceAllString(escaped, `<strong>$1</strong>`)
 	escaped = codePattern.ReplaceAllString(escaped, `<code>$1</code>`)
 	escaped = italicPattern.ReplaceAllString(escaped, `<em>$1</em>`)
 	return escaped
+}
+
+func sanitizeURL(raw string) string {
+	decoded, err := url.QueryUnescape(raw)
+	if err != nil {
+		decoded = raw
+	}
+	trimmed := strings.TrimSpace(decoded)
+	lower := strings.ToLower(trimmed)
+	if strings.HasPrefix(lower, "javascript:") || strings.HasPrefix(lower, "data:") || strings.HasPrefix(lower, "vbscript:") {
+		return "#"
+	}
+	return raw
 }
 
 func headingLevel(line string) int {
