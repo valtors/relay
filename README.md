@@ -13,8 +13,34 @@ Local MCP server for files, images, PDFs, web, and workflows.
 [![GitHub stars](https://img.shields.io/github/stars/valtors/relay?style=for-the-badge&logo=github)](https://github.com/valtors/relay/stargazers)
 [![npm downloads](https://img.shields.io/npm/dm/userelay?style=for-the-badge&logo=npm&label=downloads)](https://www.npmjs.com/package/userelay)
 [![GitHub release](https://img.shields.io/github/v/release/valtors/relay?style=for-the-badge&logo=github&label=release)](https://github.com/valtors/relay/releases)
+[![good first issue](https://img.shields.io/github/issues/valtors/relay/good%20first%20issue?style=for-the-badge&label=good%20first%20issue&color=7057ff)](https://github.com/valtors/relay/labels/good%20first%20issue)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-7057ff?style=for-the-badge)](CONTRIBUTING.md)
 
 </div>
+
+---
+
+## New here?
+
+- **Want to try it?** Run `npx userelay` - no install needed.
+- **Want to contribute?** Check [`good first issues`](https://github.com/valtors/relay/labels/good%20first%20issue) or read [how to add a tool](docs/ADDING_A_TOOL.md).
+- **Want to ask first?** Open a [Discussion](https://github.com/valtors/relay/discussions). We reply within 3 business days.
+
+---
+
+## Why Relay?
+
+Every MCP server does one thing. File servers do files. Image servers do images. PDF servers do PDFs. Before Relay, running a capable agent meant stitching together 5-10 separate servers, each with its own install, config, and update cycle.
+
+Relay puts 40 tools behind one binary. One install. One config. One process.
+
+| | Relay | Multiple servers |
+|---|---|---|
+| Install | `npx userelay` | One per server |
+| Config | One entry | One per server |
+| Updates | One binary | One per server |
+| Memory | One process | N processes |
+| Tools | 40 built-in | Whatever you assembled |
 
 ---
 
@@ -357,21 +383,45 @@ To explicitly launch the TUI: `npx userelay tui`
 
 ## Roadmap
 
-Solid now:
-
-- 40 built-in tools
-- cross-platform install scripts
+**Shipped:**
+- 40 built-in tools across 7 categories
+- Cross-platform install (npm, curl, go install)
 - MCP server over stdio and HTTP
-- editor config helper with `relay init`
-- GoReleaser and CI
-- interactive TUI mode
+- Editor config helper (`relay init`)
+- Interactive TUI mode
+- Security hardening (path traversal, SSRF, XSS, prompt injection)
+- GoReleaser CI/CD
 
-Next:
+**Next:**
+- Tool plugin system (define tools in external files)
+- Streaming responses for long-running operations
+- More verified starter workflows
+- Community-contributed tools
+- MCP server discovery and registry
 
-- tighter onboarding assets
-- demo GIF
-- more verified starter workflows
-- deeper orchestration where it clearly improves real use
+**Thinking about:**
+- Docker image for containerized deployments
+- WebSocket transport
+- Tool-level permissions and sandboxing
+- Multi-language tool definitions (Python, JS plugins)
+
+---
+
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/tamish560"><img src="https://avatars.githubusercontent.com/u/189916421?v=4" width="80px;" alt=""/><br /><sub><b>Tamish Mhatre</b></sub></a><br /><a title="Code">💻</a> <a title="Design">🎨</a> <a title="Docs">📖</a></td>
+  </tr>
+</table>
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+Want to be here? Check [`good first issues`](https://github.com/valtors/relay/labels/good%20first%20issue).
 
 ---
 

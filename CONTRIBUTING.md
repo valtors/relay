@@ -203,4 +203,11 @@ If you maintain Relay, this part matters just as much as the code:
 - close the loop after merge
 - do not let contribution threads die in silence
 
+## Commit style
+
+- short, lowercase commit messages
+- one change per commit, one commit per PR when possible
+- prefix with type: `fix:`, `feat:`, `docs:`, `chore:`, `refactor:`
+- no more than 2 PRs per day with 15-20 min spacing between them
+
 Fast, clear feedback is part of the product.

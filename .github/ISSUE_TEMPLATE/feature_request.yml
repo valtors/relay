@@ -1,0 +1,28 @@
+---
+name: Feature request
+about: Have an idea for a new tool or improvement?
+title: "[feat] "
+labels: enhancement
+assignees: ""
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like?
+      description: A clear description of the feature or improvement.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why?
+      description: What problem does this solve? How does it make Relay better?
+    validations:
+      required: true
+  - type: textarea
+    id: how
+    attributes:
+      label: Any ideas on how to build it?
+      description: Not required, but helpful if you have implementation thoughts.
+    validations:
+      required: false
