@@ -15,4 +15,7 @@
 - [ ] `gofmt -w .` is clean
 - [ ] `go vet ./...` is clean
 - [ ] `go test ./...` passes
+- [ ] `go build ./...` succeeds (for release changes)
+- [ ] README/ADDING_A_TOOL docs updated if user-facing
 - [ ] PR is small and focused (one change)
+- [ ] Issue is linked with `Closes #123` if it exists

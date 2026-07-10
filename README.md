@@ -23,8 +23,8 @@ Local MCP server for files, images, PDFs, web, and workflows.
 ## New here?
 
 - **Want to try it?** Run `npx userelay` - no install needed.
-- **Want to contribute?** Check [`good first issues`](https://github.com/valtors/relay/labels/good%20first%20issue) or read [how to add a tool](docs/ADDING_A_TOOL.md).
-- **Want to ask first?** Open a [Discussion](https://github.com/valtors/relay/discussions). We reply within 3 business days.
+- **Want to contribute?** Read [Your first PR in 5 minutes](docs/FIRST_PR.md), check [`good first issues`](https://github.com/valtors/relay/labels/good%20first%20issue), or see [how to add a tool](docs/ADDING_A_TOOL.md).
+- **Want to ask first?** Open a [Discussion](https://github.com/valtors/relay/discussions). We reply within 24 hours.
 
 ---
 
