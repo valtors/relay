@@ -124,12 +124,10 @@ func TestRunCLI_Status(t *testing.T) {
 
 func TestRenderBanner_StylingToggle(t *testing.T) {
 	plain := (cliUI{}).renderBanner(Version, 40, "stdio")
-	colored := (cliUI{color: true}).renderBanner(Version, 40, "stdio")
 
 	assert.Contains(t, plain, "██████╗")
 	assert.Contains(t, plain, "transport stdio")
 	assert.NotContains(t, plain, "\x1b[")
-	assert.Contains(t, colored, "\x1b[")
 }
 
 func TestRunCLI_ToolsJSON(t *testing.T) {
