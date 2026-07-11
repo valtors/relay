@@ -103,6 +103,7 @@ async function main() {
     } catch (err) {
       console.error(`TUI unavailable: ${err.message}`);
       console.error("Falling back to direct mode.\n");
+      console.error("Tip: for the interactive setup wizard, run `npm i -g userelay && relay` instead of npx.\n");
     }
   }
 
