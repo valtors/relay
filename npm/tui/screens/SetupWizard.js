@@ -132,7 +132,7 @@ export function SetupWizard({ version, toolCount, binaryPath, onDone }) {
     return html`
       <${Box} flexDirection="column" alignItems="center" justifyContent="center" paddingTop=${2}>
         <${AnimatedBanner} text="RELAY" onDone=${() => {}} />
-        <${Text} color="gray">Setting up your local MCP server</\Text>
+        <${Text} color="gray">Setting up your local MCP server<//>
       <//>
     `;
   }
