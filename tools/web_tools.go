@@ -9,11 +9,26 @@ import (
 	"net/http"
 	neturl "net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 )
+
+const defaultWebTimeout = 30 * time.Second
+
+func webTimeout() time.Duration {
+	raw := os.Getenv("RELAY_WEB_TIMEOUT")
+	if raw == "" {
+		return defaultWebTimeout
+	}
+	seconds, err := strconv.Atoi(raw)
+	if err != nil || seconds < 1 {
+		return defaultWebTimeout
+	}
+	return time.Duration(seconds) * time.Second
+}
 
 func WebFetch(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	url := strings.TrimSpace(req.GetString("url", ""))
@@ -41,7 +56,7 @@ func WebFetch(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult
 		}
 	}
 
-	client := &http.Client{Timeout: 30 * time.Second}
+	client := &http.Client{Timeout: webTimeout()}
 	resp, err := client.Do(httpReq)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("fetch url: %v", err)), nil
@@ -68,7 +83,7 @@ func WebStatus(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResul
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 
-	client := &http.Client{Timeout: 15 * time.Second}
+	client := &http.Client{Timeout: webTimeout()}
 	start := time.Now()
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
