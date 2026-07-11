@@ -83,6 +83,14 @@ func (ui cliUI) lipglossRenderer() *lipgloss.Renderer {
 	return lipgloss.NewRenderer(io.Discard, termenv.WithTTY(ui.color))
 }
 
+func (ui cliUI) renderHint(text string) string {
+	if !ui.color || text == "" {
+		return text
+	}
+	dim := lipgloss.NewStyle().Foreground(lipgloss.Color("#5B6472")).Italic(true)
+	return dim.Renderer(ui.lipglossRenderer()).Render(text)
+}
+
 func (ui cliUI) renderStyled(style lipgloss.Style, text string) string {
 	if !ui.color || text == "" {
 		return text
