@@ -8,7 +8,7 @@ const editors = [
   {
     id: "claude",
     name: "Claude Desktop",
-    icon: "🧠",
+    icon: "•",
     detect: () => {
       const paths = [
         join(homedir(), "Library", "Application Support", "Claude", "claude_desktop_config.json"),
@@ -21,7 +21,7 @@ const editors = [
   {
     id: "cursor",
     name: "Cursor",
-    icon: "✨",
+    icon: "•",
     detect: () => {
       const paths = [
         join(homedir(), ".cursor", "mcp.json"),
@@ -33,7 +33,7 @@ const editors = [
   {
     id: "vscode",
     name: "VS Code",
-    icon: "📝",
+    icon: "•",
     detect: () => {
       const p = join(homedir(), ".vscode", "mcp.json");
       return existsSync(p) ? p : null;
@@ -42,7 +42,7 @@ const editors = [
   {
     id: "windsurf",
     name: "Windsurf",
-    icon: "🏄",
+    icon: "•",
     detect: () => {
       const p = join(homedir(), ".windsurf", "mcp.json");
       return existsSync(p) ? p : null;
@@ -189,7 +189,7 @@ export function SetupWizard({ version, toolCount, binaryPath, onDone }) {
         <//>
         <${Text} color="gray">${current.configPath}<//>
         ${already
-          ? html`<${Text} color="yellow" marginTop=${1}>⚠ Relay already configured. Overwrite?<//>`
+          ? html`<${Text} color="yellow" marginTop=${1}>! Relay already configured. Overwrite?<//>`
           : html`<${Text} color="gray" marginTop=${1}>Add Relay to this editor?<//>`}
         <${Box} marginTop=${2}>
           <${SelectInput}
@@ -227,16 +227,16 @@ export function SetupWizard({ version, toolCount, binaryPath, onDone }) {
     const successCount = results.filter((r) => r.success).length;
     return html`
       <${Box} flexDirection="column" alignItems="center" paddingTop=${2}>
-        <${Text} color="cyan" bold>✓ Setup complete<//>
+        <${Text} color="cyan" bold>+ Setup complete<//>
         <${Text} color="gray">Configured ${successCount} editor${successCount === 1 ? "" : "s"}<//>
         ${results.map(
           (r, i) => html`
             <${Box} key=${i} marginTop=${1}>
               ${r.success
-                ? html`<${Text} color="green">✓ ${r.name}<//>`
+                ? html`<${Text} color="green">+ ${r.name}<//>`
                 : r.skipped
-                ? html`<${Text} color="gray">⊘ ${r.name} (skipped)<//>`
-                : html`<${Text} color="red">✗ ${r.name}: ${r.error}<//>`}
+                ? html`<${Text} color="gray">- ${r.name} (skipped)<//>`
+                : html`<${Text} color="red">- ${r.name}: ${r.error}<//>`}
             <//>
           `
         )}
