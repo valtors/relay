@@ -1,6 +1,6 @@
 {
   "name": "userelay",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "One MCP server. 40 tools. One command: npx userelay",
   "bin": {
     "relay": "./bin/run.js"
