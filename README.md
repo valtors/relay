@@ -4,38 +4,43 @@
 
 # Relay
 
-Local MCP server for files, images, PDFs, web, and workflows.
+**One MCP server for files, images, PDFs, web, and workflows.**
+
+Run it with `npx userelay`. Your files stay local.
 
 [![CI](https://img.shields.io/github/actions/workflow/status/valtors/relay/ci.yml?style=for-the-badge&logo=githubactions&label=ci)](https://github.com/valtors/relay/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/userelay?style=for-the-badge&logo=npm&label=npm)](https://www.npmjs.com/package/userelay)
 [![License](https://img.shields.io/github/license/valtors/relay?style=for-the-badge&label=license)](LICENSE)
-[![Go Version](https://img.shields.io/github/go-mod/go-version/valtors/relay?style=for-the-badge&logo=go)](go.mod)
 [![GitHub stars](https://img.shields.io/github/stars/valtors/relay?style=for-the-badge&logo=github)](https://github.com/valtors/relay/stargazers)
 [![npm downloads](https://img.shields.io/npm/dm/userelay?style=for-the-badge&logo=npm&label=downloads)](https://www.npmjs.com/package/userelay)
-[![GitHub release](https://img.shields.io/github/v/release/valtors/relay?style=for-the-badge&logo=github&label=release)](https://github.com/valtors/relay/releases)
-[![good first issue](https://img.shields.io/github/issues/valtors/relay/good%20first%20issue?style=for-the-badge&label=good%20first%20issue&color=7057ff)](https://github.com/valtors/relay/labels/good%20first%20issue)
-[![contributions welcome](https://img.shields.io/badge/contributions-welcome-7057ff?style=for-the-badge)](CONTRIBUTING.md)
+[![contributors](https://img.shields.io/github/contributors/valtors/relay?style=for-the-badge&label=contributors)](https://github.com/valtors/relay/graphs/contributors)
 
 </div>
 
 ---
 
-## New here?
+## Try it
 
-- **First time?** Run `npx userelay` and follow the animated setup wizard. No install needed. It will download Relay and configure your editor.
-- **Already set up?** Run `npx userelay tui` for the interactive menu.
-- **Want to reconfigure your editor?** Run `npx userelay init`.
-- **Just curious?** Run `npx userelay --help` or `npx userelay status`.
-- **Want to contribute?** Read [Your first PR in 5 minutes](docs/FIRST_PR.md), check [`good first issues`](https://github.com/valtors/relay/labels/good%20first%20issue), or see [how to add a tool](docs/ADDING_A_TOOL.md).
-- **Want to ask first?** Open a [Discussion](https://github.com/valtors/relay/discussions). We reply within 24 hours.
+```bash
+npx userelay
+```
+
+That opens the setup wizard, downloads the right binary, and configures your editor. No install needed.
+
+If you already have it:
+
+- `npx userelay` - launch the TUI menu
+- `npx userelay init` - reconfigure your editor
+- `npx userelay status` - check version and tools
+- `npx userelay --help` - see all commands
 
 ---
 
 ## Why Relay?
 
-Every MCP server does one thing. File servers do files. Image servers do images. PDF servers do PDFs. Before Relay, running a capable agent meant stitching together 5-10 separate servers, each with its own install, config, and update cycle.
+Most MCP servers do one thing. File servers, image servers, PDF servers, web servers. You end up stitching 5-10 of them together, each with its own install, config, and quirks.
 
-Relay puts 40 tools behind one binary. One install. One config. One process.
+Relay is one binary with 40 tools across 7 categories. One install. One config. One process.
 
 | | Relay | Multiple servers |
 |---|---|---|
