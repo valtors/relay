@@ -1,0 +1,44 @@
+---
+name: Bug report
+about: Something not working as expected?
+title: "[bug] "
+labels: bug
+assignees: ""
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of what went wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      description: What you thought would happen instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: Steps to trigger the issue.
+      placeholder: "1. Run `npx userelay ...`\n2. ...\n3. See error"
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Go version, Relay version, MCP client.
+      placeholder: "OS: \nGo version: \nRelay version: `npx userelay status`\nMCP client: "
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Paste any relevant error output here.
+    validations:
+      required: false

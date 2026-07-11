@@ -1,0 +1,39 @@
+name: First time contributor?
+description: Not sure where to start? Use this template and we'll point you to the right issue.
+title: "first contribution: "
+labels: ["good first issue", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Welcome. If you have never opened a PR before, you are in the right place.
+
+        We will find something small for you. No need to write a perfect proposal; just tell us what sounds interesting.
+  - type: dropdown
+    id: interest
+    attributes:
+      label: What sounds interesting?
+      options:
+        - Add a small tool
+        - Fix a bug
+        - Write or improve tests
+        - Improve documentation
+        - "Something else (say below)"
+    validations:
+      required: true
+  - type: textarea
+    id: background
+    attributes:
+      label: A bit about you (optional)
+      description: e.g. "First time contributing to Go" or "comfortable with TypeScript"
+  - type: checkboxes
+    id: read
+    attributes:
+      label: Quick start
+      options:
+        - label: I have read [CONTRIBUTING.md](https://github.com/valtors/relay/blob/main/CONTRIBUTING.md)
+          required: false
+        - label: I have read [docs/FIRST_PR.md](https://github.com/valtors/relay/blob/main/docs/FIRST_PR.md)
+          required: false
+        - label: I have read [docs/ADDING_A_TOOL.md](https://github.com/valtors/relay/blob/main/docs/ADDING_A_TOOL.md)
+          required: false

@@ -1,0 +1,15 @@
+# Configuration for stale issues and PRs
+daysUntilStale: 60
+daysUntilClose: 7
+exemptLabels:
+  - pinned
+  - security
+  - good first issue
+  - help wanted
+staleLabel: stale
+markComment: >
+  This issue has been quiet for 60 days. If it's still relevant, leave a
+  comment and we'll keep it open. Otherwise it'll close in 7 days.
+closeComment: >
+  Closing this as stale. Feel free to reopen if it comes up again.
+limitPerRun: 5

@@ -6,7 +6,7 @@ If this is your first open source PR, this repo should feel easy to get into. If
 
 ## Start here
 
-- Want the easiest first PR? Read [docs/ADDING_A_TOOL.md](docs/ADDING_A_TOOL.md).
+- Want the easiest first PR? Read [docs/FIRST_PR.md](docs/FIRST_PR.md).
 - Want a small task? Check issues labeled `good first issue` or `help wanted`.
 - Want to ask before you code? Start a [GitHub Discussion](https://github.com/valtors/relay/discussions).
 
@@ -145,15 +145,13 @@ You do not need to make it perfect before opening a PR. A small, clear PR beats 
 
 ## Review expectations
 
-This is the part most projects get wrong. Here is the standard we should hold ourselves to:
-
-- reply to new issues within 3 business days
-- reply to new PRs within 3 business days
+- reply to new issues within 24 hours
+- reply to new PRs within 24 hours
 - if a PR cannot be reviewed yet, leave a short status comment
-- no PR should sit for 7 days with zero maintainer response
+- no PR should sit for 3 days with zero maintainer response
 - if feedback is blocking merge, be specific about what needs to change
 
-If your PR has been quiet for a week, leave a short ping. That is normal and welcome.
+If your PR has been quiet for 48 hours, leave a short ping. That is normal and welcome.
 
 ## Communication
 
@@ -202,5 +200,12 @@ If you maintain Relay, this part matters just as much as the code:
 - thank first-time contributors early, even before full review
 - close the loop after merge
 - do not let contribution threads die in silence
+
+## Commit style
+
+- short, lowercase commit messages
+- one change per commit, one commit per PR when possible
+- prefix with type: `fix:`, `feat:`, `docs:`, `chore:`, `refactor:`
+- no more than 2 PRs per day with 15-20 min spacing between them
 
 Fast, clear feedback is part of the product.

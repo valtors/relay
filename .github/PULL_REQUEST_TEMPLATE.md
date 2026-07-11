@@ -1,21 +1,21 @@
-## Summary
+## What changed
 
-What changed?
+<!-- One or two sentences. Keep it simple. -->
 
 ## Why
 
-Why is this worth merging?
+<!-- What problem does this solve? Link any relevant issues with # -->
 
-## Testing
+## How you tested
 
-- [ ] `go test ./...`
-- [ ] `go vet ./...`
-- [ ] I updated docs if the user or contributor flow changed
+<!-- Did you run go test? go vet? Tested with a real MCP client? -->
 
-## Review notes
+## Checklist
 
-Anything you want a reviewer to focus on?
-
-## Related
-
-Closes #
+- [ ] `gofmt -w .` is clean
+- [ ] `go vet ./...` is clean
+- [ ] `go test ./...` passes
+- [ ] `go build ./...` succeeds (for release changes)
+- [ ] README/ADDING_A_TOOL docs updated if user-facing
+- [ ] PR is small and focused (one change)
+- [ ] Issue is linked with `Closes #123` if it exists

@@ -1,0 +1,21 @@
+name: Contributors
+
+on:
+  pull_request_target:
+    types:
+      - closed
+
+jobs:
+  add-contributors:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add contributors
+        uses: all-contributors/app-action@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
