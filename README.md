@@ -22,8 +22,9 @@ Local MCP server for files, images, PDFs, web, and workflows.
 
 ## New here?
 
-- **Want to see the GUI?** Run `npx userelay tui` - no install needed.
-- **Want to set up your editor?** Run `npx userelay init` to auto-configure Claude Desktop, Cursor, or VS Code.
+- **First time?** Run `npx userelay` and follow the animated setup wizard. No install needed. It will download Relay and configure your editor.
+- **Already set up?** Run `npx userelay tui` for the interactive menu.
+- **Want to reconfigure your editor?** Run `npx userelay init`.
 - **Just curious?** Run `npx userelay --help` or `npx userelay status`.
 - **Want to contribute?** Read [Your first PR in 5 minutes](docs/FIRST_PR.md), check [`good first issues`](https://github.com/valtors/relay/labels/good%20first%20issue), or see [how to add a tool](docs/ADDING_A_TOOL.md).
 - **Want to ask first?** Open a [Discussion](https://github.com/valtors/relay/discussions). We reply within 24 hours.
