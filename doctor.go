@@ -185,13 +185,13 @@ func checkEditorConfigs() []doctorCheck {
 	}
 
 	editors := []struct {
-		name     string
-		path     func(string) string
-		rootKey  string
+		name    string
+		path    func(string) string
+		rootKey string
 	}{
 		{
-			name: "Claude Desktop",
-			path: func(h string) string { return detectClaudeConfigPath(runtime.GOOS, h) },
+			name:    "Claude Desktop",
+			path:    func(h string) string { return detectClaudeConfigPath(runtime.GOOS, h) },
 			rootKey: "mcpServers",
 		},
 		{
