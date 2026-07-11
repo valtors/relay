@@ -21,14 +21,14 @@ function resolveBinaryPath() {
 }
 
 function shouldLaunchTUI(args) {
-  if (args.length === 0) {
-    return true;
+  if (args.length > 0 && args[0] !== "tui") {
+    return false;
+  }
+  if (process.env.MCP_SERVER || process.env.ANTHROPIC_MCP || process.env.CURSOR_MCP) {
+    return false;
   }
   const interactive = process.stdin.isTTY || process.stdout.isTTY || process.stderr.isTTY;
-  if (args[0] === "tui" && interactive) {
-    return true;
-  }
-  return false;
+  return interactive;
 }
 
 const setupFlagPath = path.join(os.homedir(), ".config", "relay", "setup-complete");
