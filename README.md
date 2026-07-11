@@ -36,6 +36,10 @@ If you already have it:
 
 ---
 
+## How does relay compare?
+
+See the [full comparison](./docs/comparison.md) against standalone MCP servers.
+
 ## Why Relay?
 
 Most MCP servers do one thing. File servers, image servers, PDF servers, web servers. You end up stitching 5-10 of them together, each with its own install, config, and quirks.
