@@ -61,7 +61,7 @@ func TestPrintDoctorUsage(t *testing.T) {
 
 func TestDoctorMarkerNoEmoji(t *testing.T) {
 	ui := cliUI{color: false}
-	assert.Equal(t, "+", doctorMarker(true, ui))
-	assert.Equal(t, "!", doctorMarker(false, ui))
-	assert.NotContains(t, doctorMarker(true, ui), "✓")
+	assert.Equal(t, "+", ui.doctorMarker("+"))
+	assert.Equal(t, "!", ui.doctorMarker("!"))
+	assert.NotContains(t, ui.doctorMarker("+"), "✓")
 }
