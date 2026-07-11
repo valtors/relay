@@ -8,7 +8,7 @@ const editors = [
   {
     id: "claude",
     name: "Claude Desktop",
-    icon: "•",
+    icon: "",
     detect: () => {
       const paths = [
         join(homedir(), "Library", "Application Support", "Claude", "claude_desktop_config.json"),
@@ -21,7 +21,7 @@ const editors = [
   {
     id: "cursor",
     name: "Cursor",
-    icon: "•",
+    icon: "",
     detect: () => {
       const paths = [
         join(homedir(), ".cursor", "mcp.json"),
@@ -33,7 +33,7 @@ const editors = [
   {
     id: "vscode",
     name: "VS Code",
-    icon: "•",
+    icon: "",
     detect: () => {
       const p = join(homedir(), ".vscode", "mcp.json");
       return existsSync(p) ? p : null;
@@ -42,7 +42,7 @@ const editors = [
   {
     id: "windsurf",
     name: "Windsurf",
-    icon: "•",
+    icon: "",
     detect: () => {
       const p = join(homedir(), ".windsurf", "mcp.json");
       return existsSync(p) ? p : null;
