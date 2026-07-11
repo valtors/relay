@@ -55,7 +55,7 @@ func TestPrintDoctorUsage(t *testing.T) {
 	output := buf.String()
 
 	assert.Contains(t, output, "relay doctor [--fix]")
-	assert.Contains(t, output, "Diagnose installation and config issues")
+	assert.Contains(t, output, "Diagnose common Relay installation and configuration issues")
 }
 
 func TestDoctorMarkerNoEmoji(t *testing.T) {
