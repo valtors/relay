@@ -1,4 +1,4 @@
-import { Box, Text, useState, useEffect, html } from "../h.js";
+import { Box, Text, useState, useEffect, html, SelectInput } from "../h.js";
 import { BrailleSpinner, GradientRule, KeyHint } from "../components.js";
 import { execSync } from "child_process";
 import { existsSync, writeFileSync, mkdirSync, readFileSync } from "fs";
@@ -98,7 +98,7 @@ export function InitWizard({ onDone }) {
       <${Box} flexDirection="column" alignItems="center" paddingTop=${2}>
         <${Text} color="yellow">No MCP-compatible editors detected.<//>
         <${Text} color="gray">Make sure Claude Desktop, Cursor, or VS Code is installed.<//>
-        ${!binaryResolved ? html`<${Text} color="yellow" marginTop=${1}>⚠ Relay binary not on PATH. Install with: npm i -g userelay<//>` : null}
+        ${!binaryResolved ? html`<${Text} color="yellow" marginTop=${1}>! Relay binary not on PATH. Install with: npm i -g userelay<//>` : null}
         <${Box} marginTop=${2}>
           <${Text} color="gray">Press any key to return<//>
         <//>
@@ -118,7 +118,7 @@ export function InitWizard({ onDone }) {
     return html`
       <${Box} flexDirection="column" paddingTop=${1}>
         <${Text} color="cyan" bold>Detected editors:<//>
-        ${!binaryResolved ? html`<${Text} color="yellow" marginTop=${1}>⚠ Relay binary not on PATH — config will use "relay" as command<//>` : null}
+        ${!binaryResolved ? html`<${Text} color="yellow" marginTop=${1}>! Relay binary not on PATH — config will use "relay" as command<//>` : null}
         <${Box} marginTop=${1} marginBottom=${1}>
           <${KeyHint} hints=${["↑↓ navigate", "Enter select", "Ctrl+C quit"]} />
         <//>
@@ -158,7 +158,7 @@ export function InitWizard({ onDone }) {
         <${Box} marginTop=${1}>
           <${Text} color="gray">${targetPath}<//>
         <//>
-        ${alreadyConfigured ? html`<${Text} color="yellow" marginTop=${1}>⚠ Relay is already configured — this will overwrite the existing entry<//>` : null}
+        ${alreadyConfigured ? html`<${Text} color="yellow" marginTop=${1}>! Relay is already configured — this will overwrite the existing entry<//>` : null}
         <${GradientRule} width=${40} />
         <${Text} color="gray" marginTop=${1}>Add config?<//>
         <${Box}>
@@ -209,12 +209,12 @@ export function InitWizard({ onDone }) {
   if (phase === "done") {
     return html`
       <${Box} flexDirection="column" paddingTop=${2} alignItems="center">
-        <${Text} color="cyan" bold>✓ Done<//>
+        <${Text} color="cyan" bold>+ Done<//>
         ${results.map((r, i) => html`
           <${Box} key=${i}>
             ${r.success
-              ? html`<${Text} color="green">✓ ${r.name}: ${r.path}<//>`
-              : html`<${Text} color="red">✗ ${r.name}: ${r.error}<//>`}
+              ? html`<${Text} color="green">+ ${r.name}: ${r.path}<//>`
+              : html`<${Text} color="red">- ${r.name}: ${r.error}<//>`}
           <//>
         `)}
         <${Text} color="gray" marginTop=${1}>Restart your editor to pick up the new MCP server.<//>
