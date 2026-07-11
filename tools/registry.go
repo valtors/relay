@@ -1,7 +1,7 @@
 package tools
 
 import (
-	"relay/internal/registry"
+	"github.com/valtors/relay/internal/registry"
 )
 
 var defaultRegistry = registry.New()

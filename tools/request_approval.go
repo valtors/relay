@@ -12,8 +12,8 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 
-	"relay/internal/logger"
-	"relay/internal/state"
+	"github.com/valtors/relay/internal/logger"
+	"github.com/valtors/relay/internal/state"
 )
 
 const (

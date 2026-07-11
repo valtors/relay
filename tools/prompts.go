@@ -1,7 +1,7 @@
 package tools
 
 import (
-	"relay/prompts"
+	"github.com/valtors/relay/prompts"
 )
 
 func loadPrompt(name string) (string, error) {

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"relay/internal/state"
+	"github.com/valtors/relay/internal/state"
 )
 
 func TestRunBrand_MissingPMBriefReturnsToolError(t *testing.T) {

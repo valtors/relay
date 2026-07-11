@@ -6,10 +6,10 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 
-	"relay/internal/claude"
-	"relay/internal/ctxguard"
-	"relay/internal/logger"
-	"relay/internal/state"
+	"github.com/valtors/relay/internal/claude"
+	"github.com/valtors/relay/internal/ctxguard"
+	"github.com/valtors/relay/internal/logger"
+	"github.com/valtors/relay/internal/state"
 )
 
 func RunUX(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

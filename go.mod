@@ -1,4 +1,4 @@
-module relay
+module github.com/valtors/relay
 
 go 1.25.5
 

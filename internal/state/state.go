@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"relay/internal/logger"
+	"github.com/valtors/relay/internal/logger"
 )
 
 type StageKey string

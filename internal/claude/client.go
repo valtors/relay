@@ -13,8 +13,8 @@ import (
 	anthropic "github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 
-	"relay/internal/logger"
-	"relay/internal/search"
+	"github.com/valtors/relay/internal/logger"
+	"github.com/valtors/relay/internal/search"
 )
 
 var (

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"relay/internal/license"
+	"github.com/valtors/relay/internal/license"
 )
 
 func main() {

@@ -19,8 +19,8 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/mark3labs/mcp-go/server"
 
-	"relay/internal/logger"
-	"relay/tools"
+	"github.com/valtors/relay/internal/logger"
+	"github.com/valtors/relay/tools"
 )
 
 var Version = "dev"
