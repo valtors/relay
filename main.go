@@ -96,6 +96,7 @@ func runStartCommand(args []string, stdout, stderr io.Writer, ui cliUI, showBann
 	if showBanner && isTerminalWriter(stderr) {
 		toolList := registeredTools()
 		fmt.Fprint(stderr, ui.renderBanner(Version, len(toolList), "stdio"))
+		fmt.Fprintf(stderr, "\n%s\n\n", ui.renderHint("Connected in MCP stdio mode. To launch the interactive UI, run: npx userelay tui"))
 		logger.Quiet = true
 	}
 
