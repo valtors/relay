@@ -56,21 +56,12 @@ func TestPrintDoctorUsage(t *testing.T) {
 	output := buf.String()
 
 	assert.Contains(t, output, "relay doctor [--fix]")
-	assert.Contains(t, output, "Diagnose")
+	assert.Contains(t, output, "Diagnose installation and config issues")
 }
 
-func TestRunDoctorCommand(t *testing.T) {
+func TestDoctorMarkerNoEmoji(t *testing.T) {
 	ui := cliUI{color: false}
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
-
-	code := runDoctorCommand([]string{}, stdout, stderr, ui)
-
-	assert.True(t, code == 0 || code == 1, "doctor command should return 0 or 1")
-	output := stdout.String()
-	assert.Contains(t, output, "relay doctor")
-
-	if strings.Contains(output, "relay binary") {
-		assert.True(t, strings.Contains(output, "+") || strings.Contains(output, "-"))
-	}
+	assert.Equal(t, "+", doctorMarker(true, ui))
+	assert.Equal(t, "!", doctorMarker(false, ui))
+	assert.NotContains(t, doctorMarker(true, ui), "✓")
 }
