@@ -1,11 +1,12 @@
 import { render, Box, Text, useApp, useInput, useState, useEffect, html } from "./h.js";
 import { LaunchScreen } from "./screens/LaunchScreen.js";
+import { SetupWizard } from "./screens/SetupWizard.js";
 import { InitWizard } from "./screens/InitWizard.js";
 import { ToolsBrowser } from "./screens/ToolsBrowser.js";
 import { StatusDashboard } from "./screens/StatusDashboard.js";
 const CATEGORY_COUNT = 7;
-function App({ version, toolCount, binaryPath, onExit, onStartServer }) {
-  const [screen, setScreen] = useState("launch"); 
+function App({ version, toolCount, binaryPath, onExit, onStartServer, startScreen = "launch" }) {
+  const [screen, setScreen] = useState(startScreen); 
   if (screen === "start" || screen === "start-http") {
     const mode = screen === "start-http" ? "http" : "stdio";
     if (onStartServer) {
@@ -36,6 +37,14 @@ function App({ version, toolCount, binaryPath, onExit, onStartServer }) {
       }}
     />`;
   }
+  if (screen === "setup") {
+    return html`<${SetupWizard}
+      version=${version}
+      toolCount=${toolCount}
+      binaryPath=${binaryPath}
+      onDone=${() => setScreen("launch")}
+    />`;
+  }
   if (screen === "init") {
     return html`<${InitWizard} onDone=${() => setScreen("launch")} />`;
   }
@@ -61,6 +70,7 @@ export function startTUI(opts = {}) {
     version = "dev",
     toolCount = 40,
     binaryPath = "relay",
+    startScreen = "launch",
     onStartServer,
   } = opts;
   const { waitUntilExit, unmount } = render(
@@ -68,6 +78,7 @@ export function startTUI(opts = {}) {
       version=${version}
       toolCount=${toolCount}
       binaryPath=${binaryPath}
+      startScreen=${startScreen}
       onExit=${() => {
         unmount();
         process.exit(0);
