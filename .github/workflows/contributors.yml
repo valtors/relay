@@ -15,7 +15,24 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Add contributors
-        uses: all-contributors/app-action@latest
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install all-contributors CLI
+        run: npm install -g all-contributors-cli
+
+      - name: Add contributor
+        run: |
+          AUTHOR="${{ github.event.pull_request.user.login }}"
+          all-contributors add "$AUTHOR" code,doc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --cached --quiet || (git commit -m "docs: update contributors" && git push)
