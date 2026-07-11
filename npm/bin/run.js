@@ -21,10 +21,11 @@ function resolveBinaryPath() {
 }
 
 function shouldLaunchTUI(args) {
-  if (args.length === 0 && process.stdin.isTTY) {
+  const interactive = process.stdin.isTTY || process.stdout.isTTY || process.stderr.isTTY;
+  if (args.length === 0 && interactive) {
     return true;
   }
-  if (args[0] === "tui" && process.stdin.isTTY) {
+  if (args[0] === "tui" && interactive) {
     return true;
   }
   return false;
