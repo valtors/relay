@@ -67,7 +67,7 @@ func runCLI(args []string, stdout, stderr io.Writer) int {
 		return runInitCommand(args[1:], os.Stdin, stdout, stderr, stdoutUI)
 	case "status":
 		return runStatusCommand(args[1:], stdout, stderr, stdoutUI)
-	case "version":
+	case "version", "-v", "--version":
 		return runVersionCommand(args[1:], stdout, stderr)
 	default:
 		if strings.HasPrefix(args[0], "-") {
