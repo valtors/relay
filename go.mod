@@ -6,7 +6,7 @@ require (
 	github.com/anthropics/anthropic-sdk-go v1.39.0
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/joho/godotenv v1.5.1
-	github.com/mark3labs/mcp-go v0.51.0
+	github.com/mark3labs/mcp-go v0.56.0
 	github.com/muesli/termenv v0.16.0
 	github.com/pdfcpu/pdfcpu v0.13.0
 	github.com/stretchr/testify v1.11.1
