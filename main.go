@@ -67,6 +67,8 @@ func runCLI(args []string, stdout, stderr io.Writer) int {
 		return runInitCommand(args[1:], os.Stdin, stdout, stderr, stdoutUI)
 	case "status":
 		return runStatusCommand(args[1:], stdout, stderr, stdoutUI)
+	case "doctor":
+		return runDoctorCommand(args[1:], stdout, stderr, stdoutUI)
 	case "version", "-v", "--version":
 		return runVersionCommand(args[1:], stdout, stderr)
 	default:
@@ -367,6 +369,7 @@ func printUsage(w io.Writer, ui cliUI) {
 		{usage: "relay start", description: "Start over stdio or Streamable HTTP"},
 		{usage: "relay tools", description: "List available tools by category"},
 		{usage: "relay init", description: "Detect and configure supported editors"},
+		{usage: "relay doctor", description: "Diagnose installation and config issues"},
 		{usage: "relay status", description: "Show version, transports, and tool count"},
 		{usage: "relay version", description: "Print relay version and platform"},
 		{usage: "relay help", description: "Show this help message"},
