@@ -8,7 +8,7 @@ Local MCP server for files, images, PDFs, web, and workflows.
 
 [![CI](https://img.shields.io/github/actions/workflow/status/valtors/relay/ci.yml?style=for-the-badge&logo=githubactions&label=ci)](https://github.com/valtors/relay/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/userelay?style=for-the-badge&logo=npm&label=npm)](https://www.npmjs.com/package/userelay)
-[![License](https://img.shields.io/badge/license-MIT-16a34a?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/github/license/valtors/relay?style=for-the-badge&label=license)](LICENSE)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/valtors/relay?style=for-the-badge&logo=go)](go.mod)
 [![GitHub stars](https://img.shields.io/github/stars/valtors/relay?style=for-the-badge&logo=github)](https://github.com/valtors/relay/stargazers)
 [![npm downloads](https://img.shields.io/npm/dm/userelay?style=for-the-badge&logo=npm&label=downloads)](https://www.npmjs.com/package/userelay)
@@ -433,4 +433,3 @@ Want to be here? Check [`good first issues`](https://github.com/valtors/relay/la
 MIT. See [LICENSE](LICENSE).
 
 Built by [Tamish](https://github.com/tamish560) at [Valtors](https://github.com/valtors). If Relay saves setup time, star the repo.
-
