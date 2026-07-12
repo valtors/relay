@@ -389,6 +389,15 @@ func printUsage(w io.Writer, ui cliUI) {
 	fmt.Fprintln(w, "  relay status")
 	fmt.Fprintln(w, "  relay tools --json")
 	fmt.Fprintln(w, "  relay init")
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, ui.bold("Tool categories"))
+	fmt.Fprintln(w, "  file     file_read, file_write, file_list, file_hash, file_zip")
+	fmt.Fprintln(w, "  image    image_info, image_resize, image_crop, image_convert")
+	fmt.Fprintln(w, "  web      web_fetch, web_screenshot, web_search")
+	fmt.Fprintln(w, "  text     text_extract, text_template, text_diff")
+	fmt.Fprintln(w, "  data     data_json, data_csv, data_yaml, data_toml")
+	fmt.Fprintln(w, "  pdf      pdf_extract, pdf_merge")
+	fmt.Fprintln(w, "  workflow workflow_run, workflow_chain")
 }
 
 func printStartUsage(w io.Writer) {
