@@ -437,6 +437,10 @@ Want to be here? Check [`good first issues`](https://github.com/valtors/relay/la
 
 ---
 
+## Companion Project
+
+[**Reflow**](https://github.com/valtors/reflow) - an SSR-safe responsive toolkit for TypeScript. Breakpoints, container queries, fluid typography, and user preference hooks across 8 frameworks. Same org, same philosophy.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
