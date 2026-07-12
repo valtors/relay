@@ -2,6 +2,10 @@ package search
 
 import (
 	"context"
+	"errors"
+	"io"
+	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"testing"
@@ -9,6 +13,21 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+func withHTTPClient(t *testing.T, client *http.Client) {
+	t.Helper()
+	original := httpClient
+	httpClient = client
+	t.Cleanup(func() {
+		httpClient = original
+	})
+}
 
 func TestFormatForPrompt_Empty(t *testing.T) {
 	result := FormatForPrompt([]Result{})
@@ -136,12 +155,90 @@ func TestParseRegex_NoMatches(t *testing.T) {
 	assert.Nil(t, snippets)
 }
 
+func TestDDG_BuildsQueryAndParsesResults(t *testing.T) {
+	withHTTPClient(t, &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		assert.Equal(t, http.MethodPost, req.Method)
+		assert.Equal(t, "https://html.duckduckgo.com/html/", req.URL.String())
+		assert.Equal(t, "application/x-www-form-urlencoded", req.Header.Get("Content-Type"))
+		assert.NotEmpty(t, req.Header.Get("User-Agent"))
+
+		body, err := io.ReadAll(req.Body)
+		require.NoError(t, err)
+		form, err := url.ParseQuery(string(body))
+		require.NoError(t, err)
+		assert.Equal(t, "relay search", form.Get("q"))
+
+		html := `
+			<a class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Frelay&amp;rut=abc">Relay &amp; Search</a>
+			<a class="result__snippet">First <b>snippet</b></a>
+			<a class="result__a" href="https://example.org/direct">Direct Result</a>
+			<a class="result__snippet">Second&nbsp;snippet</a>
+		`
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       io.NopCloser(strings.NewReader(html)),
+			Header:     make(http.Header),
+		}, nil
+	})})
+
+	results, err := DDG(context.Background(), "relay search", 2)
+	require.NoError(t, err)
+	require.Len(t, results, 2)
+	assert.Equal(t, Result{
+		Title:   "Relay & Search",
+		URL:     "https://example.com/relay",
+		Snippet: "First snippet",
+	}, results[0])
+	assert.Equal(t, Result{
+		Title:   "Direct Result",
+		URL:     "https://example.org/direct",
+		Snippet: "Second snippet",
+	}, results[1])
+}
+
+func TestDDG_MalformedResponseReturnsParseError(t *testing.T) {
+	withHTTPClient(t, &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       io.NopCloser(strings.NewReader(`<html><body>no search result anchors</body></html>`)),
+			Header:     make(http.Header),
+		}, nil
+	})})
+
+	results, err := DDG(context.Background(), "relay search", 5)
+	require.Error(t, err)
+	assert.Nil(t, results)
+	assert.Contains(t, err.Error(), "ddg: no results parsed")
+}
+
+func TestDDG_NetworkError(t *testing.T) {
+	withHTTPClient(t, &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		return nil, errors.New("network unavailable")
+	})})
+
+	results, err := DDG(context.Background(), "relay search", 5)
+	require.Error(t, err)
+	assert.Nil(t, results)
+	assert.Contains(t, err.Error(), "ddg request")
+	assert.Contains(t, err.Error(), "network unavailable")
+}
+
 func TestDDG_CancelledContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
 	_, err := DDG(ctx, "test", 5)
 	assert.Error(t, err)
+}
+
+func TestDDGMulti_SkipsEmptyQueries(t *testing.T) {
+	withHTTPClient(t, &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		t.Fatalf("DDGMulti should not issue requests for empty queries")
+		return nil, nil
+	})})
+
+	results := DDGMulti(context.Background(), []string{"", "  ", "\t\n"}, 5)
+	assert.Empty(t, results)
 }
 
 func TestDDGMulti_AllEmpty(t *testing.T) {
