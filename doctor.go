@@ -17,13 +17,28 @@ import (
 )
 
 type doctorOptions struct {
-	fix bool
+	fix  bool
+	json bool
 }
 
 type doctorCheck struct {
 	name    string
 	status  string
 	message string
+}
+
+type doctorCheckJSON struct {
+	Name    string `json:"name"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+type doctorReport struct {
+	Checks []doctorCheckJSON `json:"checks"`
+	Pass   int               `json:"pass"`
+	Warn   int               `json:"warn"`
+	Fail   int               `json:"fail"`
+	OK     bool              `json:"ok"`
 }
 
 func runDoctorCommand(args []string, stdout, stderr io.Writer, ui cliUI) int {
@@ -37,9 +52,6 @@ func runDoctorCommand(args []string, stdout, stderr io.Writer, ui cliUI) int {
 		printDoctorUsage(stderr)
 		return 1
 	}
-
-	fmt.Fprintln(stdout, ui.bold("relay doctor"))
-	fmt.Fprintln(stdout)
 
 	checks := []doctorCheck{}
 	checks = append(checks, checkBinaryHealth())
@@ -61,6 +73,35 @@ func runDoctorCommand(args []string, stdout, stderr io.Writer, ui cliUI) int {
 		case "-":
 			fail++
 		}
+	}
+
+	if opts.json {
+		report := doctorReport{
+			Checks: make([]doctorCheckJSON, len(checks)),
+			Pass:   pass,
+			Warn:   warn,
+			Fail:   fail,
+			OK:     fail == 0,
+		}
+		for i, c := range checks {
+			report.Checks[i] = doctorCheckJSON{Name: c.name, Status: c.status, Message: c.message}
+		}
+		enc := json.NewEncoder(stdout)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(report); err != nil {
+			fmt.Fprintf(stderr, "relay doctor: %v\n", err)
+			return 1
+		}
+		if fail > 0 {
+			return 1
+		}
+		return 0
+	}
+
+	fmt.Fprintln(stdout, ui.bold("relay doctor"))
+	fmt.Fprintln(stdout)
+
+	for _, c := range checks {
 		marker := ui.doctorMarker(c.status)
 		fmt.Fprintf(stdout, "  %s %s\n", marker, c.name)
 		fmt.Fprintf(stdout, "     %s\n", c.message)
@@ -89,25 +130,31 @@ func parseDoctorOptions(args []string) (doctorOptions, error) {
 	if len(args) == 0 {
 		return doctorOptions{}, nil
 	}
+	var opts doctorOptions
 	for _, arg := range args {
-		if arg == "-h" || arg == "--help" || arg == "help" {
+		switch arg {
+		case "-h", "--help", "help":
 			return doctorOptions{}, errHelpRequested
-		}
-		if arg == "--fix" {
-			return doctorOptions{fix: true}, nil
+		case "--fix":
+			opts.fix = true
+		case "--json":
+			opts.json = true
+		default:
+			return doctorOptions{}, fmt.Errorf("unknown arguments: %s", strings.Join(args, " "))
 		}
 	}
-	return doctorOptions{}, fmt.Errorf("unknown arguments: %s", strings.Join(args, " "))
+	return opts, nil
 }
 
 func printDoctorUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage:")
-	fmt.Fprintln(w, "  relay doctor [--fix]")
+	fmt.Fprintln(w, "  relay doctor [--fix] [--json]")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Diagnose common Relay installation and configuration issues.")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Flags:")
-	fmt.Fprintln(w, "  --fix  Show suggested fixes after the report")
+	fmt.Fprintln(w, "  --fix   Show suggested fixes after the report")
+	fmt.Fprintln(w, "  --json  Output the report as machine-readable JSON")
 }
 
 func (ui cliUI) doctorMarker(status string) string {
