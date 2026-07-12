@@ -73,3 +73,14 @@ Look for issues labeled `good first issue`. These are scoped for new contributor
 ## License
 
 MIT. By contributing, you agree your contributions are licensed under the same terms.
+
+## For AI Agents
+
+If you're an AI agent contributing to relay, here's what you need to know:
+
+1. Run `bash scripts/pre-push.sh` before committing. It checks gofmt, go vet, tests, build, and unused imports.
+2. New tools go in `tools/` following the existing pattern. Register in `tools/registrations.go`.
+3. No comments in code unless logic is non-obvious.
+4. Go stdlib first. No external deps unless absolutely necessary.
+5. Commit messages: lowercase, short.
+6. Keep the npm package in sync if you change version (both `main.go` and `npm/package.json`).
