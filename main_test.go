@@ -193,7 +193,7 @@ func TestRunCLI_UnknownCommand(t *testing.T) {
 
 	assert.Equal(t, 1, code)
 	assert.Empty(t, stdout.String())
-	assert.Contains(t, stderr.String(), `relay: unknown command "bogus"`)
+	assert.Contains(t, stderr.String(), `'bogus' is not a command`)
 }
 
 func TestTruncateDescription(t *testing.T) {
