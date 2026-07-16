@@ -76,7 +76,7 @@ func runCLI(args []string, stdout, stderr io.Writer) int {
 			return runStartCommand(args, stdout, stderr, stderrUI, false)
 		}
 
-		fmt.Fprintf(stderr, "relay: unknown command %q\n\n", args[0])
+		fmt.Fprintf(stderr, "relay: '%s' is not a command. run 'relay help' if you're lost.\n\n", args[0])
 		printUsage(stderr, stderrUI)
 		return 1
 	}
@@ -98,7 +98,7 @@ func runStartCommand(args []string, stdout, stderr io.Writer, ui cliUI, showBann
 	if showBanner && isTerminalWriter(stderr) {
 		toolList := registeredTools()
 		fmt.Fprint(stderr, ui.renderBanner(Version, len(toolList), "stdio"))
-		fmt.Fprintf(stderr, "\n%s\n\n", ui.renderHint("Connected in MCP stdio mode. To launch the interactive UI, run: npx userelay tui"))
+		fmt.Fprintf(stderr, "\n%s\n\n", ui.renderHint("stdio mode. run 'npx userelay tui' if you want the interactive ui."))
 		logger.Quiet = true
 	}
 
