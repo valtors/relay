@@ -4,9 +4,9 @@
 
 # Relay
 
-**One MCP server for files, images, PDFs, web, and workflows.**
+**One MCP server for files, images, PDFs, web, and workflows.** Your files stay local. No telemetry. No account. No cloud.
 
-Run it with `npx userelay`. Your files stay local.
+Run it with `npx userelay`.
 
 [![CI](https://img.shields.io/github/actions/workflow/status/valtors/relay/ci.yml?style=for-the-badge&logo=githubactions&label=ci)](https://github.com/valtors/relay/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/userelay?style=for-the-badge&logo=npm&label=npm)](https://www.npmjs.com/package/userelay)
@@ -42,9 +42,9 @@ See the [full comparison](./docs/comparison.md) against standalone MCP servers.
 
 ## Why Relay?
 
-Most MCP servers do one thing. File servers, image servers, PDF servers, web servers. You end up stitching 5-10 of them together, each with its own install, config, and quirks.
+Every MCP server does one thing. File server. Image server. PDF server. Web fetch server. You stitch 5 of them together and each one has its own install, its own config, its own update cycle, its own way of breaking.
 
-Relay is one binary with 40 tools across 7 categories. One install. One config. One process.
+Relay is one binary with 40 tools across 7 categories. One install. One config. One process. When it breaks, you know which thing broke.
 
 | | Relay | Multiple servers |
 |---|---|---|
