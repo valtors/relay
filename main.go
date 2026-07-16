@@ -369,6 +369,7 @@ func printUsage(w io.Writer, ui cliUI) {
 		{usage: "relay start", description: "Start over stdio or Streamable HTTP"},
 		{usage: "relay tools", description: "List available tools by category"},
 		{usage: "relay init", description: "Detect and configure supported editors"},
+		{usage: "relay config", description: "Print current configuration and environment"},
 		{usage: "relay doctor", description: "Diagnose installation and config issues"},
 		{usage: "relay status", description: "Show version, transports, and tool count"},
 		{usage: "relay version", description: "Print relay version and platform"},
@@ -389,6 +390,7 @@ func printUsage(w io.Writer, ui cliUI) {
 	fmt.Fprintln(w, "  relay status")
 	fmt.Fprintln(w, "  relay tools --json")
 	fmt.Fprintln(w, "  relay init")
+	fmt.Fprintln(w, "  relay config")
 }
 
 func printStartUsage(w io.Writer) {
