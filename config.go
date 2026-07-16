@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 )
 
 func runConfigCommand(args []string, stdout, stderr io.Writer, ui cliUI) int {
