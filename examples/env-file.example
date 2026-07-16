@@ -1,0 +1,14 @@
+# Required for workflow tools (run_research, run_gtm, run_ux, etc.)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Optional: web fetch timeout in seconds (default: 30)
+RELAY_WEB_TIMEOUT=30
+
+# Optional: HTTP listen address (default: :8080)
+RELAY_HTTP_ADDR=:8080
+
+# Optional: workflow checkpoint timeout in minutes (default: 30)
+CHECKPOINT_TIMEOUT_MINUTES=30
+
+# Optional: max iterations per workflow stage (default: 5)
+MAX_ITERATIONS_PER_STAGE=5
