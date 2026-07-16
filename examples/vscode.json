@@ -1,0 +1,8 @@
+{
+  "mcp.servers": {
+    "relay": {
+      "command": "npx",
+      "args": ["-y", "userelay"]
+    }
+  }
+}
