@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relay - One MCP server. 40+ tools. Zero config.</title>
+<meta name="description" content="MCP server for AI agents. Memory, web fetch, search, file ops, screenshots, and multi-agent coordination in a single Go binary.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #fafafa;
+  --bg-soft: #f0f0f0;
+  --bg-card: #f5f5f5;
+  --text: #1a1a1a;
+  --text-soft: #666666;
+  --text-muted: #999999;
+  --border: #e8e8e8;
+  --opacity-label: 0.35;
+  --contrib-0: #e8e8e8;
+  --contrib-1: #c6e8c9;
+  --contrib-2: #7bc97f;
+  --contrib-3: #3ba53f;
+  --contrib-4: #1a6b2e;
+}
+
+.dark {
+  --bg: #0a0a0a;
+  --bg-soft: #111111;
+  --bg-card: #141414;
+  --text: #fafafa;
+  --text-soft: #aaaaaa;
+  --text-muted: #666666;
+  --border: #1a1a1a;
+  --opacity-label: 0.4;
+  --contrib-0: #1a1a1a;
+  --contrib-1: #0e4429;
+  --contrib-2: #006d32;
+  --contrib-3: #26a641;
+  --contrib-4: #39d353;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s, color 0.3s;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* Theme toggle */
+.theme-toggle {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.theme-toggle:hover { transform: translateY(-2px); }
+.theme-toggle svg { width: 18px; height: 18px; color: var(--text); }
+.dark-icon { display: none; }
+.dark .dark-icon { display: block; }
+.dark .light-icon { display: none; }
+
+/* Nav */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  padding: 14px 24px;
+  background: transparent;
+  color: var(--text);
+  transition: background 0.3s, border-color 0.3s;
+  border-bottom: 1px solid transparent;
+}
+nav.scrolled {
+  background: rgba(250,250,250,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.dark nav.scrolled {
+  background: rgba(10,10,10,0.85);
+}
+.nav-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+.nav-logo svg { display: block; }
+.nav-links {
+  display: flex;
+  gap: 28px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-soft);
+}
+.nav-links a { transition: color 0.2s; }
+.nav-links a:hover { color: var(--text); }
+.nav-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.nav-gh {
+  color: var(--text-soft);
+  transition: color 0.2s;
+}
+.nav-gh:hover { color: var(--text); }
+.nav-cta {
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+.nav-cta:hover { opacity: 0.85; }
+@media (max-width: 768px) { .nav-links { display: none; } }
+
+/* Hero */
+.hero {
+  background: var(--bg);
+  padding: 140px 24px 60px;
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
+}
+.hero-inner { max-width: 1000px; margin: 0 auto; }
+.hero-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: var(--opacity-label);
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: 40px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  max-width: 600px;
+}
+.hero-sub {
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--text-soft);
+  margin-bottom: 36px;
+  max-width: 500px;
+  line-height: 1.5;
+}
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+.btn-primary {
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 8px;
+  padding: 12px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-primary:hover { opacity: 0.85; }
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-outline:hover { border-color: var(--text); }
+.hero-meta {
+  display: flex;
+  gap: 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+@media (max-width: 768px) {
+  .hero { padding: 100px 24px 40px; }
+  .hero h1 { font-size: 28px; }
+  .hero-sub { font-size: 16px; }
+}
+
+/* Stats */
+.stats {
+  padding: 40px 24px 80px;
+  background: var(--bg);
+}
+.stats-inner { max-width: 1000px; margin: 0 auto; }
+.stats-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: var(--opacity-label);
+  margin-bottom: 32px;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+.stat-item {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.stat-num {
+  font-size: 32px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+@media (max-width: 600px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .stat-num { font-size: 26px; }
+}
+
+/* Art section */
+.art-section {
+  padding: 0 24px;
+  background: var(--bg);
+}
+.art-inner { max-width: 1000px; margin: 0 auto; }
+.art-banner {
+  border-radius: 16px;
+  overflow: hidden;
+  height: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.art-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.art-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(0,0,0,0.2), rgba(0,0,0,0.5));
+  display: flex;
+  align-items: flex-end;
+  padding: 32px;
+}
+.art-text {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 300;
+  max-width: 400px;
+  letter-spacing: -0.01em;
+}
+@media (max-width: 768px) { .art-banner { height: 240px; } }
+
+/* Features */
+.features {
+  padding: 80px 24px;
+  background: var(--bg);
+}
+.features-inner { max-width: 1000px; margin: 0 auto; }
+.section-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: var(--opacity-label);
+  margin-bottom: 16px;
+}
+.section-heading {
+  font-size: 28px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  max-width: 600px;
+  line-height: 1.2;
+}
+.section-sub {
+  font-size: 16px;
+  color: var(--text-soft);
+  font-weight: 300;
+  margin-bottom: 48px;
+  max-width: 500px;
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+  margin-top: 40px;
+}
+.feature-item h3 {
+  font-size: 17px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.feature-item p {
+  font-size: 14px;
+  color: var(--text-soft);
+  font-weight: 300;
+  line-height: 1.6;
+}
+@media (max-width: 768px) {
+  .features-grid { grid-template-columns: 1fr; gap: 32px; }
+}
+
+/* Install */
+.install {
+  padding: 80px 24px;
+  background: var(--bg);
+}
+.install-inner { max-width: 1000px; margin: 0 auto; }
+.install-code {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-top: 32px;
+  font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+  font-size: 14px;
+  color: var(--text-soft);
+  overflow-x: auto;
+}
+.install-code .prompt { color: var(--text-muted); }
+.install-code .cmd { color: var(--text); }
+.install-tabs {
+  display: inline-flex;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  margin-top: 32px;
+  margin-bottom: 0;
+}
+.install-tab {
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--text-soft);
+  transition: background 0.2s, color 0.2s;
+}
+.install-tab.active {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* Contribution graph */
+.contrib-section {
+  padding: 80px 24px;
+  background: var(--bg);
+}
+.contrib-inner { max-width: 1000px; margin: 0 auto; }
+.contrib-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.contrib-total {
+  font-size: 13px;
+  color: var(--text-soft);
+}
+.contrib-total strong { color: var(--text); font-weight: 600; }
+.contrib-graph {
+  display: flex;
+  gap: 3px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.contrib-week {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.contrib-day {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--contrib-0);
+}
+.dark .contrib-day { border: 1px solid rgba(255,255,255,0.04); }
+.contrib-day.level-1 { background: var(--contrib-1); }
+.contrib-day.level-2 { background: var(--contrib-2); }
+.contrib-day.level-3 { background: var(--contrib-3); }
+.contrib-day.level-4 { background: var(--contrib-4); }
+.contrib-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 12px;
+  justify-content: flex-end;
+}
+.contrib-legend .contrib-day {
+  width: 11px;
+  height: 11px;
+  border: none;
+}
+
+/* Contributors */
+.contributors-section {
+  padding: 40px 24px 80px;
+  background: var(--bg);
+}
+.contributors-inner { max-width: 1000px; margin: 0 auto; }
+.contributors-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 24px;
+}
+.contributor-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  transition: border-color 0.2s;
+}
+.contributor-card:hover { border-color: var(--text); }
+.contributor-card img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.contributor-info {
+  display: flex;
+  flex-direction: column;
+}
+.contributor-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+.contributor-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Mission */
+.mission {
+  padding: 80px 24px;
+  background: var(--bg);
+}
+.mission-inner { max-width: 800px; margin: 0 auto; }
+.mission-quote {
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-align: center;
+  font-style: italic;
+}
+.mission-attr {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 16px;
+  letter-spacing: 0.05em;
+}
+
+/* CTA */
+.cta {
+  padding: 60px 24px 80px;
+  background: var(--bg);
+}
+.cta-inner { max-width: 1000px; margin: 0 auto; }
+.cta-box {
+  border-top: 1px solid var(--border);
+  padding: 48px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.cta-text {
+  font-size: 22px;
+  font-weight: 300;
+  max-width: 500px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.cta-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+@media (max-width: 600px) { .cta-box { flex-direction: column; text-align: center; } }
+
+/* Footer */
+footer {
+  padding: 32px 24px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.footer-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.footer-text {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.footer-links {
+  display: flex;
+  gap: 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.footer-links a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+  <svg class="light-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+  <svg class="dark-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+</button>
+
+<nav id="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <svg width="24" height="24" viewBox="0 0 28 28" fill="none"><path d="M14 2C8 2 4 6 4 12c0 4 2 7 5 9 0 1 0 3 1 4 1 1 2 1 4 1s3 0 4-1c1-1 1-3 1-4 3-2 5-5 5-9 0-6-4-10-10-10zm-4 8c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2zm8 0c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2zm-4 6c-2 0-4-1-4-3h8c0 2-2 3-4 3z" fill="currentColor"/></svg>
+      <span>valtors / relay</span>
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="#community">Community</a>
+      <a href="https://github.com/valtors/relay">GitHub</a>
+    </div>
+    <div class="nav-actions">
+      <a href="https://github.com/valtors" class="nav-gh">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a>
+      <a href="https://github.com/valtors/relay" class="nav-cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Relay</div>
+    <h1>One MCP server. 40+ tools. Zero config.</h1>
+    <p class="hero-sub">MCP server for AI agents. Memory, web fetch, search, file ops, screenshots, and multi-agent coordination in a single Go binary. Stdio transport, stdlib JSON-RPC.</p>
+    <div class="hero-actions">
+      <a href="#install" class="btn-primary">Install Relay</a>
+      <a href="https://github.com/valtors/relay" class="btn-outline">
+        View on GitHub
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
+      </a>
+    </div>
+    <div class="hero-meta">
+      <span>7 stars</span>
+      <span>2 forks</span>
+      <span>MIT</span>
+      <span>Go</span>
+      <span>npm: userelay v0.4.9</span>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="stats-inner">
+    <div class="stats-eyebrow">The network</div>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-num">40+</div>
+        <div class="stat-label">Tools</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">1</div>
+        <div class="stat-label">Binary</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">7</div>
+        <div class="stat-label">GitHub Stars</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">4+</div>
+        <div class="stat-label">Contributors</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="art-section">
+  <div class="art-inner">
+    <div class="art-banner">
+      <img src="https://raw.githubusercontent.com/valtors/relay-landing/master/assets/workbench.jpg" alt="Oil painting of a workbench at golden hour" loading="lazy" />
+      <div class="art-overlay">
+        <div class="art-text">Every tool an agent needs, on a single workbench. Memory, web fetch, search, file operations, screenshots.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="features-inner">
+    <div class="section-eyebrow">Features</div>
+    <h2 class="section-heading">Everything your agent needs, nothing it doesn't.</h2>
+    <div class="features-grid">
+      <div class="feature-item">
+        <h3>40+ Tools</h3>
+        <p>Comprehensive toolkit covering memory, search, file ops, and more, all from one server.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Agent Memory</h3>
+        <p>Persistent memory storage lets agents recall context across sessions and conversations.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Web Fetch</h3>
+        <p>Retrieve and parse web content with built-in extraction. Clean text, ready for context.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Screenshots</h3>
+        <p>Capture page snapshots for visual context. Useful for debugging and verification.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Multi-Agent Coordination</h3>
+        <p>Coordinate multiple agents through shared state and messaging primitives.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Stdio Transport</h3>
+        <p>Standard stdio transport with stdlib JSON-RPC. No HTTP servers, no extra deps.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Single Binary</h3>
+        <p>One Go binary. No runtime, no containers, no orchestration. Just install and run.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Zero Config</h3>
+        <p>Sensible defaults out of the box. Get started in seconds, configure later if needed.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Go Performance</h3>
+        <p>Built in Go for speed and reliability. Minimal footprint, maximal throughput.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="art-section">
+  <div class="art-inner">
+    <div class="art-banner">
+      <img src="https://raw.githubusercontent.com/valtors/relay-landing/master/assets/open-book.jpg" alt="Oil painting of an open book on a hilltop" loading="lazy" />
+      <div class="art-overlay">
+        <div class="art-text">Open source, open access. MIT licensed, fully transparent. Every line of Relay is yours to study, fork, and extend.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="install" id="install">
+  <div class="install-inner">
+    <div class="section-eyebrow">Get started</div>
+    <h2 class="section-heading">Install in one command.</h2>
+    <p class="section-sub">No dependencies. No build step. Just Go.</p>
+    <div class="install-tabs">
+      <div class="install-tab active" data-tab="go">Go Install</div>
+      <div class="install-tab" data-tab="npm">npm</div>
+      <div class="install-tab" data-tab="manual">Manual</div>
+    </div>
+    <div class="install-code" id="codeBlock">
+<span class="prompt">$</span> <span class="cmd">go install github.com/valtors/relay@latest</span>
+    </div>
+  </div>
+</section>
+
+<section class="art-section">
+  <div class="art-inner">
+    <div class="art-banner">
+      <img src="https://raw.githubusercontent.com/valtors/relay-landing/master/assets/bridge.jpg" alt="Oil painting of a stone bridge at twilight" loading="lazy" />
+      <div class="art-overlay">
+        <div class="art-text">A bridge between every agent you run. Shared state, messaging primitives, and coordination tools.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="contrib-section" id="community">
+  <div class="contrib-inner">
+    <div class="section-eyebrow">Activity</div>
+    <h2 class="section-heading">Contribution history</h2>
+    <div class="contrib-header">
+      <div class="contrib-total"><strong>11</strong> commits across 4 contributors</div>
+    </div>
+    <div class="contrib-graph" id="contrib-graph"></div>
+    <div class="contrib-legend">
+      <span>Less</span>
+      <div class="contrib-day"></div>
+      <div class="contrib-day level-1"></div>
+      <div class="contrib-day level-2"></div>
+      <div class="contrib-day level-3"></div>
+      <div class="contrib-day level-4"></div>
+      <span>More</span>
+    </div>
+  </div>
+</section>
+
+<section class="contributors-section">
+  <div class="contributors-inner">
+    <div class="section-eyebrow">Contributors</div>
+    <h2 class="section-heading">Built in the open.</h2>
+    <div class="contributors-grid">
+      <a href="https://github.com/tamish560" class="contributor-card">
+        <img src="https://avatars.githubusercontent.com/u/189916421?v=4" alt="tamish560" loading="lazy" />
+        <div class="contributor-info">
+          <span class="contributor-name">tamish560</span>
+          <span class="contributor-meta">155 contributions</span>
+        </div>
+      </a>
+      <a href="https://github.com/leemeo3" class="contributor-card">
+        <img src="https://avatars.githubusercontent.com/u/117142323?v=4" alt="leemeo3" loading="lazy" />
+        <div class="contributor-info">
+          <span class="contributor-name">leemeo3</span>
+          <span class="contributor-meta">2 contributions</span>
+        </div>
+      </a>
+      <a href="https://github.com/ishaan-jindal" class="contributor-card">
+        <img src="https://avatars.githubusercontent.com/u/122903391?v=4" alt="ishaan-jindal" loading="lazy" />
+        <div class="contributor-info">
+          <span class="contributor-name">ishaan-jindal</span>
+          <span class="contributor-meta">1 contribution</span>
+        </div>
+      </a>
+      <a href="https://github.com/nabsei" class="contributor-card">
+        <img src="https://avatars.githubusercontent.com/u/166228107?v=4" alt="nabsei" loading="lazy" />
+        <div class="contributor-info">
+          <span class="contributor-name">nabsei</span>
+          <span class="contributor-meta">1 contribution</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="mission">
+  <div class="mission-inner">
+    <div class="mission-quote">"The best tool is the one you never think about. Relay stays out of the way and lets agents do what they do best."</div>
+    <div class="mission-attr">RELAY - THE FUTURE BEGINS HERE</div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="cta-inner">
+    <div class="cta-box">
+      <div class="cta-text">Ship agents with confidence.</div>
+      <div class="cta-actions">
+        <a href="https://github.com/valtors/relay" class="btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          Star on GitHub
+        </a>
+        <a href="#install" class="btn-outline">Install</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-text">Relay. MIT licensed. github.com/valtors/relay</div>
+    <div class="footer-links">
+      <a href="https://github.com/valtors/relay">GitHub</a>
+      <a href="https://github.com/valtors">Valtors</a>
+      <a href="https://github.com/valtors/reflow">Reflow</a>
+      <a href="https://github.com/valtors/observer">Observer</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+function toggleTheme() {
+  const html = document.documentElement;
+  if (html.classList.contains('dark')) {
+    html.classList.remove('dark');
+    localStorage.theme = 'light';
+  } else {
+    html.classList.add('dark');
+    localStorage.theme = 'dark';
+  }
+}
+
+(function() {
+  const saved = localStorage.theme;
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (saved === 'light' || (!saved && !prefersDark)) {
+    document.documentElement.classList.remove('dark');
+  }
+})();
+
+window.addEventListener('scroll', function() {
+  const nav = document.getElementById('nav');
+  if (window.scrollY > 20) {
+    nav.classList.add('scrolled');
+  } else {
+    nav.classList.remove('scrolled');
+  }
+});
+
+// Install tabs
+var snippets = {
+  go: '<span class="prompt">$</span> <span class="cmd">go install github.com/valtors/relay@latest</span>',
+  npm: '<span class="prompt">$</span> <span class="cmd">npm install userelay@0.4.9</span>\n<span class="prompt">$</span> <span class="cmd">npx userelay</span>',
+  manual: '<span class="prompt">$</span> <span class="cmd">git clone https://github.com/valtors/relay</span>\n<span class="prompt">$</span> <span class="cmd">cd relay</span>\n<span class="prompt">$</span> <span class="cmd">go build -o relay</span>\n<span class="prompt">$</span> <span class="cmd">./relay</span>'
+};
+
+document.querySelectorAll('.install-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.install-tab').forEach(function(t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    document.getElementById('codeBlock').innerHTML = snippets[tab.dataset.tab];
+  });
+});
+
+// Contribution graph
+(function() {
+  var data = [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,1,0,0,0,0],[0,2,0,1,0,0,0],[0,3,2,0,1,2,0],[2,4,3,2,3,1,0]];
+  var graph = document.getElementById('contrib-graph');
+  data.forEach(function(week) {
+    var col = document.createElement('div');
+    col.className = 'contrib-week';
+    week.forEach(function(count) {
+      var cell = document.createElement('div');
+      cell.className = 'contrib-day';
+      if (count === 0) cell.classList.add('level-0');
+      else if (count <= 1) cell.classList.add('level-1');
+      else if (count <= 2) cell.classList.add('level-2');
+      else if (count <= 3) cell.classList.add('level-3');
+      else cell.classList.add('level-4');
+      col.appendChild(cell);
+    });
+    graph.appendChild(col);
+  });
+})();
+</script>
+</body>
+</html>
