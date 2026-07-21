@@ -10,8 +10,7 @@
 html { scroll-behavior: smooth; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  background: #0a0a0a; color: #e5e5e5; line-height: 1.7;
-  max-width: 680px; margin: 0 auto; padding: 0 24px;
+  background: #060606; color: #e5e5e5; line-height: 1.7;
   -webkit-font-smoothing: antialiased; overflow-x: hidden;
   position: relative;
 }
@@ -21,102 +20,145 @@ body {
 .prism-grid .grid-cell { border: 1px solid rgba(255,255,255,0.05); box-sizing: border-box; }
 .prism-grid .lit-cell { position: absolute; pointer-events: none; border-radius: 2px; transition: opacity 1.2s ease-out, transform 1.2s ease-out; }
 .click-fx { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; overflow: visible; }
-.nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #1a1a1a; position: relative; z-index: 5; }
-.nav-links { display: flex; gap: 20px; }
-.nav-links a { color: #888; text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
-.nav-links a:hover { color: #e5e5e5; }
-.brand { color: #e5e5e5; font-weight: 600; text-decoration: none; font-size: 0.95rem; }
-.hero { padding: 80px 0 60px; position: relative; z-index: 5; }
-.orb-hero-wrap { display: flex; justify-content: center; margin-bottom: 32px; height: 140px; position: relative; }
-.orb-hero-wrap canvas { filter: drop-shadow(0 0 16px rgba(0, 173, 216, 0.15)); }
-.orb-hero-wrap .orb-glow { position: absolute; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(0,173,216,0.08) 0%, transparent 70%); pointer-events: none; animation: pulse-glow 3s ease-in-out infinite; }
-@keyframes pulse-glow { 0%,100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.15); opacity: 0.8; } }
-.hero h1 { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 20px; }
-.hero p { color: #999; font-size: 1.1rem; margin-bottom: 30px; max-width: 520px; }
-.code-block { background: #111; border: 1px solid #1a1a1a; border-radius: 8px; padding: 16px 20px; margin: 20px 0; font-family: 'SF Mono', Monaco, monospace; font-size: 0.85rem; overflow-x: auto; box-shadow: 0 4px 30px rgba(0,0,0,0.4); }
-.code-block .comment { color: #555; }
-.install-cmd { color: #00add8; }
-section { padding: 40px 0; position: relative; z-index: 5; }
-section h2 { font-size: 1.6rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 16px; }
-section h3 { font-size: 1rem; font-weight: 600; margin: 24px 0 8px; color: #e5e5e5; }
-section p { color: #999; margin-bottom: 12px; }
-.stats { display: flex; gap: 40px; margin: 30px 0; flex-wrap: wrap; }
-.stat-num { font-size: 1.8rem; font-weight: 700; color: #00add8; }
-.stat-label { font-size: 0.8rem; color: #666; text-transform: lowercase; }
-.cta { padding: 60px 0; border-top: 1px solid #1a1a1a; position: relative; z-index: 5; }
-.cta p { color: #999; margin-bottom: 20px; }
-.links { display: flex; gap: 16px; flex-wrap: wrap; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 5; }
+nav { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; }
+nav .brand { color: #e5e5e5; text-decoration: none; font-weight: 700; font-size: 1rem; }
+nav .links { display: flex; gap: 24px; }
+nav .links a { color: #666; text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+nav .links a:hover { color: #e5e5e5; }
+.hero { padding: 40px 0 60px; text-align: center; }
+.hero-orb-wrap { display: flex; justify-content: center; align-items: center; margin-bottom: 32px; height: 180px; position: relative; }
+.hero-orb-wrap canvas { filter: drop-shadow(0 0 30px rgba(0,173,216,0.35)) drop-shadow(0 0 60px rgba(0,173,216,0.15)); }
+.hero-orb-wrap .orb-ring { position: absolute; width: 200px; height: 200px; border-radius: 50%; border: 1px solid rgba(0,173,216,0.1); animation: ring-pulse 4s ease-in-out infinite; }
+.hero-orb-wrap .orb-ring.r2 { width: 240px; height: 240px; animation-delay: 1s; }
+@keyframes ring-pulse { 0%,100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.1); opacity: 0.5; } }
+.hero h1 { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1.15; margin-bottom: 16px; }
+.hero p { color: #999; font-size: 1.1rem; max-width: 480px; margin: 0 auto 28px; }
+.code-block {
+  background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 10px;
+  padding: 20px 24px; max-width: 500px; margin: 0 auto;
+  font-family: 'SF Mono', Monaco, monospace; font-size: 0.9rem;
+  overflow-x: auto; box-shadow: 0 4px 40px rgba(0,0,0,0.5);
+  position: relative; text-align: left;
+}
+.code-block::before { content: '$'; color: #00add8; position: absolute; left: 12px; top: 20px; font-weight: 700; }
+.code-block .cmd { padding-left: 16px; color: #e5e5e5; }
+.code-block .comment { color: #555; display: block; padding-left: 16px; font-size: 0.8rem; }
+.code-block .out { color: #00add8; display: block; padding-left: 16px; }
+.section { padding: 50px 0; }
+.section-label { font-size: 0.75rem; color: #00add8; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+.section h2 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 28px; line-height: 1.2; }
+.stat-row { display: flex; gap: 32px; margin: 24px 0; flex-wrap: wrap; justify-content: center; }
+.stat { text-align: center; }
+.stat .n { font-size: 2.2rem; font-weight: 800; color: #00add8; letter-spacing: -0.03em; }
+.stat .l { font-size: 0.75rem; color: #555; text-transform: lowercase; }
+.feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.feature-card {
+  background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 10px;
+  padding: 20px; transition: border-color 0.3s, transform 0.3s;
+  position: relative; overflow: hidden;
+}
+.feature-card:hover { border-color: #00add8; transform: translateY(-2px); }
+.feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(0,173,216,0.3), transparent); }
+.feature-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+.feature-card p { color: #777; font-size: 0.85rem; line-height: 1.5; }
+.cta { text-align: center; padding: 50px 0 70px; border-top: 1px solid #1a1a1a; }
+.cta p { color: #888; margin-bottom: 16px; }
+.links { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
 .links a { color: #00add8; text-decoration: none; font-size: 0.9rem; border-bottom: 1px solid #1a3a4a; padding-bottom: 2px; transition: color 0.2s; }
 .links a:hover { color: #e5e5e5; }
-.footer { padding: 30px 0; border-top: 1px solid #1a1a1a; position: relative; z-index: 5; }
-.footer p { color: #555; font-size: 0.8rem; }
-@media (max-width: 640px) { .hero h1 { font-size: 1.8rem; } .nav-links { gap: 14px; } }
+footer { padding: 24px 0; border-top: 1px solid #1a1a1a; text-align: center; }
+footer p { color: #444; font-size: 0.8rem; }
+@media (max-width: 640px) { .hero h1 { font-size: 2rem; } .feature-grid { grid-template-columns: 1fr; } .wrap { padding: 0 16px; } }
 </style>
 </head>
 <body>
 <div class="prism-grid" id="prismGrid"></div>
 <div class="click-fx" id="clickFx"></div>
-<nav class="nav">
+<div class="wrap">
+<nav>
   <a href="https://valtors.github.io" class="brand">valtors</a>
-  <div class="nav-links">
+  <div class="links">
     <a href="https://valtors.github.io/valtors-landing/mcp-security-leaderboard.html">leaderboard</a>
     <a href="https://github.com/valtors/relay">github</a>
     <a href="https://www.npmjs.com/package/userelay">npm</a>
   </div>
 </nav>
 <div class="hero">
-  <div class="orb-hero-wrap">
-    <div class="orb-glow"></div>
-    <canvas id="heroOrb" width="140" height="140"></canvas>
+  <div class="hero-orb-wrap">
+    <div class="orb-ring"></div>
+    <div class="orb-ring r2"></div>
+    <canvas id="heroOrb" width="160" height="160"></canvas>
   </div>
-  <h1>one MCP server. 40 tools. zero config.</h1>
-  <p>your agent needs tools. you don't need 12 different servers, 12 config files, and 12 npm packages to get them. relay is one binary. it has everything. it starts in one command.</p>
+  <h1>one MCP server.<br>40 tools. zero config.</h1>
+  <p>your agent needs tools. you don't need 12 servers, 12 config files, and 12 npm packages. relay is one binary. it has everything.</p>
   <div class="code-block">
-<span class="install-cmd">npx userelay</span>
-<span class="comment">  # or</span>
-<span class="install-cmd">go install github.com/valtors/relay@latest</span>
+    <div class="cmd">npx userelay</div>
+    <div class="comment"># or: go install github.com/valtors/relay@latest</div>
+    <div class="out">40 tools loaded. stdio + http. ready.</div>
   </div>
 </div>
-<section>
-  <h2>what it does</h2>
-  <p>relay is a single MCP server with 40 tools. file operations, web fetching, screenshots, memory, multi-agent coordination. all in one process. all from one config. or no config, because it has sensible defaults.</p>
-  <h3>40 tools</h3>
-  <p>read, write, list, search files. fetch URLs. take screenshots. store and retrieve memory. spawn and manage sub-agents. it's a toolkit. not a framework.</p>
-  <h3>agent memory</h3>
-  <p>your agent forgets things between sessions. relay gives it a key-value store. it remembers. next time, it knows what you asked last time.</p>
-  <h3>web fetch</h3>
-  <p>your agent can't browse the web. relay fetches pages, strips HTML, returns clean text. the agent reads it. that's the whole feature.</p>
-  <h3>screenshots</h3>
-  <p>headless chromium. one command. PNG output. your agent can see what a page looks like without you opening a browser.</p>
-  <h3>multi-agent coordination</h3>
-  <p>spawn sub-agents. assign them tasks. collect results. relay coordinates. you don't need a separate orchestration layer.</p>
-  <h3>single binary</h3>
-  <p>go. static link. no runtime. no dependencies. no node_modules. one file. it works.</p>
-  <h3>zero config</h3>
-  <p>no config file required. relay starts with defaults. you can configure it. you don't have to.</p>
-</section>
+<div class="section">
+  <div class="stat-row">
+    <div class="stat"><div class="n">40</div><div class="l">tools</div></div>
+    <div class="stat"><div class="n">1</div><div class="l">binary</div></div>
+    <div class="stat"><div class="n">0</div><div class="l">config</div></div>
+    <div class="stat"><div class="n">0</div><div class="l">deps</div></div>
+  </div>
+</div>
+<div class="section">
+  <div class="section-label">what's inside</div>
+  <h2>40 tools. not 40 npm packages.</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h3>file ops</h3>
+      <p>read, write, list, search. the basics your agent can't live without.</p>
+    </div>
+    <div class="feature-card">
+      <h3>web fetch</h3>
+      <p>fetch any URL. strip HTML. return clean text. your agent reads the web.</p>
+    </div>
+    <div class="feature-card">
+      <h3>screenshots</h3>
+      <p>headless chromium. one command. PNG output. your agent sees pages.</p>
+    </div>
+    <div class="feature-card">
+      <h3>memory</h3>
+      <p>key-value store. your agent remembers things between sessions. no more starting from zero.</p>
+    </div>
+    <div class="feature-card">
+      <h3>multi-agent</h3>
+      <p>spawn sub-agents. assign tasks. collect results. relay coordinates.</p>
+    </div>
+    <div class="feature-card">
+      <h3>single binary</h3>
+      <p>go. static link. no runtime. no node_modules. one file. it works.</p>
+    </div>
+  </div>
+</div>
 <div class="cta">
-  <p>one binary. no signup. no pricing tiers. no enterprise plan.</p>
-  <p>if you're still reading this, you already know.</p>
+  <p>one binary. no signup. no pricing tiers.</p>
+  <p>if you're still reading, you already know.</p>
   <div class="links">
     <a href="https://github.com/valtors/relay">github</a>
     <a href="https://www.npmjs.com/package/userelay">npm</a>
     <a href="https://valtors.github.io/valtors-landing/">valtors</a>
   </div>
 </div>
-<div class="footer">
+<footer>
   <p>MIT. open source. no analytics on this page.</p>
+</footer>
 </div>
 <script>
-(function(){function ThinkingOrb(c,s,o){o=o||{};var sz=o.size||140,sp=o.speed||1,col=o.color||[0,173,216];var ctx=c.getContext("2d"),dpr=Math.min(2,window.devicePixelRatio||1);c.width=sz*dpr;c.height=sz*dpr;c.style.width=sz+"px";c.style.height=sz+"px";function rand(n,s){var x=Math.sin(n*12.9898+s*78.233)*43758.5453;return x-Math.floor(x);}function rot(cx,cy,sx,sy,sc){var co=Math.cos(cy),si=Math.sin(cy),ca=Math.cos(cx),sa=Math.sin(cx);return function(x,y,z){var u=x*ca+z*sa,w=-x*sa+z*ca,v=y*co-w*si,t=y*si+w*co;return[sx+u*sc,sy-v*sc,t];};}function sm(n,p){return Math.pow(n/300,p||0.6);}
+(function(){function ThinkingOrb(c,s,o){o=o||{};var sz=o.size||160,sp=o.speed||1,col=o.color||[0,173,216];var ctx=c.getContext("2d"),dpr=Math.min(2,window.devicePixelRatio||1);c.width=sz*dpr;c.height=sz*dpr;c.style.width=sz+"px";c.style.height=sz+"px";function rand(n,s){var x=Math.sin(n*12.9898+s*78.233)*43758.5453;return x-Math.floor(x);}function rot(cx,cy,sx,sy,sc){var co=Math.cos(cy),si=Math.sin(cy),ca=Math.cos(cx),sa=Math.sin(cx);return function(x,y,z){var u=x*ca+z*sa,w=-x*sa+z*ca,v=y*co-w*si,t=y*si+w*co;return[sx+u*sc,sy-v*sc,t];};}function sm(n,p){return Math.pow(n/300,p||0.6);}
 function drawDots(d){d.sort(function(a,b){return a.z-b.z;});for(var i=0;i<d.length;i++){var v=d[i],al=v.a!=null?v.a:1;if(al<0.02)continue;var w=Math.min(1,Math.max(0,v.white)),b=(1-w),r=Math.round(col[0]*b+255*w*0.3),g=Math.round(col[1]*b+255*w*0.3),bl=Math.round(col[2]*b+255*w*0.3);ctx.fillStyle="rgba("+r+","+g+","+bl+","+al+")";ctx.beginPath();ctx.arc(v.x,v.y,Math.max(0.5,v.r),0,Math.PI*2);ctx.fill();}}
-function orbits(n,t){var h=n/2,sc=n/2*0.82,r=rot(t*0.12,0.3,h,h,1),m=sm(n),d=[];for(var b=0;b<12;b++){var r1=rand(b,1.7),r2=rand(b,5.2),r3=rand(b,8.9),rad=sc*(0.45+0.52*r1),az=r1*2*Math.PI,inc=Math.acos(2*r2-1),sx=Math.sin(inc)*Math.cos(az),sy=Math.cos(inc),sz=Math.sin(inc)*Math.sin(az),px=-sy,py=sx,pz=0,len=Math.max(1e-6,Math.sqrt(px*px+py*py));px/=len;py/=len;var qx=-sz*py,qy=sz*px,qz=sx*py,spd=(0.25+0.55*r3)*(r3>0.5?1:-1);for(var c=0;c<40;c++){var a=c/40*2*Math.PI,p=r((px*Math.cos(a)+qx*Math.sin(a))*rad,(py*Math.cos(a)+qy*Math.sin(a))*rad,(pz*Math.cos(a)+qz*Math.sin(a))*rad),dp=(p[2]/rad+1)/2;d.push({x:p[0],y:p[1],z:p[2],r:1.2*m,white:0.72,a:0.5*(0.3+0.7*dp)});}for(var c2=0;c2<3;c2++){var a2=t*spd+c2/3*2*Math.PI+r2*6,p2=r((px*Math.cos(a2)+qx*Math.sin(a2))*rad,(py*Math.cos(a2)+qy*Math.sin(a2))*rad,(pz*Math.cos(a2)+qz*Math.sin(a2))*rad),dp2=(p2[2]/rad+1)/2;d.push({x:p2[0],y:p2[1],z:p2[2],r:(1.5+2*dp2)*m,white:0.25-0.2*dp2});}}drawDots(d);}
-function globe(n,t){var h=n/2,sc=n/2*0.82,tilt=0.4+0.06*Math.sin(t*0.35),r=rot(t*0.5,tilt,h,h,sc),m=sm(n),sa=t*(0.5+4.08),d=[];for(var lat=0;lat<=17;lat++){var phi=-Math.PI/2+lat/17*Math.PI,cp=Math.cos(phi),sp=Math.sin(phi),k=Math.max(1,Math.round(Math.abs(cp)*44));for(var lon=0;lon<k;lon++){var th=lon/k*2*Math.PI,p=r(cp*Math.cos(th),sp,cp*Math.sin(th)),dp=(p[2]+1)/2,scn=Math.atan2(Math.sin(th+t*0.5-sa),Math.cos(th+t*0.5-sa)),si=Math.exp(-(scn*scn)/0.18)*Math.max(0,p[2]);d.push({x:p[0],y:p[1],z:p[2],r:(0.8+2*dp+1.5*si)*m,white:0.62-0.54*dp,a:0.4+0.6*Math.min(1,si)});}}drawDots(d);}
+function orbits(n,t){var h=n/2,sc=n/2*0.82,r=rot(t*0.12,0.3,h,h,1),m=sm(n),d=[];for(var b=0;b<12;b++){var r1=rand(b,1.7),r2=rand(b,5.2),r3=rand(b,8.9),rad=sc*(0.45+0.52*r1),az=r1*2*Math.PI,inc=Math.acos(2*r2-1),sx=Math.sin(inc)*Math.cos(az),sy=Math.cos(inc),sz=Math.sin(inc)*Math.sin(az),px=-sy,py=sx,pz=0,len=Math.max(1e-6,Math.sqrt(px*px+py*py));px/=len;py/=len;var qx=-sz*py,qy=sz*px,qz=sx*py,spd=(0.25+0.55*r3)*(r3>0.5?1:-1);for(var c=0;c<40;c++){var a=c/40*2*Math.PI,p=r((px*Math.cos(a)+qx*Math.sin(a))*rad,(py*Math.cos(a)+qy*Math.sin(a))*rad,(pz*Math.cos(a)+qz*Math.sin(a))*rad),dp=(p[2]/rad+1)/2;d.push({x:p[0],y:p[1],z:p[2],r:1.5*m,white:0.72,a:0.55*(0.3+0.7*dp)});}for(var c2=0;c2<3;c2++){var a2=t*spd+c2/3*2*Math.PI+r2*6,p2=r((px*Math.cos(a2)+qx*Math.sin(a2))*rad,(py*Math.cos(a2)+qy*Math.sin(a2))*rad,(pz*Math.cos(a2)+qz*Math.sin(a2))*rad),dp2=(p2[2]/rad+1)/2;d.push({x:p2[0],y:p2[1],z:p2[2],r:(2+2.5*dp2)*m,white:0.25-0.2*dp2});}}drawDots(d);}
+function globe(n,t){var h=n/2,sc=n/2*0.82,tilt=0.4+0.06*Math.sin(t*0.35),r=rot(t*0.5,tilt,h,h,sc),m=sm(n),sa=t*(0.5+4.08),d=[];for(var lat=0;lat<=17;lat++){var phi=-Math.PI/2+lat/17*Math.PI,cp=Math.cos(phi),sp=Math.sin(phi),k=Math.max(1,Math.round(Math.abs(cp)*44));for(var lon=0;lon<k;lon++){var th=lon/k*2*Math.PI,p=r(cp*Math.cos(th),sp,cp*Math.sin(th)),dp=(p[2]+1)/2,scn=Math.atan2(Math.sin(th+t*0.5-sa),Math.cos(th+t*0.5-sa)),si=Math.exp(-(scn*scn)/0.18)*Math.max(0,p[2]);d.push({x:p[0],y:p[1],z:p[2],r:(1+2.5*dp+2*si)*m,white:0.62-0.54*dp,a:0.45+0.55*Math.min(1,si)});}}drawDots(d);}
 var modes={working:orbits,searching:globe,listening:orbits,solving:globe},mode=modes[s]||orbits,run=false,raf=0,vis=true;function frame(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,sz,sz);mode(sz,performance.now()/1000*sp);if(run)raf=requestAnimationFrame(frame);}function start(){if(run||!vis)return;run=true;raf=requestAnimationFrame(frame);}function stop(){run=false;cancelAnimationFrame(raf);}if("IntersectionObserver" in window){var io=new IntersectionObserver(function(e){vis=e[0].isIntersecting;if(vis&&document.visibilityState!=="hidden")start();else stop();});io.observe(c);}document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")stop();else if(vis)start();});start();}window.ThinkingOrb=ThinkingOrb;})();
-new ThinkingOrb(document.getElementById("heroOrb"), "working", { size: 140, speed: 1.885, color: [0, 173, 216] });
+new ThinkingOrb(document.getElementById("heroOrb"), "working", { size: 160, speed: 1.7, color: [0,173,216] });
 </script>
 <script>
-(function(){var g=document.getElementById("prismGrid"),bs=50,colors=["rgba(0,173,216,0.3)","rgba(34,197,94,0.3)","rgba(168,85,247,0.3)","rgba(239,68,68,0.3)","rgba(99,102,241,0.3)"],lit=null;function build(){var w=window.innerWidth,h=Math.max(window.innerHeight,document.body.scrollHeight),c=Math.ceil(w/bs),r=Math.ceil(h/bs);g.innerHTML="";var p=document.createElement("div");p.className="grid-plane";p.style.width=(c*bs)+"px";p.style.height=(r*bs)+"px";for(var i=0;i<r;i++){var row=document.createElement("div");row.className="grid-row";for(var j=0;j<c;j++){var cell=document.createElement("div");cell.className="grid-cell";cell.style.width=bs+"px";cell.style.height=bs+"px";row.appendChild(cell);}p.appendChild(row);}g.appendChild(p);}document.addEventListener("pointermove",function(e){var rect=g.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top,col=Math.floor(x/bs),row=Math.floor(y/bs);if(col<0||row<0)return;if(lit&&lit.row===row&&lit.col===col)return;if(lit){lit.el.style.opacity="0";lit.el.style.transform="scale(0.5)";var o=lit;setTimeout(function(){if(o.el.parentNode)o.el.parentNode.removeChild(o.el);},1200);}var el=document.createElement("div");el.className="lit-cell";el.style.cssText="left:"+(col*bs)+"px;top:"+(row*bs)+"px;width:"+bs+"px;height:"+bs+"px;background:"+colors[Math.floor(Math.random()*colors.length)]+";opacity:1;transform:scale(1)";g.appendChild(el);lit={row:row,col:col,el:el};});g.addEventListener("pointerleave",function(){if(lit){lit.el.style.opacity="0";lit.el.style.transform="scale(0.5)";var o=lit;setTimeout(function(){if(o.el.parentNode)o.el.parentNode.removeChild(o.el);},1200);lit=null;}});build();var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(build,200);});})();
+(function(){var g=document.getElementById("prismGrid");if(!g)return;var bs=50,colors=["rgba(0,173,216,0.25)","rgba(34,197,94,0.25)","rgba(168,85,247,0.25)","rgba(239,68,68,0.25)","rgba(99,102,241,0.25)"],lit=null;function build(){var w=window.innerWidth,h=Math.max(window.innerHeight,document.body.scrollHeight),c=Math.ceil(w/bs),r=Math.ceil(h/bs);g.innerHTML="";var p=document.createElement("div");p.className="grid-plane";p.style.width=(c*bs)+"px";p.style.height=(r*bs)+"px";for(var i=0;i<r;i++){var row=document.createElement("div");row.className="grid-row";for(var j=0;j<c;j++){var cell=document.createElement("div");cell.className="grid-cell";cell.style.width=bs+"px";cell.style.height=bs+"px";row.appendChild(cell);}p.appendChild(row);}g.appendChild(p);}document.addEventListener("pointermove",function(e){var rect=g.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top,col=Math.floor(x/bs),row=Math.floor(y/bs);if(col<0||row<0)return;if(lit&&lit.row===row&&lit.col===col)return;if(lit){lit.el.style.opacity="0";lit.el.style.transform="scale(0.5)";var o=lit;setTimeout(function(){if(o.el.parentNode)o.el.parentNode.removeChild(o.el);},1200);}var el=document.createElement("div");el.className="lit-cell";el.style.cssText="left:"+(col*bs)+"px;top:"+(row*bs)+"px;width:"+bs+"px;height:"+bs+"px;background:"+colors[Math.floor(Math.random()*colors.length)]+";opacity:1;transform:scale(1)";g.appendChild(el);lit={row:row,col:col,el:el};});build();var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(build,200);});})();
 </script>
 <script>
 (function(){var fx=document.getElementById("clickFx"),colors=["#00add8","#22c55e","#a855f7"];document.addEventListener("click",function(e){var x=e.clientX,y=e.clientY,color=colors[Math.floor(Math.random()*colors.length)],sz=100,sw=3,g=document.createElement("div");g.style.cssText="position:absolute;left:"+(x-sz/2)+"px;top:"+(y-sz/2)+"px;width:"+sz+"px;height:"+sz+"px";for(var a=0;a<12;a++){var angle=a*Math.PI/6,dot=document.createElement("div");dot.style.cssText="position:absolute;left:"+(sz/2-sw/2)+"px;top:"+(sz/2-sw/2)+"px;width:"+sw+"px;height:"+sw+"px;background:"+color+";border-radius:50%;transform:translate(0,0);transition:transform 0.4s cubic-bezier(0.2,0.8,0.2,1),opacity 0.5s ease-out 0.2s,width 0.5s ease-out 0.2s,height 0.5s ease-out 0.2s";g.appendChild(dot);(function(d,ang){setTimeout(function(){d.style.transform="translate("+Math.cos(ang)*sz*0.45+"px,"+Math.sin(ang)*sz*0.45+"px)";d.style.opacity="0";d.style.width="0px";d.style.height="0px";},10);})(dot,angle);}var ring=document.createElement("div");ring.style.cssText="position:absolute;left:"+(sz/2-20)+"px;top:"+(sz/2-20)+"px;width:40px;height:40px;border:2px solid "+color+";border-radius:50%;opacity:0.8;transform:scale(0.3);transition:transform 0.4s cubic-bezier(0.2,0.8,0.2,1),opacity 0.4s ease-out";g.appendChild(ring);setTimeout(function(){ring.style.transform="scale(2.5)";ring.style.opacity="0";},10);fx.appendChild(g);setTimeout(function(){if(g.parentNode)g.parentNode.removeChild(g);},700);});})();
