@@ -2,166 +2,981 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>relay</title>
+<title>Relay - One MCP server. 40+ tools. Zero config.</title>
+<meta name="description" content="MCP server for AI agents. Memory, web fetch, search, file ops, screenshots, and multi-agent coordination in a single Go binary.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #fafafa;
+  --bg-soft: #f0f0f0;
+  --bg-card: #f5f5f5;
+  --text: #1a1a1a;
+  --text-soft: #666666;
+  --text-muted: #999999;
+  --border: #e8e8e8;
+  --opacity-label: 0.35;
+  --contrib-0: #e8e8e8;
+  --contrib-1: #c6e8c9;
+  --contrib-2: #7bc97f;
+  --contrib-3: #3ba53f;
+  --contrib-4: #1a6b2e;
+}
+
+.dark {
+  --bg: #0a0a0a;
+  --bg-soft: #111111;
+  --bg-card: #141414;
+  --text: #fafafa;
+  --text-soft: #aaaaaa;
+  --text-muted: #666666;
+  --border: #1a1a1a;
+  --opacity-label: 0.4;
+  --contrib-0: #1a1a1a;
+  --contrib-1: #0e4429;
+  --contrib-2: #006d32;
+  --contrib-3: #26a641;
+  --contrib-4: #39d353;
+}
+
 html { scroll-behavior: smooth; }
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  background: #060606; color: #e5e5e5; line-height: 1.7;
-  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  font-family: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s, color 0.3s;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* Theme toggle */
+.theme-toggle {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.theme-toggle:hover { transform: translateY(-2px); }
+.theme-toggle svg { width: 18px; height: 18px; color: var(--text); }
+.dark-icon { display: none; }
+.dark .dark-icon { display: block; }
+.dark .light-icon { display: none; }
+
+/* Nav */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  padding: 14px 24px;
+  background: transparent;
+  color: var(--text);
+  transition: background 0.3s, border-color 0.3s;
+  border-bottom: 1px solid transparent;
+}
+nav.scrolled {
+  background: rgba(250,250,250,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.dark nav.scrolled {
+  background: rgba(10,10,10,0.85);
+}
+.nav-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+.nav-logo svg { display: block; }
+.nav-links {
+  display: flex;
+  gap: 28px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-soft);
+}
+.nav-links a { transition: color 0.2s; }
+.nav-links a:hover { color: var(--text); }
+.nav-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.nav-gh {
+  color: var(--text-soft);
+  transition: color 0.2s;
+}
+.nav-gh:hover { color: var(--text); }
+.nav-cta {
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+.nav-cta:hover { opacity: 0.85; }
+@media (max-width: 768px) { .nav-links { display: none; } }
+
+/* Hero */
+.hero {
+  background: var(--bg);
+  padding: 140px 24px 60px;
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
+}
+.hero-inner { max-width: 1000px; margin: 0 auto; }
+.hero-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: var(--opacity-label);
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: 40px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  max-width: 600px;
+}
+.hero-sub {
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--text-soft);
+  margin-bottom: 36px;
+  max-width: 500px;
+  line-height: 1.5;
+}
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+.btn-primary {
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 8px;
+  padding: 12px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-primary:hover { opacity: 0.85; }
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-outline:hover { border-color: var(--text); }
+.hero-meta {
+  display: flex;
+  gap: 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+@media (max-width: 768px) {
+  .hero { padding: 100px 24px 40px; }
+  .hero h1 { font-size: 28px; }
+  .hero-sub { font-size: 16px; }
+}
+
+/* Stats */
+.stats {
+  padding: 40px 24px 80px;
+  background: var(--bg);
+}
+.stats-inner { max-width: 1000px; margin: 0 auto; }
+.stats-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: var(--opacity-label);
+  margin-bottom: 32px;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+.stat-item {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.stat-num {
+  font-size: 32px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+@media (max-width: 600px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .stat-num { font-size: 26px; }
+}
+
+/* Art section */
+.art-section {
+  padding: 0 24px;
+  background: var(--bg);
+}
+.art-inner { max-width: 1000px; margin: 0 auto; }
+.art-banner {
+  border-radius: 16px;
+  overflow: hidden;
+  height: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
 }
-.prism-grid { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
-.prism-grid .grid-plane { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; }
-.prism-grid .grid-row { display: flex; }
-.prism-grid .grid-cell { border: 1px solid rgba(255,255,255,0.05); box-sizing: border-box; }
-.prism-grid .lit-cell { position: absolute; pointer-events: none; border-radius: 2px; transition: opacity 1.2s ease-out, transform 1.2s ease-out; }
-.click-fx { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; overflow: visible; }
-.wrap { max-width: 720px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 5; }
-nav { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; }
-nav .brand { color: #e5e5e5; text-decoration: none; font-weight: 700; font-size: 1rem; }
-nav .links { display: flex; gap: 24px; }
-nav .links a { color: #666; text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
-nav .links a:hover { color: #e5e5e5; }
-.hero { padding: 40px 0 60px; text-align: center; }
-.hero-orb-wrap { display: flex; justify-content: center; align-items: center; margin-bottom: 32px; height: 180px; position: relative; }
-.hero-orb-wrap canvas { filter: drop-shadow(0 0 30px rgba(0,173,216,0.35)) drop-shadow(0 0 60px rgba(0,173,216,0.15)); }
-.hero-orb-wrap .orb-ring { position: absolute; width: 200px; height: 200px; border-radius: 50%; border: 1px solid rgba(0,173,216,0.1); animation: ring-pulse 4s ease-in-out infinite; }
-.hero-orb-wrap .orb-ring.r2 { width: 240px; height: 240px; animation-delay: 1s; }
-@keyframes ring-pulse { 0%,100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.1); opacity: 0.5; } }
-.hero h1 { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1.15; margin-bottom: 16px; }
-.hero p { color: #999; font-size: 1.1rem; max-width: 480px; margin: 0 auto 28px; }
-.code-block {
-  background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 10px;
-  padding: 20px 24px; max-width: 500px; margin: 0 auto;
-  font-family: 'SF Mono', Monaco, monospace; font-size: 0.9rem;
-  overflow-x: auto; box-shadow: 0 4px 40px rgba(0,0,0,0.5);
-  position: relative; text-align: left;
+.art-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
-.code-block::before { content: '$'; color: #00add8; position: absolute; left: 12px; top: 20px; font-weight: 700; }
-.code-block .cmd { padding-left: 16px; color: #e5e5e5; }
-.code-block .comment { color: #555; display: block; padding-left: 16px; font-size: 0.8rem; }
-.code-block .out { color: #00add8; display: block; padding-left: 16px; }
-.section { padding: 50px 0; }
-.section-label { font-size: 0.75rem; color: #00add8; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
-.section h2 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 28px; line-height: 1.2; }
-.stat-row { display: flex; gap: 32px; margin: 24px 0; flex-wrap: wrap; justify-content: center; }
-.stat { text-align: center; }
-.stat .n { font-size: 2.2rem; font-weight: 800; color: #00add8; letter-spacing: -0.03em; }
-.stat .l { font-size: 0.75rem; color: #555; text-transform: lowercase; }
-.feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.feature-card {
-  background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 10px;
-  padding: 20px; transition: border-color 0.3s, transform 0.3s;
-  position: relative; overflow: hidden;
+.art-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(0,0,0,0.2), rgba(0,0,0,0.5));
+  display: flex;
+  align-items: flex-end;
+  padding: 32px;
 }
-.feature-card:hover { border-color: #00add8; transform: translateY(-2px); }
-.feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(0,173,216,0.3), transparent); }
-.feature-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
-.feature-card p { color: #777; font-size: 0.85rem; line-height: 1.5; }
-.cta { text-align: center; padding: 50px 0 70px; border-top: 1px solid #1a1a1a; }
-.cta p { color: #888; margin-bottom: 16px; }
-.links { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
-.links a { color: #00add8; text-decoration: none; font-size: 0.9rem; border-bottom: 1px solid #1a3a4a; padding-bottom: 2px; transition: color 0.2s; }
-.links a:hover { color: #e5e5e5; }
-footer { padding: 24px 0; border-top: 1px solid #1a1a1a; text-align: center; }
-footer p { color: #444; font-size: 0.8rem; }
-@media (max-width: 640px) { .hero h1 { font-size: 2rem; } .feature-grid { grid-template-columns: 1fr; } .wrap { padding: 0 16px; } }
+.art-text {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 300;
+  max-width: 400px;
+  letter-spacing: -0.01em;
+}
+@media (max-width: 768px) { .art-banner { height: 240px; } }
+
+/* Features */
+.features {
+  padding: 80px 24px;
+  background: var(--bg);
+}
+.features-inner { max-width: 1000px; margin: 0 auto; }
+.section-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: var(--opacity-label);
+  margin-bottom: 16px;
+}
+.section-heading {
+  font-size: 28px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  max-width: 600px;
+  line-height: 1.2;
+}
+.section-sub {
+  font-size: 16px;
+  color: var(--text-soft);
+  font-weight: 300;
+  margin-bottom: 48px;
+  max-width: 500px;
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+  margin-top: 40px;
+}
+.feature-item h3 {
+  font-size: 17px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.feature-item p {
+  font-size: 14px;
+  color: var(--text-soft);
+  font-weight: 300;
+  line-height: 1.6;
+}
+@media (max-width: 768px) {
+  .features-grid { grid-template-columns: 1fr; gap: 32px; }
+}
+
+/* Install */
+.install {
+  padding: 80px 24px;
+  background: var(--bg);
+}
+.install-inner { max-width: 1000px; margin: 0 auto; }
+.install-code {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-top: 32px;
+  font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+  font-size: 14px;
+  color: var(--text-soft);
+  overflow-x: auto;
+}
+.install-code .prompt { color: var(--text-muted); }
+.install-code .cmd { color: var(--text); }
+.install-tabs {
+  display: inline-flex;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  margin-top: 32px;
+  margin-bottom: 0;
+}
+.install-tab {
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--text-soft);
+  transition: background 0.2s, color 0.2s;
+}
+.install-tab.active {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* Contribution graph */
+.contrib-section {
+  padding: 80px 24px;
+  background: var(--bg);
+}
+.contrib-inner { max-width: 1000px; margin: 0 auto; }
+.contrib-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.contrib-total {
+  font-size: 13px;
+  color: var(--text-soft);
+}
+.contrib-total strong { color: var(--text); font-weight: 600; }
+.contrib-graph {
+  display: flex;
+  gap: 3px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.contrib-week {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.contrib-day {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--contrib-0);
+}
+.dark .contrib-day { border: 1px solid rgba(255,255,255,0.04); }
+.contrib-day.level-1 { background: var(--contrib-1); }
+.contrib-day.level-2 { background: var(--contrib-2); }
+.contrib-day.level-3 { background: var(--contrib-3); }
+.contrib-day.level-4 { background: var(--contrib-4); }
+.contrib-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 12px;
+  justify-content: flex-end;
+}
+.contrib-legend .contrib-day {
+  width: 11px;
+  height: 11px;
+  border: none;
+}
+
+/* Contributors */
+.contributors-section {
+  padding: 40px 24px 80px;
+  background: var(--bg);
+}
+.contributors-inner { max-width: 1000px; margin: 0 auto; }
+.contributors-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 24px;
+}
+.contributor-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  transition: border-color 0.2s;
+}
+.contributor-card:hover { border-color: var(--text); }
+.contributor-card img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.contributor-info {
+  display: flex;
+  flex-direction: column;
+}
+.contributor-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+.contributor-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Mission */
+.mission {
+  padding: 80px 24px;
+  background: var(--bg);
+}
+.mission-inner { max-width: 800px; margin: 0 auto; }
+.mission-quote {
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-align: center;
+  font-style: italic;
+}
+.mission-attr {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 16px;
+  letter-spacing: 0.05em;
+}
+
+/* CTA */
+.cta {
+  padding: 60px 24px 80px;
+  background: var(--bg);
+}
+.cta-inner { max-width: 1000px; margin: 0 auto; }
+.cta-box {
+  border-top: 1px solid var(--border);
+  padding: 48px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.cta-text {
+  font-size: 22px;
+  font-weight: 300;
+  max-width: 500px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.cta-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+@media (max-width: 600px) { .cta-box { flex-direction: column; text-align: center; } }
+
+/* Footer */
+footer {
+  padding: 32px 24px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.footer-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.footer-text {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.footer-links {
+  display: flex;
+  gap: 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.footer-links a:hover { color: var(--text); }
+
+/* Click ripple effect */
+.click-fx {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: visible;
+}
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: ripple-expand 0.6s ease-out forwards;
+}
+@keyframes ripple-expand {
+  0% { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(4); opacity: 0; }
+}
+.spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: spark-fly 0.5s ease-out forwards;
+}
+@keyframes spark-fly {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+}
 </style>
 </head>
 <body>
-<div class="prism-grid" id="prismGrid"></div>
+
 <div class="click-fx" id="clickFx"></div>
-<div class="wrap">
-<nav>
-  <a href="https://valtors.github.io" class="brand">valtors</a>
-  <div class="links">
-    <a href="https://valtors.github.io/valtors-landing/mcp-security-leaderboard.html">leaderboard</a>
-    <a href="https://github.com/valtors/relay">github</a>
-    <a href="https://www.npmjs.com/package/userelay">npm</a>
+
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+  <svg class="light-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+  <svg class="dark-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+</button>
+
+<nav id="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <svg width="24" height="24" viewBox="0 0 28 28" fill="none"><path d="M14 2C8 2 4 6 4 12c0 4 2 7 5 9 0 1 0 3 1 4 1 1 2 1 4 1s3 0 4-1c1-1 1-3 1-4 3-2 5-5 5-9 0-6-4-10-10-10zm-4 8c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2zm8 0c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2zm-4 6c-2 0-4-1-4-3h8c0 2-2 3-4 3z" fill="currentColor"/></svg>
+      <span>valtors / relay</span>
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="#community">Community</a>
+      <a href="https://github.com/valtors/relay">GitHub</a>
+    </div>
+    <div class="nav-actions">
+      <a href="https://github.com/valtors" class="nav-gh">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a>
+      <a href="https://github.com/valtors/relay" class="nav-cta">Get Started</a>
+    </div>
   </div>
 </nav>
-<div class="hero">
-  <div class="hero-orb-wrap">
-    <div class="orb-ring"></div>
-    <div class="orb-ring r2"></div>
-    <canvas id="heroOrb" width="160" height="160"></canvas>
-  </div>
-  <h1>one MCP server.<br>40 tools. zero config.</h1>
-  <p>your agent needs tools. you don't need 12 servers, 12 config files, and 12 npm packages. relay is one binary. it has everything.</p>
-  <div class="code-block">
-    <div class="cmd">npx userelay</div>
-    <div class="comment"># or: go install github.com/valtors/relay@latest</div>
-    <div class="out">40 tools loaded. stdio + http. ready.</div>
-  </div>
-</div>
-<div class="section">
-  <div class="stat-row">
-    <div class="stat"><div class="n">40</div><div class="l">tools</div></div>
-    <div class="stat"><div class="n">1</div><div class="l">binary</div></div>
-    <div class="stat"><div class="n">0</div><div class="l">config</div></div>
-    <div class="stat"><div class="n">0</div><div class="l">deps</div></div>
-  </div>
-</div>
-<div class="section">
-  <div class="section-label">what's inside</div>
-  <h2>40 tools. not 40 npm packages.</h2>
-  <div class="feature-grid">
-    <div class="feature-card">
-      <h3>file ops</h3>
-      <p>read, write, list, search. the basics your agent can't live without.</p>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Relay</div>
+    <h1>One MCP server. 40+ tools. Zero config.</h1>
+    <p class="hero-sub">MCP server for AI agents. Memory, web fetch, search, file ops, screenshots, and multi-agent coordination in a single Go binary. Stdio transport, stdlib JSON-RPC.</p>
+    <div class="hero-actions">
+      <a href="#install" class="btn-primary">Install Relay</a>
+      <a href="https://github.com/valtors/relay" class="btn-outline">
+        View on GitHub
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
+      </a>
     </div>
-    <div class="feature-card">
-      <h3>web fetch</h3>
-      <p>fetch any URL. strip HTML. return clean text. your agent reads the web.</p>
-    </div>
-    <div class="feature-card">
-      <h3>screenshots</h3>
-      <p>headless chromium. one command. PNG output. your agent sees pages.</p>
-    </div>
-    <div class="feature-card">
-      <h3>memory</h3>
-      <p>key-value store. your agent remembers things between sessions. no more starting from zero.</p>
-    </div>
-    <div class="feature-card">
-      <h3>multi-agent</h3>
-      <p>spawn sub-agents. assign tasks. collect results. relay coordinates.</p>
-    </div>
-    <div class="feature-card">
-      <h3>single binary</h3>
-      <p>go. static link. no runtime. no node_modules. one file. it works.</p>
+    <div class="hero-meta">
+      <span>7 stars</span>
+      <span>2 forks</span>
+      <span>MIT</span>
+      <span>Go</span>
+      <span>npm: userelay v0.4.9</span>
     </div>
   </div>
-</div>
-<div class="cta">
-  <p>one binary. no signup. no pricing tiers.</p>
-  <p>if you're still reading, you already know.</p>
-  <div class="links">
-    <a href="https://github.com/valtors/relay">github</a>
-    <a href="https://www.npmjs.com/package/userelay">npm</a>
-    <a href="https://valtors.github.io/valtors-landing/">valtors</a>
+</section>
+
+<section class="stats">
+  <div class="stats-inner">
+    <div class="stats-eyebrow">The network</div>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-num">40+</div>
+        <div class="stat-label">Tools</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">1</div>
+        <div class="stat-label">Binary</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">7</div>
+        <div class="stat-label">GitHub Stars</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">4+</div>
+        <div class="stat-label">Contributors</div>
+      </div>
+    </div>
   </div>
-</div>
+</section>
+
+<section class="art-section">
+  <div class="art-inner">
+    <div class="art-banner">
+      <img src="https://raw.githubusercontent.com/valtors/relay-landing/master/assets/workbench.jpg" alt="Oil painting of a workbench at golden hour" loading="lazy" />
+      <div class="art-overlay">
+        <div class="art-text">Every tool an agent needs, on a single workbench. Memory, web fetch, search, file operations, screenshots.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="features-inner">
+    <div class="section-eyebrow">Features</div>
+    <h2 class="section-heading">Everything your agent needs, nothing it doesn't.</h2>
+    <div class="features-grid">
+      <div class="feature-item">
+        <h3>40+ Tools</h3>
+        <p>Comprehensive toolkit covering memory, search, file ops, and more, all from one server.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Agent Memory</h3>
+        <p>Persistent memory storage lets agents recall context across sessions and conversations.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Web Fetch</h3>
+        <p>Retrieve and parse web content with built-in extraction. Clean text, ready for context.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Screenshots</h3>
+        <p>Capture page snapshots for visual context. Useful for debugging and verification.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Multi-Agent Coordination</h3>
+        <p>Coordinate multiple agents through shared state and messaging primitives.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Stdio Transport</h3>
+        <p>Standard stdio transport with stdlib JSON-RPC. No HTTP servers, no extra deps.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Single Binary</h3>
+        <p>One Go binary. No runtime, no containers, no orchestration. Just install and run.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Zero Config</h3>
+        <p>Sensible defaults out of the box. Get started in seconds, configure later if needed.</p>
+      </div>
+      <div class="feature-item">
+        <h3>Go Performance</h3>
+        <p>Built in Go for speed and reliability. Minimal footprint, maximal throughput.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="art-section">
+  <div class="art-inner">
+    <div class="art-banner">
+      <img src="https://raw.githubusercontent.com/valtors/relay-landing/master/assets/open-book.jpg" alt="Oil painting of an open book on a hilltop" loading="lazy" />
+      <div class="art-overlay">
+        <div class="art-text">Open source, open access. MIT licensed, fully transparent. Every line of Relay is yours to study, fork, and extend.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="install" id="install">
+  <div class="install-inner">
+    <div class="section-eyebrow">Get started</div>
+    <h2 class="section-heading">Install in one command.</h2>
+    <p class="section-sub">No dependencies. No build step. Just Go.</p>
+    <div class="install-tabs">
+      <div class="install-tab active" data-tab="go">Go Install</div>
+      <div class="install-tab" data-tab="npm">npm</div>
+      <div class="install-tab" data-tab="manual">Manual</div>
+    </div>
+    <div class="install-code" id="codeBlock">
+<span class="prompt">$</span> <span class="cmd">go install github.com/valtors/relay@latest</span>
+    </div>
+  </div>
+</section>
+
+<section class="art-section">
+  <div class="art-inner">
+    <div class="art-banner">
+      <img src="https://raw.githubusercontent.com/valtors/relay-landing/master/assets/bridge.jpg" alt="Oil painting of a stone bridge at twilight" loading="lazy" />
+      <div class="art-overlay">
+        <div class="art-text">A bridge between every agent you run. Shared state, messaging primitives, and coordination tools.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="contrib-section" id="community">
+  <div class="contrib-inner">
+    <div class="section-eyebrow">Activity</div>
+    <h2 class="section-heading">Contribution history</h2>
+    <div class="contrib-header">
+      <div class="contrib-total"><strong>11</strong> commits across 4 contributors</div>
+    </div>
+    <div class="contrib-graph" id="contrib-graph"></div>
+    <div class="contrib-legend">
+      <span>Less</span>
+      <div class="contrib-day"></div>
+      <div class="contrib-day level-1"></div>
+      <div class="contrib-day level-2"></div>
+      <div class="contrib-day level-3"></div>
+      <div class="contrib-day level-4"></div>
+      <span>More</span>
+    </div>
+  </div>
+</section>
+
+<section class="contributors-section">
+  <div class="contributors-inner">
+    <div class="section-eyebrow">Contributors</div>
+    <h2 class="section-heading">Built in the open.</h2>
+    <div class="contributors-grid">
+      <a href="https://github.com/tamish560" class="contributor-card">
+        <img src="https://avatars.githubusercontent.com/u/189916421?v=4" alt="tamish560" loading="lazy" />
+        <div class="contributor-info">
+          <span class="contributor-name">tamish560</span>
+          <span class="contributor-meta">155 contributions</span>
+        </div>
+      </a>
+      <a href="https://github.com/leemeo3" class="contributor-card">
+        <img src="https://avatars.githubusercontent.com/u/117142323?v=4" alt="leemeo3" loading="lazy" />
+        <div class="contributor-info">
+          <span class="contributor-name">leemeo3</span>
+          <span class="contributor-meta">2 contributions</span>
+        </div>
+      </a>
+      <a href="https://github.com/ishaan-jindal" class="contributor-card">
+        <img src="https://avatars.githubusercontent.com/u/122903391?v=4" alt="ishaan-jindal" loading="lazy" />
+        <div class="contributor-info">
+          <span class="contributor-name">ishaan-jindal</span>
+          <span class="contributor-meta">1 contribution</span>
+        </div>
+      </a>
+      <a href="https://github.com/nabsei" class="contributor-card">
+        <img src="https://avatars.githubusercontent.com/u/166228107?v=4" alt="nabsei" loading="lazy" />
+        <div class="contributor-info">
+          <span class="contributor-name">nabsei</span>
+          <span class="contributor-meta">1 contribution</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="mission">
+  <div class="mission-inner">
+    <div class="mission-quote">"The best tool is the one you never think about. Relay stays out of the way and lets agents do what they do best."</div>
+    <div class="mission-attr">RELAY - THE FUTURE BEGINS HERE</div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="cta-inner">
+    <div class="cta-box">
+      <div class="cta-text">Ship agents with confidence.</div>
+      <div class="cta-actions">
+        <a href="https://github.com/valtors/relay" class="btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          Star on GitHub
+        </a>
+        <a href="#install" class="btn-outline">Install</a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer>
-  <p>MIT. open source. no analytics on this page.</p>
+  <div class="footer-inner">
+    <div class="footer-text">Relay. MIT licensed. github.com/valtors/relay</div>
+    <div class="footer-links">
+      <a href="https://github.com/valtors/relay">GitHub</a>
+      <a href="https://github.com/valtors">Valtors</a>
+      <a href="https://github.com/valtors/reflow">Reflow</a>
+      <a href="https://github.com/valtors/observer">Observer</a>
+    </div>
+  </div>
 </footer>
-</div>
+
 <script>
-(function(){function ThinkingOrb(c,s,o){o=o||{};var sz=o.size||160,sp=o.speed||1,col=o.color||[0,173,216];var ctx=c.getContext("2d"),dpr=Math.min(2,window.devicePixelRatio||1);c.width=sz*dpr;c.height=sz*dpr;c.style.width=sz+"px";c.style.height=sz+"px";function rand(n,s){var x=Math.sin(n*12.9898+s*78.233)*43758.5453;return x-Math.floor(x);}function rot(cx,cy,sx,sy,sc){var co=Math.cos(cy),si=Math.sin(cy),ca=Math.cos(cx),sa=Math.sin(cx);return function(x,y,z){var u=x*ca+z*sa,w=-x*sa+z*ca,v=y*co-w*si,t=y*si+w*co;return[sx+u*sc,sy-v*sc,t];};}function sm(n,p){return Math.pow(n/300,p||0.6);}
-function drawDots(d){d.sort(function(a,b){return a.z-b.z;});for(var i=0;i<d.length;i++){var v=d[i],al=v.a!=null?v.a:1;if(al<0.02)continue;var w=Math.min(1,Math.max(0,v.white)),b=(1-w),r=Math.round(col[0]*b+255*w*0.3),g=Math.round(col[1]*b+255*w*0.3),bl=Math.round(col[2]*b+255*w*0.3);ctx.fillStyle="rgba("+r+","+g+","+bl+","+al+")";ctx.beginPath();ctx.arc(v.x,v.y,Math.max(0.5,v.r),0,Math.PI*2);ctx.fill();}}
-function orbits(n,t){var h=n/2,sc=n/2*0.82,r=rot(t*0.12,0.3,h,h,1),m=sm(n),d=[];for(var b=0;b<12;b++){var r1=rand(b,1.7),r2=rand(b,5.2),r3=rand(b,8.9),rad=sc*(0.45+0.52*r1),az=r1*2*Math.PI,inc=Math.acos(2*r2-1),sx=Math.sin(inc)*Math.cos(az),sy=Math.cos(inc),sz=Math.sin(inc)*Math.sin(az),px=-sy,py=sx,pz=0,len=Math.max(1e-6,Math.sqrt(px*px+py*py));px/=len;py/=len;var qx=-sz*py,qy=sz*px,qz=sx*py,spd=(0.25+0.55*r3)*(r3>0.5?1:-1);for(var c=0;c<40;c++){var a=c/40*2*Math.PI,p=r((px*Math.cos(a)+qx*Math.sin(a))*rad,(py*Math.cos(a)+qy*Math.sin(a))*rad,(pz*Math.cos(a)+qz*Math.sin(a))*rad),dp=(p[2]/rad+1)/2;d.push({x:p[0],y:p[1],z:p[2],r:1.5*m,white:0.72,a:0.55*(0.3+0.7*dp)});}for(var c2=0;c2<3;c2++){var a2=t*spd+c2/3*2*Math.PI+r2*6,p2=r((px*Math.cos(a2)+qx*Math.sin(a2))*rad,(py*Math.cos(a2)+qy*Math.sin(a2))*rad,(pz*Math.cos(a2)+qz*Math.sin(a2))*rad),dp2=(p2[2]/rad+1)/2;d.push({x:p2[0],y:p2[1],z:p2[2],r:(2+2.5*dp2)*m,white:0.25-0.2*dp2});}}drawDots(d);}
-function globe(n,t){var h=n/2,sc=n/2*0.82,tilt=0.4+0.06*Math.sin(t*0.35),r=rot(t*0.5,tilt,h,h,sc),m=sm(n),sa=t*(0.5+4.08),d=[];for(var lat=0;lat<=17;lat++){var phi=-Math.PI/2+lat/17*Math.PI,cp=Math.cos(phi),sp=Math.sin(phi),k=Math.max(1,Math.round(Math.abs(cp)*44));for(var lon=0;lon<k;lon++){var th=lon/k*2*Math.PI,p=r(cp*Math.cos(th),sp,cp*Math.sin(th)),dp=(p[2]+1)/2,scn=Math.atan2(Math.sin(th+t*0.5-sa),Math.cos(th+t*0.5-sa)),si=Math.exp(-(scn*scn)/0.18)*Math.max(0,p[2]);d.push({x:p[0],y:p[1],z:p[2],r:(1+2.5*dp+2*si)*m,white:0.62-0.54*dp,a:0.45+0.55*Math.min(1,si)});}}drawDots(d);}
-var modes={working:orbits,searching:globe,listening:orbits,solving:globe},mode=modes[s]||orbits,run=false,raf=0,vis=true;function frame(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,sz,sz);mode(sz,performance.now()/1000*sp);if(run)raf=requestAnimationFrame(frame);}function start(){if(run||!vis)return;run=true;raf=requestAnimationFrame(frame);}function stop(){run=false;cancelAnimationFrame(raf);}if("IntersectionObserver" in window){var io=new IntersectionObserver(function(e){vis=e[0].isIntersecting;if(vis&&document.visibilityState!=="hidden")start();else stop();});io.observe(c);}document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")stop();else if(vis)start();});start();}window.ThinkingOrb=ThinkingOrb;})();
-new ThinkingOrb(document.getElementById("heroOrb"), "working", { size: 160, speed: 1.7, color: [0,173,216] });
-</script>
-<script>
-(function(){var g=document.getElementById("prismGrid");if(!g)return;var bs=50,colors=["rgba(0,173,216,0.25)","rgba(34,197,94,0.25)","rgba(168,85,247,0.25)","rgba(239,68,68,0.25)","rgba(99,102,241,0.25)"],lit=null;function build(){var w=window.innerWidth,h=Math.max(window.innerHeight,document.body.scrollHeight),c=Math.ceil(w/bs),r=Math.ceil(h/bs);g.innerHTML="";var p=document.createElement("div");p.className="grid-plane";p.style.width=(c*bs)+"px";p.style.height=(r*bs)+"px";for(var i=0;i<r;i++){var row=document.createElement("div");row.className="grid-row";for(var j=0;j<c;j++){var cell=document.createElement("div");cell.className="grid-cell";cell.style.width=bs+"px";cell.style.height=bs+"px";row.appendChild(cell);}p.appendChild(row);}g.appendChild(p);}document.addEventListener("pointermove",function(e){var rect=g.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top,col=Math.floor(x/bs),row=Math.floor(y/bs);if(col<0||row<0)return;if(lit&&lit.row===row&&lit.col===col)return;if(lit){lit.el.style.opacity="0";lit.el.style.transform="scale(0.5)";var o=lit;setTimeout(function(){if(o.el.parentNode)o.el.parentNode.removeChild(o.el);},1200);}var el=document.createElement("div");el.className="lit-cell";el.style.cssText="left:"+(col*bs)+"px;top:"+(row*bs)+"px;width:"+bs+"px;height:"+bs+"px;background:"+colors[Math.floor(Math.random()*colors.length)]+";opacity:1;transform:scale(1)";g.appendChild(el);lit={row:row,col:col,el:el};});build();var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(build,200);});})();
-</script>
-<script>
-(function(){var fx=document.getElementById("clickFx"),colors=["#00add8","#22c55e","#a855f7"];document.addEventListener("click",function(e){var x=e.clientX,y=e.clientY,color=colors[Math.floor(Math.random()*colors.length)],sz=100,sw=3,g=document.createElement("div");g.style.cssText="position:absolute;left:"+(x-sz/2)+"px;top:"+(y-sz/2)+"px;width:"+sz+"px;height:"+sz+"px";for(var a=0;a<12;a++){var angle=a*Math.PI/6,dot=document.createElement("div");dot.style.cssText="position:absolute;left:"+(sz/2-sw/2)+"px;top:"+(sz/2-sw/2)+"px;width:"+sw+"px;height:"+sw+"px;background:"+color+";border-radius:50%;transform:translate(0,0);transition:transform 0.4s cubic-bezier(0.2,0.8,0.2,1),opacity 0.5s ease-out 0.2s,width 0.5s ease-out 0.2s,height 0.5s ease-out 0.2s";g.appendChild(dot);(function(d,ang){setTimeout(function(){d.style.transform="translate("+Math.cos(ang)*sz*0.45+"px,"+Math.sin(ang)*sz*0.45+"px)";d.style.opacity="0";d.style.width="0px";d.style.height="0px";},10);})(dot,angle);}var ring=document.createElement("div");ring.style.cssText="position:absolute;left:"+(sz/2-20)+"px;top:"+(sz/2-20)+"px;width:40px;height:40px;border:2px solid "+color+";border-radius:50%;opacity:0.8;transform:scale(0.3);transition:transform 0.4s cubic-bezier(0.2,0.8,0.2,1),opacity 0.4s ease-out";g.appendChild(ring);setTimeout(function(){ring.style.transform="scale(2.5)";ring.style.opacity="0";},10);fx.appendChild(g);setTimeout(function(){if(g.parentNode)g.parentNode.removeChild(g);},700);});})();
+function toggleTheme() {
+  const html = document.documentElement;
+  if (html.classList.contains('dark')) {
+    html.classList.remove('dark');
+    localStorage.theme = 'light';
+  } else {
+    html.classList.add('dark');
+    localStorage.theme = 'dark';
+  }
+}
+
+(function() {
+  const saved = localStorage.theme;
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (saved === 'light' || (!saved && !prefersDark)) {
+    document.documentElement.classList.remove('dark');
+  }
+})();
+
+window.addEventListener('scroll', function() {
+  const nav = document.getElementById('nav');
+  if (window.scrollY > 20) {
+    nav.classList.add('scrolled');
+  } else {
+    nav.classList.remove('scrolled');
+  }
+});
+
+// Install tabs
+var snippets = {
+  go: '<span class="prompt">$</span> <span class="cmd">go install github.com/valtors/relay@latest</span>',
+  npm: '<span class="prompt">$</span> <span class="cmd">npm install userelay@0.4.9</span>\n<span class="prompt">$</span> <span class="cmd">npx userelay</span>',
+  manual: '<span class="prompt">$</span> <span class="cmd">git clone https://github.com/valtors/relay</span>\n<span class="prompt">$</span> <span class="cmd">cd relay</span>\n<span class="prompt">$</span> <span class="cmd">go build -o relay</span>\n<span class="prompt">$</span> <span class="cmd">./relay</span>'
+};
+
+document.querySelectorAll('.install-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.install-tab').forEach(function(t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    document.getElementById('codeBlock').innerHTML = snippets[tab.dataset.tab];
+  });
+});
+
+// Contribution graph
+(function() {
+  var data = [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,1,0,0,0,0],[0,2,0,1,0,0,0],[0,3,2,0,1,2,0],[2,4,3,2,3,1,0]];
+  var graph = document.getElementById('contrib-graph');
+  data.forEach(function(week) {
+    var col = document.createElement('div');
+    col.className = 'contrib-week';
+    week.forEach(function(count) {
+      var cell = document.createElement('div');
+      cell.className = 'contrib-day';
+      if (count === 0) cell.classList.add('level-0');
+      else if (count <= 1) cell.classList.add('level-1');
+      else if (count <= 2) cell.classList.add('level-2');
+      else if (count <= 3) cell.classList.add('level-3');
+      else cell.classList.add('level-4');
+      col.appendChild(cell);
+    });
+    graph.appendChild(col);
+  });
+})();
+
+// Click ripple + spark effect
+(function() {
+  var fx = document.getElementById('clickFx');
+  var colors = ['#1a1a1a', '#666666', '#999999', '#cccccc'];
+
+  document.addEventListener('click', function(e) {
+    var x = e.clientX;
+    var y = e.clientY;
+
+    // ripple
+    var ripple = document.createElement('div');
+    ripple.className = 'ripple';
+    ripple.style.left = (x - 20) + 'px';
+    ripple.style.top = (y - 20) + 'px';
+    ripple.style.width = '40px';
+    ripple.style.height = '40px';
+    ripple.style.border = '2px solid ' + colors[Math.floor(Math.random() * colors.length)];
+    fx.appendChild(ripple);
+    setTimeout(function() { ripple.remove(); }, 600);
+
+    // sparks
+    var sparkCount = 6;
+    for (var i = 0; i < sparkCount; i++) {
+      var spark = document.createElement('div');
+      spark.className = 'spark';
+      spark.style.left = (x - 2) + 'px';
+      spark.style.top = (y - 2) + 'px';
+      spark.style.background = colors[Math.floor(Math.random() * colors.length)];
+      var angle = (Math.PI * 2 * i) / sparkCount + Math.random() * 0.5;
+      var dist = 30 + Math.random() * 40;
+      spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+      spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+      fx.appendChild(spark);
+      setTimeout(function(s) { return function() { s.remove(); }; }(spark), 500);
+    }
+  });
+})();
 </script>
 </body>
 </html>
