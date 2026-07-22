@@ -1,982 +1,1212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Relay - One MCP server. 40+ tools. Zero config.</title>
-<meta name="description" content="MCP server for AI agents. Memory, web fetch, search, file ops, screenshots, and multi-agent coordination in a single Go binary.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relay - it just figures out and gets it done</title>
+    <meta name="description" content="One MCP server that gives your AI agents memory, coordination, and hands. Orchestration + tools. Single binary. Zero config.">
+    <meta property="og:image" content="assets/images/og-image.png">
+    <meta property="og:title" content="Relay - it just figures out and gets it done">
+    <meta property="og:description" content="All-in-one MCP server. Agents get memory, tools, and coordination in one binary.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Relay - it just figures out and gets it done">
+    <meta name="twitter:description" content="All-in-one MCP server. Agents get memory, tools, and coordination in one binary.">
+    <meta name="twitter:image" content="assets/images/og-image.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-:root {
-  --bg: #fafafa;
-  --bg-soft: #f0f0f0;
-  --bg-card: #f5f5f5;
-  --text: #1a1a1a;
-  --text-soft: #666666;
-  --text-muted: #999999;
-  --border: #e8e8e8;
-  --opacity-label: 0.35;
-  --contrib-0: #e8e8e8;
-  --contrib-1: #c6e8c9;
-  --contrib-2: #7bc97f;
-  --contrib-3: #3ba53f;
-  --contrib-4: #1a6b2e;
-}
+        :root {
+            --serif: 'Instrument Serif', Georgia, serif;
+            --sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            --hand: 'Caveat', cursive;
+            --mono: 'SF Mono', 'Cascadia Code', monospace;
+            --bg: #FFFDF9;
+            --ink: #1a1a1a;
+            --ink-light: #555;
+            --ink-faint: #999;
+            --accent: #FF6B35;
+            --purple: #7C3AED;
+            --green: #059669;
+            --blue: #2563EB;
+            --line: rgba(0,0,0,0.06);
+            --radius: 16px;
+            --shadow: 0 2px 16px rgba(0,0,0,0.04);
+            --shadow-hover: 0 8px 32px rgba(0,0,0,0.08);
+        }
 
-.dark {
-  --bg: #0a0a0a;
-  --bg-soft: #111111;
-  --bg-card: #141414;
-  --text: #fafafa;
-  --text-soft: #aaaaaa;
-  --text-muted: #666666;
-  --border: #1a1a1a;
-  --opacity-label: 0.4;
-  --contrib-0: #1a1a1a;
-  --contrib-1: #0e4429;
-  --contrib-2: #006d32;
-  --contrib-3: #26a641;
-  --contrib-4: #39d353;
-}
+        html { scroll-behavior: smooth; }
 
-html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--sans);
+            color: var(--ink);
+            background: var(--bg);
+            line-height: 1.6;
+            overflow-x: hidden;
+            font-size: 15px;
+        }
 
-body {
-  font-family: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  transition: background 0.3s, color 0.3s;
-}
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
 
-a { color: inherit; text-decoration: none; }
+        .wide-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
 
-/* Theme toggle */
-.theme-toggle {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 1000;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-}
-.theme-toggle:hover { transform: translateY(-2px); }
-.theme-toggle svg { width: 18px; height: 18px; color: var(--text); }
-.dark-icon { display: none; }
-.dark .dark-icon { display: block; }
-.dark .light-icon { display: none; }
+        nav {
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            background: rgba(255,253,249,0.92);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+            border-bottom: 1px solid var(--line);
+        }
 
-/* Nav */
-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 999;
-  padding: 14px 24px;
-  background: transparent;
-  color: var(--text);
-  transition: background 0.3s, border-color 0.3s;
-  border-bottom: 1px solid transparent;
-}
-nav.scrolled {
-  background: rgba(250,250,250,0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-}
-.dark nav.scrolled {
-  background: rgba(10,10,10,0.85);
-}
-.nav-inner {
-  max-width: 1000px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.nav-logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  font-size: 16px;
-  letter-spacing: -0.01em;
-}
-.nav-logo svg { display: block; }
-.nav-links {
-  display: flex;
-  gap: 28px;
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--text-soft);
-}
-.nav-links a { transition: color 0.2s; }
-.nav-links a:hover { color: var(--text); }
-.nav-actions {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-.nav-gh {
-  color: var(--text-soft);
-  transition: color 0.2s;
-}
-.nav-gh:hover { color: var(--text); }
-.nav-cta {
-  background: var(--text);
-  color: var(--bg);
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  transition: opacity 0.2s;
-}
-.nav-cta:hover { opacity: 0.85; }
-@media (max-width: 768px) { .nav-links { display: none; } }
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-/* Hero */
-.hero {
-  background: var(--bg);
-  padding: 140px 24px 60px;
-  color: var(--text);
-  transition: background 0.3s, color 0.3s;
-}
-.hero-inner { max-width: 1000px; margin: 0 auto; }
-.hero-eyebrow {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  opacity: var(--opacity-label);
-  margin-bottom: 16px;
-}
-.hero h1 {
-  font-size: 40px;
-  font-weight: 300;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  margin-bottom: 16px;
-  max-width: 600px;
-}
-.hero-sub {
-  font-size: 18px;
-  font-weight: 300;
-  color: var(--text-soft);
-  margin-bottom: 36px;
-  max-width: 500px;
-  line-height: 1.5;
-}
-.hero-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 40px;
-}
-.btn-primary {
-  background: var(--text);
-  color: var(--bg);
-  border-radius: 8px;
-  padding: 12px 22px;
-  font-size: 14px;
-  font-weight: 500;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.btn-primary:hover { opacity: 0.85; }
-.btn-outline {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 22px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.btn-outline:hover { border-color: var(--text); }
-.hero-meta {
-  display: flex;
-  gap: 20px;
-  font-size: 13px;
-  color: var(--text-muted);
-  flex-wrap: wrap;
-}
-@media (max-width: 768px) {
-  .hero { padding: 100px 24px 40px; }
-  .hero h1 { font-size: 28px; }
-  .hero-sub { font-size: 16px; }
-}
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--ink);
+        }
 
-/* Stats */
-.stats {
-  padding: 40px 24px 80px;
-  background: var(--bg);
-}
-.stats-inner { max-width: 1000px; margin: 0 auto; }
-.stats-eyebrow {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  opacity: var(--opacity-label);
-  margin-bottom: 32px;
-}
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 32px;
-}
-.stat-item {
-  border-top: 1px solid var(--border);
-  padding-top: 16px;
-}
-.stat-num {
-  font-size: 32px;
-  font-weight: 300;
-  letter-spacing: -0.02em;
-  margin-bottom: 4px;
-}
-.stat-label {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 400;
-}
-@media (max-width: 600px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .stat-num { font-size: 26px; }
-}
+        .logo img {
+            height: 36px;
+            width: auto;
+            border-radius: 50%;
+        }
 
-/* Art section */
-.art-section {
-  padding: 0 24px;
-  background: var(--bg);
-}
-.art-inner { max-width: 1000px; margin: 0 auto; }
-.art-banner {
-  border-radius: 16px;
-  overflow: hidden;
-  height: 340px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-.art-banner img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.art-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(0,0,0,0.2), rgba(0,0,0,0.5));
-  display: flex;
-  align-items: flex-end;
-  padding: 32px;
-}
-.art-text {
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: 300;
-  max-width: 400px;
-  letter-spacing: -0.01em;
-}
-@media (max-width: 768px) { .art-banner { height: 240px; } }
+        .logo span {
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: -0.5px;
+        }
 
-/* Features */
-.features {
-  padding: 80px 24px;
-  background: var(--bg);
-}
-.features-inner { max-width: 1000px; margin: 0 auto; }
-.section-eyebrow {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  opacity: var(--opacity-label);
-  margin-bottom: 16px;
-}
-.section-heading {
-  font-size: 28px;
-  font-weight: 300;
-  letter-spacing: -0.02em;
-  margin-bottom: 12px;
-  max-width: 600px;
-  line-height: 1.2;
-}
-.section-sub {
-  font-size: 16px;
-  color: var(--text-soft);
-  font-weight: 300;
-  margin-bottom: 48px;
-  max-width: 500px;
-}
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 48px;
-  margin-top: 40px;
-}
-.feature-item h3 {
-  font-size: 17px;
-  font-weight: 500;
-  margin-bottom: 8px;
-}
-.feature-item p {
-  font-size: 14px;
-  color: var(--text-soft);
-  font-weight: 300;
-  line-height: 1.6;
-}
-@media (max-width: 768px) {
-  .features-grid { grid-template-columns: 1fr; gap: 32px; }
-}
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
 
-/* Install */
-.install {
-  padding: 80px 24px;
-  background: var(--bg);
-}
-.install-inner { max-width: 1000px; margin: 0 auto; }
-.install-code {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px 28px;
-  margin-top: 32px;
-  font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
-  font-size: 14px;
-  color: var(--text-soft);
-  overflow-x: auto;
-}
-.install-code .prompt { color: var(--text-muted); }
-.install-code .cmd { color: var(--text); }
-.install-tabs {
-  display: inline-flex;
-  gap: 4px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 4px;
-  margin-top: 32px;
-  margin-bottom: 0;
-}
-.install-tab {
-  padding: 7px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: 7px;
-  cursor: pointer;
-  color: var(--text-soft);
-  transition: background 0.2s, color 0.2s;
-}
-.install-tab.active {
-  background: var(--text);
-  color: var(--bg);
-}
+        .nav-right a {
+            color: var(--ink-light);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
 
-/* Contribution graph */
-.contrib-section {
-  padding: 80px 24px;
-  background: var(--bg);
-}
-.contrib-inner { max-width: 1000px; margin: 0 auto; }
-.contrib-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.contrib-total {
-  font-size: 13px;
-  color: var(--text-soft);
-}
-.contrib-total strong { color: var(--text); font-weight: 600; }
-.contrib-graph {
-  display: flex;
-  gap: 3px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-}
-.contrib-week {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.contrib-day {
-  width: 11px;
-  height: 11px;
-  border-radius: 2px;
-  background: var(--contrib-0);
-}
-.dark .contrib-day { border: 1px solid rgba(255,255,255,0.04); }
-.contrib-day.level-1 { background: var(--contrib-1); }
-.contrib-day.level-2 { background: var(--contrib-2); }
-.contrib-day.level-3 { background: var(--contrib-3); }
-.contrib-day.level-4 { background: var(--contrib-4); }
-.contrib-legend {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 12px;
-  justify-content: flex-end;
-}
-.contrib-legend .contrib-day {
-  width: 11px;
-  height: 11px;
-  border: none;
-}
+        .nav-right a:hover { color: var(--ink); }
 
-/* Contributors */
-.contributors-section {
-  padding: 40px 24px 80px;
-  background: var(--bg);
-}
-.contributors-inner { max-width: 1000px; margin: 0 auto; }
-.contributors-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 24px;
-}
-.contributor-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--bg-card);
-  transition: border-color 0.2s;
-}
-.contributor-card:hover { border-color: var(--text); }
-.contributor-card img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.contributor-info {
-  display: flex;
-  flex-direction: column;
-}
-.contributor-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-}
-.contributor-meta {
-  font-size: 11px;
-  color: var(--text-muted);
-}
+        .nav-right a.pill,
+        .nav-right a.pill:hover {
+            color: white;
+        }
 
-/* Mission */
-.mission {
-  padding: 80px 24px;
-  background: var(--bg);
-}
-.mission-inner { max-width: 800px; margin: 0 auto; }
-.mission-quote {
-  font-size: 22px;
-  font-weight: 300;
-  line-height: 1.5;
-  letter-spacing: -0.01em;
-  color: var(--text);
-  text-align: center;
-  font-style: italic;
-}
-.mission-attr {
-  font-size: 13px;
-  color: var(--text-muted);
-  text-align: center;
-  margin-top: 16px;
-  letter-spacing: 0.05em;
-}
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--ink);
+            color: white;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
 
-/* CTA */
-.cta {
-  padding: 60px 24px 80px;
-  background: var(--bg);
-}
-.cta-inner { max-width: 1000px; margin: 0 auto; }
-.cta-box {
-  border-top: 1px solid var(--border);
-  padding: 48px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-.cta-text {
-  font-size: 22px;
-  font-weight: 300;
-  max-width: 500px;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-}
-.cta-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-@media (max-width: 600px) { .cta-box { flex-direction: column; text-align: center; } }
+        .pill:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
 
-/* Footer */
-footer {
-  padding: 32px 24px;
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-}
-.footer-inner {
-  max-width: 1000px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-.footer-text {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-.footer-links {
-  display: flex;
-  gap: 20px;
-  font-size: 13px;
-  color: var(--text-muted);
-}
-.footer-links a:hover { color: var(--text); }
+        .pill-outline {
+            background: transparent;
+            color: var(--ink);
+            border: 1.5px solid rgba(0,0,0,0.15);
+        }
 
-/* Click ripple effect */
-.click-fx {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: visible;
-}
-.ripple {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  animation: ripple-expand 0.6s ease-out forwards;
-}
-@keyframes ripple-expand {
-  0% { transform: scale(0); opacity: 0.6; }
-  100% { transform: scale(4); opacity: 0; }
-}
-.spark {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  pointer-events: none;
-  animation: spark-fly 0.5s ease-out forwards;
-}
-@keyframes spark-fly {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
-}
-</style>
+        .pill-outline:hover {
+            background: var(--ink);
+            color: white;
+            border-color: var(--ink);
+        }
+
+        .hero {
+            padding: 56px 0 32px;
+            text-align: center;
+        }
+
+        .hero-illustration {
+            width: 180px;
+            height: auto;
+            margin: 0 auto 24px;
+            display: block;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .hero h1 {
+            font-family: var(--serif);
+            font-size: clamp(40px, 7vw, 60px);
+            font-weight: 400;
+            line-height: 1.05;
+            letter-spacing: -1.5px;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 em {
+            font-style: italic;
+            color: var(--accent);
+        }
+
+        .hero-sub {
+            font-size: 17px;
+            color: var(--ink-light);
+            max-width: 460px;
+            margin: 0 auto 32px;
+            line-height: 1.65;
+        }
+
+        .hero-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .hero-annotation {
+            font-family: var(--hand);
+            font-size: 20px;
+            color: var(--accent);
+            transform: rotate(-2deg);
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        .baton-scene {
+            margin: 32px auto 0;
+            max-width: 520px;
+        }
+
+        .baton-scene img {
+            width: 100%;
+            height: auto;
+        }
+
+        .baton-caption {
+            text-align: center;
+            font-family: var(--hand);
+            font-size: 18px;
+            color: var(--ink-faint);
+            margin-top: 12px;
+        }
+
+        .divider {
+            width: 60px;
+            height: 1px;
+            background: var(--line);
+            margin: 64px auto;
+        }
+
+        .doodle-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin: 32px 0;
+        }
+
+        .doodle-divider img {
+            width: 40px;
+            height: 40px;
+            opacity: 0.85;
+        }
+
+        .doodle-divider span {
+            width: 40px;
+            height: 1px;
+            background: var(--line);
+        }
+
+        section {
+            padding: 32px 0;
+        }
+
+        .problem-section {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .problem-section .text h2 {
+            font-family: var(--serif);
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .problem-section .text p {
+            color: var(--ink-light);
+            line-height: 1.7;
+        }
+
+        .problem-section img {
+            width: 100%;
+            max-width: 220px;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .solution-section {
+            display: grid;
+            grid-template-columns: 0.8fr 1.2fr;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .solution-section img {
+            width: 100%;
+            max-width: 220px;
+            height: auto;
+            display: block;
+        }
+
+        .solution-section .text h2 {
+            font-family: var(--serif);
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .solution-section .text p {
+            color: var(--ink-light);
+            line-height: 1.7;
+        }
+
+        .marginal-note {
+            font-family: var(--hand);
+            font-size: 18px;
+            color: var(--accent);
+            margin-top: 12px;
+            display: block;
+        }
+
+        .agents-section {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .agents-section h2 {
+            font-family: var(--serif);
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+
+        .agents-section > p {
+            color: var(--ink-light);
+            margin-bottom: 40px;
+        }
+
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .agent-card {
+            text-align: center;
+            padding: 28px 16px;
+            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            background: white;
+            transition: all 0.25s;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .agent-card img {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            margin: 0 auto 12px;
+            display: block;
+        }
+
+        .agent-card h3 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .agent-card p {
+            font-size: 12px;
+            color: var(--ink-faint);
+            line-height: 1.4;
+        }
+
+        .how-section {
+            padding: 40px 0;
+        }
+
+        .how-section h2 {
+            font-family: var(--serif);
+            font-size: 32px;
+            font-weight: 400;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .steps {
+            display: grid;
+            gap: 28px;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        .step {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .step-num {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--ink);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .step h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .step p {
+            font-size: 14px;
+            color: var(--ink-light);
+        }
+
+        .step code {
+            display: inline-block;
+            margin-top: 6px;
+            font-family: var(--mono);
+            font-size: 12px;
+            background: #f5f5f4;
+            padding: 4px 10px;
+            border-radius: 6px;
+            color: var(--purple);
+            font-weight: 500;
+        }
+
+        .terminal-section {
+            margin: 32px auto;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 24px;
+            align-items: center;
+            max-width: 800px;
+        }
+
+        .terminal-section img {
+            width: 100%;
+            max-width: 240px;
+            height: auto;
+        }
+
+        .terminal-block {
+            background: #1C1C1C;
+            border-radius: 12px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .terminal-dots span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .terminal-dots .r { background: #FF5F56; }
+        .terminal-dots .y { background: #FFBD2E; }
+        .terminal-dots .g { background: #27C93F; }
+
+        .terminal-block pre {
+            font-family: var(--mono);
+            font-size: 12px;
+            line-height: 1.8;
+            color: #E4E4E4;
+            overflow-x: auto;
+        }
+
+        .terminal-block .dim { color: #666; }
+        .terminal-block .grn { color: #A8CC8C; }
+        .terminal-block .blu { color: #71BEF2; }
+        .terminal-block .prp { color: #D290E4; }
+        .terminal-block .org { color: #DBAB79; }
+
+        .sleep-section {
+            text-align: center;
+            padding: 32px 0 24px;
+        }
+
+        .sleep-section img {
+            width: 240px;
+            height: auto;
+            margin: 0 auto 20px;
+            display: block;
+        }
+
+        .sleep-section h2 {
+            font-family: var(--serif);
+            font-size: 28px;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+
+        .sleep-section p {
+            color: var(--ink-light);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .comparison {
+            margin: 32px auto;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        .comparison img {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 48px 0 40px;
+        }
+
+        .cta-section h2 {
+            font-family: var(--serif);
+            font-size: 36px;
+            font-weight: 400;
+            margin-bottom: 12px;
+        }
+
+        .cta-section p {
+            color: var(--ink-light);
+            margin-bottom: 28px;
+            font-size: 16px;
+        }
+
+        .cta-section .doodle-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .cta-section .doodle-row img {
+            width: 40px;
+            height: 40px;
+            opacity: 0.85;
+        }
+
+        .cta-annotation {
+            font-family: var(--hand);
+            font-size: 20px;
+            color: var(--accent);
+            margin-top: 16px;
+            display: block;
+            transform: rotate(-1.5deg);
+        }
+
+        footer {
+            border-top: 1px solid var(--line);
+            padding: 40px 0;
+            text-align: center;
+            background: #F9F8F6;
+        }
+
+        footer .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 28px;
+            margin-bottom: 14px;
+        }
+
+        footer a {
+            color: var(--ink-light);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        footer a:hover { color: var(--ink); }
+
+        footer p {
+            font-size: 13px;
+            color: var(--ink-light);
+        }
+
+        footer p a {
+            color: var(--ink);
+            font-weight: 600;
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tools-overview {
+            padding: 20px 0;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .tool-category {
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: white;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .tool-category:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .tool-cat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .tool-category h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .tool-category p {
+            font-size: 12px;
+            color: var(--ink-light);
+            line-height: 1.4;
+        }
+
+        .roadmap-section {
+            padding: 20px 0;
+        }
+
+        .roadmap {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .roadmap-phase {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            padding: 16px 0;
+            border-left: 2px solid var(--line);
+            margin-left: 15px;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .roadmap-phase:last-child { border-left-color: transparent; }
+
+        .phase-marker {
+            position: absolute;
+            left: -12px;
+            top: 16px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--bg);
+            border: 2px solid var(--line);
+            color: var(--ink-faint);
+        }
+
+        .roadmap-phase.done .phase-marker {
+            background: #D1FAE5;
+            border-color: #059669;
+            color: #059669;
+        }
+
+        .roadmap-phase.active .phase-marker {
+            background: #FEF3C7;
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .roadmap-phase.active .phase-marker.pulse {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,53,0.3); }
+            50% { box-shadow: 0 0 0 6px rgba(255,107,53,0); }
+        }
+
+        .phase-content h4 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .phase-content p {
+            font-size: 13px;
+            color: var(--ink-light);
+            line-height: 1.5;
+        }
+
+        .section-header h2 {
+            font-family: var(--serif);
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+
+        .section-header p {
+            color: var(--ink-light);
+        }
+
+        @media (max-width: 768px) {
+            .tools-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 480px) {
+            .tools-grid { grid-template-columns: 1fr; }
+        }
+
+        .compare-section {
+            padding: 20px 0;
+        }
+
+        .compare-table-wrap {
+            overflow-x: auto;
+            margin-top: 32px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+        }
+
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .compare-table thead {
+            background: #f9f8f6;
+        }
+
+        .compare-table th {
+            padding: 14px 12px;
+            font-weight: 700;
+            font-size: 13px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .compare-table th:nth-child(2) {
+            background: #FFF3ED;
+            color: var(--accent);
+        }
+
+        .compare-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--line);
+            color: var(--ink-light);
+        }
+
+        .compare-table td:first-child {
+            text-align: left;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .compare-table td:nth-child(2) {
+            background: #FFFBF8;
+            color: var(--ink);
+            font-weight: 500;
+        }
+
+        .compare-table tr:last-child td { border-bottom: none; }
+
+        .faq-section {
+            padding: 40px 0;
+        }
+
+        .faq-list {
+            max-width: 600px;
+            margin: 24px auto 0;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--line);
+            padding: 16px 0;
+        }
+
+        .faq-item summary {
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .faq-item summary::-webkit-details-marker { display: none; }
+
+        .faq-item summary::after {
+            content: '+';
+            font-size: 20px;
+            font-weight: 400;
+            color: var(--ink-faint);
+            transition: transform 0.2s;
+        }
+
+        .faq-item[open] summary::after {
+            transform: rotate(45deg);
+        }
+
+        .faq-item p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--ink-light);
+            line-height: 1.7;
+        }
+
+        .faq-item a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .problem-section,
+            .solution-section,
+            .terminal-section { grid-template-columns: 1fr; }
+            .agent-grid { grid-template-columns: repeat(2, 1fr); }
+            .comparison { grid-template-columns: 1fr; }
+            .hero-illustration { width: 160px; }
+            .solution-section img,
+            .problem-section img { max-width: 200px; }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 36px; }
+            .nav-right .hide-sm { display: none; }
+            .agent-grid { gap: 12px; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="click-fx" id="clickFx"></div>
-
-<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-  <svg class="light-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-  <svg class="dark-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-</button>
-
-<nav id="nav">
-  <div class="nav-inner">
-    <div class="nav-logo">
-      <svg width="24" height="24" viewBox="0 0 28 28" fill="none"><path d="M14 2C8 2 4 6 4 12c0 4 2 7 5 9 0 1 0 3 1 4 1 1 2 1 4 1s3 0 4-1c1-1 1-3 1-4 3-2 5-5 5-9 0-6-4-10-10-10zm-4 8c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2zm8 0c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2-1-2-2zm-4 6c-2 0-4-1-4-3h8c0 2-2 3-4 3z" fill="currentColor"/></svg>
-      <span>valtors / relay</span>
+<nav>
+    <div class="container">
+        <a href="#" class="logo">
+            <img src="assets/images/relay-logo.png" alt="Relay">
+            <span>relay</span>
+        </a>
+        <div class="nav-right">
+            <a href="https://github.com/valtors/relay" class="hide-sm">GitHub</a>
+            <a href="#how" class="hide-sm">Docs</a>
+            <a href="https://github.com/valtors/relay" class="pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Star on GitHub
+            </a>
+        </div>
     </div>
-    <div class="nav-links">
-      <a href="#features">Features</a>
-      <a href="#install">Install</a>
-      <a href="#community">Community</a>
-      <a href="https://github.com/valtors/relay">GitHub</a>
-    </div>
-    <div class="nav-actions">
-      <a href="https://github.com/valtors" class="nav-gh">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-      </a>
-      <a href="https://github.com/valtors/relay" class="nav-cta">Get Started</a>
-    </div>
-  </div>
 </nav>
 
 <section class="hero">
-  <div class="hero-inner">
-    <div class="hero-eyebrow">Relay</div>
-    <h1>One MCP server. 40+ tools. Zero config.</h1>
-    <p class="hero-sub">MCP server for AI agents. Memory, web fetch, search, file ops, screenshots, and multi-agent coordination in a single Go binary. Stdio transport, stdlib JSON-RPC.</p>
-    <div class="hero-actions">
-      <a href="#install" class="btn-primary">Install Relay</a>
-      <a href="https://github.com/valtors/relay" class="btn-outline">
-        View on GitHub
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
-      </a>
-    </div>
-    <div class="hero-meta">
-      <span>7 stars</span>
-      <span>2 forks</span>
-      <span>MIT</span>
-      <span>Go</span>
-      <span>npm: userelay v0.4.9</span>
-    </div>
-  </div>
-</section>
+    <div class="container">
+        <img src="assets/images/hero-character.png" alt="Developer with AI agents" class="hero-illustration">
 
-<section class="stats">
-  <div class="stats-inner">
-    <div class="stats-eyebrow">The network</div>
-    <div class="stats-grid">
-      <div class="stat-item">
-        <div class="stat-num">40+</div>
-        <div class="stat-label">Tools</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num">1</div>
-        <div class="stat-label">Binary</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num">7</div>
-        <div class="stat-label">GitHub Stars</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num">4+</div>
-        <div class="stat-label">Contributors</div>
-      </div>
-    </div>
-  </div>
-</section>
+        <h1>It just figures out<br>and <em>gets it done</em></h1>
 
-<section class="art-section">
-  <div class="art-inner">
-    <div class="art-banner">
-      <img src="https://raw.githubusercontent.com/valtors/relay-landing/master/assets/workbench.jpg" alt="Oil painting of a workbench at golden hour" loading="lazy" />
-      <div class="art-overlay">
-        <div class="art-text">Every tool an agent needs, on a single workbench. Memory, web fetch, search, file operations, screenshots.</div>
-      </div>
-    </div>
-  </div>
-</section>
+        <p class="hero-sub">One MCP server that gives your AI agents memory, coordination, and hands. Orchestration + image tools + PDF tools + file ops. Single binary. Zero config.</p>
 
-<section class="features" id="features">
-  <div class="features-inner">
-    <div class="section-eyebrow">Features</div>
-    <h2 class="section-heading">Everything your agent needs, nothing it doesn't.</h2>
-    <div class="features-grid">
-      <div class="feature-item">
-        <h3>40+ Tools</h3>
-        <p>Comprehensive toolkit covering memory, search, file ops, and more, all from one server.</p>
-      </div>
-      <div class="feature-item">
-        <h3>Agent Memory</h3>
-        <p>Persistent memory storage lets agents recall context across sessions and conversations.</p>
-      </div>
-      <div class="feature-item">
-        <h3>Web Fetch</h3>
-        <p>Retrieve and parse web content with built-in extraction. Clean text, ready for context.</p>
-      </div>
-      <div class="feature-item">
-        <h3>Screenshots</h3>
-        <p>Capture page snapshots for visual context. Useful for debugging and verification.</p>
-      </div>
-      <div class="feature-item">
-        <h3>Multi-Agent Coordination</h3>
-        <p>Coordinate multiple agents through shared state and messaging primitives.</p>
-      </div>
-      <div class="feature-item">
-        <h3>Stdio Transport</h3>
-        <p>Standard stdio transport with stdlib JSON-RPC. No HTTP servers, no extra deps.</p>
-      </div>
-      <div class="feature-item">
-        <h3>Single Binary</h3>
-        <p>One Go binary. No runtime, no containers, no orchestration. Just install and run.</p>
-      </div>
-      <div class="feature-item">
-        <h3>Zero Config</h3>
-        <p>Sensible defaults out of the box. Get started in seconds, configure later if needed.</p>
-      </div>
-      <div class="feature-item">
-        <h3>Go Performance</h3>
-        <p>Built in Go for speed and reliability. Minimal footprint, maximal throughput.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="art-section">
-  <div class="art-inner">
-    <div class="art-banner">
-      <img src="https://raw.githubusercontent.com/valtors/relay-landing/master/assets/open-book.jpg" alt="Oil painting of an open book on a hilltop" loading="lazy" />
-      <div class="art-overlay">
-        <div class="art-text">Open source, open access. MIT licensed, fully transparent. Every line of Relay is yours to study, fork, and extend.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="install" id="install">
-  <div class="install-inner">
-    <div class="section-eyebrow">Get started</div>
-    <h2 class="section-heading">Install in one command.</h2>
-    <p class="section-sub">No dependencies. No build step. Just Go.</p>
-    <div class="install-tabs">
-      <div class="install-tab active" data-tab="go">Go Install</div>
-      <div class="install-tab" data-tab="npm">npm</div>
-      <div class="install-tab" data-tab="manual">Manual</div>
-    </div>
-    <div class="install-code" id="codeBlock">
-<span class="prompt">$</span> <span class="cmd">go install github.com/valtors/relay@latest</span>
-    </div>
-  </div>
-</section>
-
-<section class="art-section">
-  <div class="art-inner">
-    <div class="art-banner">
-      <img src="https://raw.githubusercontent.com/valtors/relay-landing/master/assets/bridge.jpg" alt="Oil painting of a stone bridge at twilight" loading="lazy" />
-      <div class="art-overlay">
-        <div class="art-text">A bridge between every agent you run. Shared state, messaging primitives, and coordination tools.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="contrib-section" id="community">
-  <div class="contrib-inner">
-    <div class="section-eyebrow">Activity</div>
-    <h2 class="section-heading">Contribution history</h2>
-    <div class="contrib-header">
-      <div class="contrib-total"><strong>11</strong> commits across 4 contributors</div>
-    </div>
-    <div class="contrib-graph" id="contrib-graph"></div>
-    <div class="contrib-legend">
-      <span>Less</span>
-      <div class="contrib-day"></div>
-      <div class="contrib-day level-1"></div>
-      <div class="contrib-day level-2"></div>
-      <div class="contrib-day level-3"></div>
-      <div class="contrib-day level-4"></div>
-      <span>More</span>
-    </div>
-  </div>
-</section>
-
-<section class="contributors-section">
-  <div class="contributors-inner">
-    <div class="section-eyebrow">Contributors</div>
-    <h2 class="section-heading">Built in the open.</h2>
-    <div class="contributors-grid">
-      <a href="https://github.com/tamish560" class="contributor-card">
-        <img src="https://avatars.githubusercontent.com/u/189916421?v=4" alt="tamish560" loading="lazy" />
-        <div class="contributor-info">
-          <span class="contributor-name">tamish560</span>
-          <span class="contributor-meta">155 contributions</span>
+        <div class="hero-buttons">
+            <a href="https://github.com/valtors/relay" class="pill">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                Get Relay
+            </a>
+            <a href="#how" class="pill pill-outline">How it works</a>
         </div>
-      </a>
-      <a href="https://github.com/leemeo3" class="contributor-card">
-        <img src="https://avatars.githubusercontent.com/u/117142323?v=4" alt="leemeo3" loading="lazy" />
-        <div class="contributor-info">
-          <span class="contributor-name">leemeo3</span>
-          <span class="contributor-meta">2 contributions</span>
-        </div>
-      </a>
-      <a href="https://github.com/ishaan-jindal" class="contributor-card">
-        <img src="https://avatars.githubusercontent.com/u/122903391?v=4" alt="ishaan-jindal" loading="lazy" />
-        <div class="contributor-info">
-          <span class="contributor-name">ishaan-jindal</span>
-          <span class="contributor-meta">1 contribution</span>
-        </div>
-      </a>
-      <a href="https://github.com/nabsei" class="contributor-card">
-        <img src="https://avatars.githubusercontent.com/u/166228107?v=4" alt="nabsei" loading="lazy" />
-        <div class="contributor-info">
-          <span class="contributor-name">nabsei</span>
-          <span class="contributor-meta">1 contribution</span>
-        </div>
-      </a>
+
+        <span class="hero-annotation">^ open source, free forever</span>
     </div>
-  </div>
 </section>
 
-<section class="mission">
-  <div class="mission-inner">
-    <div class="mission-quote">"The best tool is the one you never think about. Relay stays out of the way and lets agents do what they do best."</div>
-    <div class="mission-attr">RELAY - THE FUTURE BEGINS HERE</div>
-  </div>
+<div class="wide-container">
+    <div class="baton-scene fade-in">
+        <img src="assets/images/baton-pass.png" alt="Agents passing the baton">
+        <p class="baton-caption">PM passes to Dev, Dev passes to QA, QA ships it &#10024;</p>
+    </div>
+</div>
+
+<div class="doodle-divider">
+    <span></span>
+    <img src="assets/images/doodles/star.png" alt="">
+    <span></span>
+</div>
+
+<section>
+    <div class="wide-container">
+        <div class="problem-section fade-in">
+            <div class="text">
+                <h2>AI agents forget everything</h2>
+                <p>You spent an hour explaining your architecture. The agent wrote perfect code. Next morning, new chat, blank slate. You start over. Again.</p>
+                <span class="marginal-note">^ goldfish with PhDs</span>
+            </div>
+            <img src="assets/images/confused.png" alt="Confused agent forgetting context">
+        </div>
+    </div>
 </section>
 
-<section class="cta">
-  <div class="cta-inner">
-    <div class="cta-box">
-      <div class="cta-text">Ship agents with confidence.</div>
-      <div class="cta-actions">
-        <a href="https://github.com/valtors/relay" class="btn-primary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-          Star on GitHub
+<div class="doodle-divider">
+    <span></span>
+    <img src="assets/images/doodles/lightning.png" alt="">
+    <span></span>
+</div>
+
+<section>
+    <div class="wide-container">
+        <div class="solution-section fade-in">
+            <img src="assets/images/connected.png" alt="Agents connected and sharing context">
+            <div class="text">
+                <h2>What if they could pass notes?</h2>
+                <p>Relay gives your agents persistent memory and structured handoffs. Agent A checkpoints its work, Agent B picks up exactly where A left off. Like a relay race, but for shipping software.</p>
+                <span class="marginal-note">context flows, never lost</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="doodle-divider">
+    <span></span>
+    <img src="assets/images/doodles/sparkle.png" alt="">
+    <span></span>
+</div>
+
+<section class="agents-section">
+    <div class="wide-container">
+        <h2>Meet the agents</h2>
+        <p>Each one has a role. Together, they ship products.</p>
+
+        <div class="agent-grid">
+            <div class="agent-card fade-in">
+                <img src="assets/images/agents/agent-pm.png" alt="PM Agent">
+                <h3>PM Agent</h3>
+                <p>Breaks down features, creates issues, writes specs</p>
+            </div>
+            <div class="agent-card fade-in">
+                <img src="assets/images/agents/agent-dev.png" alt="Dev Agent">
+                <h3>Dev Agent</h3>
+                <p>Writes code, runs tests, opens pull requests</p>
+            </div>
+            <div class="agent-card fade-in">
+                <img src="assets/images/agents/agent-qa.png" alt="QA Agent">
+                <h3>QA Agent</h3>
+                <p>Reviews diffs, catches bugs, approves merges</p>
+            </div>
+            <div class="agent-card fade-in">
+                <img src="assets/images/agents/agent-ship.png" alt="Ship Agent">
+                <h3>Ship Agent</h3>
+                <p>Deploys, writes changelogs, announces launches</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="doodle-divider">
+    <span></span>
+    <img src="assets/images/doodles/heart.png" alt="">
+    <span></span>
+</div>
+
+<section class="how-section" id="how">
+    <div class="container">
+        <h2>Get started in 3 steps</h2>
+
+        <div class="steps">
+            <div class="step fade-in">
+                <div class="step-num">1</div>
+                <div>
+                    <h3>Install Relay</h3>
+                    <p>Single Go binary. Mac, Linux, Windows. Zero dependencies.</p>
+                    <code>go install github.com/valtors/relay@latest</code>
+                </div>
+            </div>
+            <div class="step fade-in">
+                <div class="step-num">2</div>
+                <div>
+                    <h3>Connect your MCP client</h3>
+                    <p>Works with Claude Desktop, Cursor, Windsurf, or any MCP tool.</p>
+                    <code>relay serve --port 3000</code>
+                </div>
+            </div>
+            <div class="step fade-in">
+                <div class="step-num">3</div>
+                <div>
+                    <h3>Let your agents cook</h3>
+                    <p>They pass context, checkpoint, and pick up where others left off.</p>
+                    <code>relay status</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section>
+    <div class="wide-container">
+        <div class="terminal-section fade-in">
+            <img src="assets/images/terminal-cozy.png" alt="Terminal with agent peeking">
+            <div class="terminal-block">
+                <div class="terminal-dots">
+                    <span class="r"></span>
+                    <span class="y"></span>
+                    <span class="g"></span>
+                </div>
+                <pre><span class="dim">$</span> <span class="blu">relay</span> <span class="org">status</span>
+
+<span class="prp">  pm-agent</span>      <span class="grn">&#10003;</span> 3 tasks created
+<span class="prp">  dev-agent</span>     <span class="grn">&#10003;</span> auth module shipped
+<span class="prp">  qa-agent</span>      <span class="org">&#9679;</span> reviewing PR #14...
+<span class="prp">  docs-agent</span>    <span class="dim">&#9676;</span> waiting for merge
+
+  <span class="grn">&#10003; 2 checkpoints saved</span>
+  <span class="dim">  12.4kb context shared</span></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="doodle-divider">
+    <span></span>
+    <img src="assets/images/doodles/arrow.png" alt="">
+    <span></span>
+</div>
+
+<section class="sleep-section fade-in">
+    <div class="container">
+        <img src="assets/images/sleeping-dev.png" alt="Developer sleeping while agents work">
+        <h2>Ships while you sleep</h2>
+        <p>Your agents keep working after you log off. Wake up to merged PRs, updated docs, and a shipped product. Seriously.</p>
+    </div>
+</section>
+
+<section>
+    <div class="container">
+        <div class="comparison fade-in">
+            <img src="assets/images/comparison.png" alt="Without Relay vs With Relay comparison">
+        </div>
+    </div>
+</section>
+
+<div class="doodle-divider">
+    <span></span>
+    <img src="assets/images/doodles/lightning.png" alt="">
+    <span></span>
+</div>
+
+<section class="tools-overview">
+    <div class="wide-container fade-in" style="text-align:center;">
+        <img src="assets/images/tools-section.png" alt="Tools built in - Image, PDF, Files, Text, Web, Data" style="max-width:100%; height:auto; border-radius:12px;">
+    </div>
+</section>
+
+<div class="doodle-divider">
+    <span></span>
+    <img src="assets/images/doodles/star.png" alt="">
+    <span></span>
+</div>
+
+<section class="roadmap-section">
+    <div class="wide-container fade-in" style="text-align:center;">
+        <img src="assets/images/roadmap-section.png" alt="Roadmap - Foundation, Tools + CLI, Orchestration, Hermes Bridge" style="max-width:100%; height:auto; border-radius:12px;">
+    </div>
+</section>
+
+<div class="doodle-divider">
+    <span></span>
+    <img src="assets/images/doodles/heart.png" alt="">
+    <span></span>
+</div>
+
+<section class="compare-section">
+    <div class="wide-container fade-in" style="text-align:center;">
+        <img src="assets/images/comparison-section.png" alt="Why Relay wins - comparison table vs CrewAI, LangGraph, AutoGen, Swarm" style="max-width:100%; height:auto; border-radius:12px;">
+    </div>
+</section>
+
+<section class="faq-section">
+    <div class="container">
+        <div class="section-header fade-in" style="text-align:center;">
+            <h2>FAQ</h2>
+        </div>
+
+        <div class="faq-list">
+            <details class="faq-item fade-in">
+                <summary>What exactly is an MCP server?</summary>
+                <p>MCP (Model Context Protocol) is a standard that lets AI tools like Claude Desktop and Cursor connect to external servers for extra capabilities. Relay is one of those servers. You plug it in, and your AI gets access to tools, memory, and coordination it didn't have before.</p>
+            </details>
+
+            <details class="faq-item fade-in">
+                <summary>Do I need to know Go to use Relay?</summary>
+                <p>Nope. You install the binary and connect it. It works with whatever AI client you already use. If you want to contribute or extend it, then yes, the codebase is Go.</p>
+            </details>
+
+            <details class="faq-item fade-in">
+                <summary>How is this different from just using Claude/GPT directly?</summary>
+                <p>AI models forget everything between chats. Relay gives them persistent memory (checkpoints), the ability to hand off work to other agents (orchestration), and real-world capabilities like resizing images or parsing PDFs (tools). Think of it as upgrading your AI from a chatbot to a coworker.</p>
+            </details>
+
+            <details class="faq-item fade-in">
+                <summary>Is it actually free? What's the catch?</summary>
+                <p>MIT licensed, fully open source, no telemetry, no paid tier planned. We build in the open because we use it ourselves and want others to benefit. The "catch" is it's early and we'd love your contributions.</p>
+            </details>
+
+            <details class="faq-item fade-in">
+                <summary>Can I use this with Cursor / Windsurf / other tools?</summary>
+                <p>Yes. Any MCP-compatible client works. Claude Desktop, Cursor, Windsurf, and even terminal-based clients. If it speaks MCP, it connects to Relay.</p>
+            </details>
+
+            <details class="faq-item fade-in">
+                <summary>What's the WhatsApp / Discord / Telegram thing?</summary>
+                <p>Hermes is our messaging bridge (coming soon). It lets you talk to your Relay agents from messaging apps. Send a message on WhatsApp, your agents pick it up, do the work, and reply back. Like having a team in your pocket.</p>
+            </details>
+
+            <details class="faq-item fade-in">
+                <summary>How can I contribute?</summary>
+                <p>Check out our <a href="https://github.com/valtors/relay/blob/main/CONTRIBUTING.md">contributing guide</a>. We have open issues tagged for first-timers. The codebase is clean Go with zero magic. Pick a tool that interests you and send a PR.</p>
+            </details>
+
+            <details class="faq-item fade-in">
+                <summary>Is my data safe? Does Relay phone home?</summary>
+                <p>Relay runs 100% locally on your machine. No cloud, no analytics, no telemetry. Your checkpoints and agent data stay in your project directory. We never see them.</p>
+            </details>
+        </div>
+    </div>
+</section>
+
+<div class="doodle-divider">
+    <span></span>
+    <img src="assets/images/doodles/sparkle.png" alt="">
+    <span></span>
+</div>
+
+<section class="cta-section">
+    <div class="container fade-in">
+        <div class="doodle-row">
+            <img src="assets/images/doodles/star.png" alt="">
+            <img src="assets/images/doodles/sparkle.png" alt="">
+            <img src="assets/images/doodles/heart.png" alt="">
+        </div>
+
+        <h2>Ready to let your agents<br>do the heavy lifting?</h2>
+        <p>Open source. Written in Go. Free forever.</p>
+
+        <a href="https://github.com/valtors/relay" class="pill">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            Get Relay on GitHub
         </a>
-        <a href="#install" class="btn-outline">Install</a>
-      </div>
+        <span class="cta-annotation">^ takes 30 seconds, promise</span>
     </div>
-  </div>
 </section>
 
 <footer>
-  <div class="footer-inner">
-    <div class="footer-text">Relay. MIT licensed. github.com/valtors/relay</div>
-    <div class="footer-links">
-      <a href="https://github.com/valtors/relay">GitHub</a>
-      <a href="https://github.com/valtors">Valtors</a>
-      <a href="https://github.com/valtors/reflow">Reflow</a>
-      <a href="https://github.com/valtors/observer">Observer</a>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/valtors/relay">GitHub</a>
+            <a href="https://github.com/valtors/relay/blob/main/CONTRIBUTING.md">Contribute</a>
+            <a href="https://github.com/valtors/relay/blob/main/SECURITY.md">Security</a>
+        </div>
+        <p>Built by <a href="https://github.com/tamish560">Tamish</a> &middot; Open source under MIT</p>
     </div>
-  </div>
 </footer>
 
 <script>
-function toggleTheme() {
-  const html = document.documentElement;
-  if (html.classList.contains('dark')) {
-    html.classList.remove('dark');
-    localStorage.theme = 'light';
-  } else {
-    html.classList.add('dark');
-    localStorage.theme = 'dark';
-  }
-}
-
-(function() {
-  const saved = localStorage.theme;
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (saved === 'light' || (!saved && !prefersDark)) {
-    document.documentElement.classList.remove('dark');
-  }
-})();
-
-window.addEventListener('scroll', function() {
-  const nav = document.getElementById('nav');
-  if (window.scrollY > 20) {
-    nav.classList.add('scrolled');
-  } else {
-    nav.classList.remove('scrolled');
-  }
-});
-
-// Install tabs
-var snippets = {
-  go: '<span class="prompt">$</span> <span class="cmd">go install github.com/valtors/relay@latest</span>',
-  npm: '<span class="prompt">$</span> <span class="cmd">npm install userelay@0.4.9</span>\n<span class="prompt">$</span> <span class="cmd">npx userelay</span>',
-  manual: '<span class="prompt">$</span> <span class="cmd">git clone https://github.com/valtors/relay</span>\n<span class="prompt">$</span> <span class="cmd">cd relay</span>\n<span class="prompt">$</span> <span class="cmd">go build -o relay</span>\n<span class="prompt">$</span> <span class="cmd">./relay</span>'
-};
-
-document.querySelectorAll('.install-tab').forEach(function(tab) {
-  tab.addEventListener('click', function() {
-    document.querySelectorAll('.install-tab').forEach(function(t) { t.classList.remove('active'); });
-    tab.classList.add('active');
-    document.getElementById('codeBlock').innerHTML = snippets[tab.dataset.tab];
-  });
-});
-
-// Contribution graph
-(function() {
-  var data = [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,1,0,0,0,0],[0,2,0,1,0,0,0],[0,3,2,0,1,2,0],[2,4,3,2,3,1,0]];
-  var graph = document.getElementById('contrib-graph');
-  data.forEach(function(week) {
-    var col = document.createElement('div');
-    col.className = 'contrib-week';
-    week.forEach(function(count) {
-      var cell = document.createElement('div');
-      cell.className = 'contrib-day';
-      if (count === 0) cell.classList.add('level-0');
-      else if (count <= 1) cell.classList.add('level-1');
-      else if (count <= 2) cell.classList.add('level-2');
-      else if (count <= 3) cell.classList.add('level-3');
-      else cell.classList.add('level-4');
-      col.appendChild(cell);
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
     });
-    graph.appendChild(col);
-  });
-})();
-
-// Click ripple + spark effect
-(function() {
-  var fx = document.getElementById('clickFx');
-  var colors = ['#1a1a1a', '#666666', '#999999', '#cccccc'];
-
-  document.addEventListener('click', function(e) {
-    var x = e.clientX;
-    var y = e.clientY;
-
-    // ripple
-    var ripple = document.createElement('div');
-    ripple.className = 'ripple';
-    ripple.style.left = (x - 20) + 'px';
-    ripple.style.top = (y - 20) + 'px';
-    ripple.style.width = '40px';
-    ripple.style.height = '40px';
-    ripple.style.border = '2px solid ' + colors[Math.floor(Math.random() * colors.length)];
-    fx.appendChild(ripple);
-    setTimeout(function() { ripple.remove(); }, 600);
-
-    // sparks
-    var sparkCount = 6;
-    for (var i = 0; i < sparkCount; i++) {
-      var spark = document.createElement('div');
-      spark.className = 'spark';
-      spark.style.left = (x - 2) + 'px';
-      spark.style.top = (y - 2) + 'px';
-      spark.style.background = colors[Math.floor(Math.random() * colors.length)];
-      var angle = (Math.PI * 2 * i) / sparkCount + Math.random() * 0.5;
-      var dist = 30 + Math.random() * 40;
-      spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
-      spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
-      fx.appendChild(spark);
-      setTimeout(function(s) { return function() { s.remove(); }; }(spark), 500);
-    }
-  });
-})();
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 </script>
+
 </body>
 </html>
