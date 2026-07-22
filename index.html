@@ -85,9 +85,10 @@
         }
 
         .logo img {
-            height: 36px;
+            height: 40px;
             width: auto;
-            border-radius: 50%;
+            border-radius: 8px;
+            object-fit: cover;
         }
 
         .logo span {
@@ -155,11 +156,12 @@
         }
 
         .hero-illustration {
-            width: 180px;
+            width: 200px;
             height: auto;
             margin: 0 auto 24px;
             display: block;
             animation: float 4s ease-in-out infinite;
+            border-radius: 12px;
         }
 
         @keyframes float {
@@ -258,8 +260,8 @@
 
         .problem-section {
             display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 24px;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
             align-items: center;
         }
 
@@ -286,8 +288,8 @@
 
         .solution-section {
             display: grid;
-            grid-template-columns: 0.8fr 1.2fr;
-            gap: 24px;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
             align-items: center;
         }
 
@@ -443,8 +445,8 @@
         .terminal-section {
             margin: 32px auto;
             display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 24px;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 32px;
             align-items: center;
             max-width: 800px;
         }
@@ -893,16 +895,16 @@
 
 <section class="hero">
     <div class="container">
-        <img src="assets/images/hero-character.png" alt="Developer with AI agents" class="hero-illustration">
+        <img src="assets/images/relay-logo.png" alt="Relay cat mascot" class="hero-illustration">
 
         <h1>It just figures out<br>and <em>gets it done</em></h1>
 
-        <p class="hero-sub">One MCP server that gives your AI agents memory, coordination, and hands. Orchestration + image tools + PDF tools + file ops. Single binary. Zero config.</p>
+        <p class="hero-sub">One MCP server for files, images, PDFs, web, and workflows. Your files stay local. No telemetry. No account. No cloud. Single binary. Zero config.</p>
 
         <div class="hero-buttons">
             <a href="https://github.com/valtors/relay" class="pill">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-                Get Relay
+                Get Started
             </a>
             <a href="#how" class="pill pill-outline">How it works</a>
         </div>
@@ -1007,24 +1009,24 @@
                 <div class="step-num">1</div>
                 <div>
                     <h3>Install Relay</h3>
-                    <p>Single Go binary. Mac, Linux, Windows. Zero dependencies.</p>
-                    <code>go install github.com/valtors/relay@latest</code>
+                    <p>One command. Mac, Linux, Windows. Zero dependencies.</p>
+                    <code>npx userelay</code>
                 </div>
             </div>
             <div class="step fade-in">
                 <div class="step-num">2</div>
                 <div>
                     <h3>Connect your MCP client</h3>
-                    <p>Works with Claude Desktop, Cursor, Windsurf, or any MCP tool.</p>
-                    <code>relay serve --port 3000</code>
+                    <p>Works with Claude Desktop, Cursor, Windsurf, VS Code, or any MCP tool.</p>
+                    <code>npx userelay init</code>
                 </div>
             </div>
             <div class="step fade-in">
                 <div class="step-num">3</div>
                 <div>
                     <h3>Let your agents cook</h3>
-                    <p>They pass context, checkpoint, and pick up where others left off.</p>
-                    <code>relay status</code>
+                    <p>40 tools across 7 categories. Files, images, PDFs, web, and more.</p>
+                    <code>npx userelay status</code>
                 </div>
             </div>
         </div>
@@ -1041,15 +1043,14 @@
                     <span class="y"></span>
                     <span class="g"></span>
                 </div>
-                <pre><span class="dim">$</span> <span class="blu">relay</span> <span class="org">status</span>
+                <pre><span class="dim">$</span> <span class="blu">userelay</span> <span class="org">status</span>
 
-<span class="prp">  pm-agent</span>      <span class="grn">&#10003;</span> 3 tasks created
-<span class="prp">  dev-agent</span>     <span class="grn">&#10003;</span> auth module shipped
-<span class="prp">  qa-agent</span>      <span class="org">&#9679;</span> reviewing PR #14...
-<span class="prp">  docs-agent</span>    <span class="dim">&#9676;</span> waiting for merge
+<span class="prp">  relay</span>        <span class="grn">&#10003;</span> v0.3.0 running
+<span class="prp">  tools</span>        <span class="grn">&#10003;</span> 40 registered (7 categories)
+<span class="prp">  transport</span>    <span class="dim">&#9676;</span> stdio (default)
 
-  <span class="grn">&#10003; 2 checkpoints saved</span>
-  <span class="dim">  12.4kb context shared</span></pre>
+  <span class="grn">&#10003; files, images, pdfs, web, data</span>
+  <span class="dim">  your files stay local. no cloud.</span></pre>
             </div>
         </div>
     </div>
@@ -1146,8 +1147,8 @@
             </details>
 
             <details class="faq-item fade-in">
-                <summary>What's the WhatsApp / Discord / Telegram thing?</summary>
-                <p>Hermes is our messaging bridge (coming soon). It lets you talk to your Relay agents from messaging apps. Send a message on WhatsApp, your agents pick it up, do the work, and reply back. Like having a team in your pocket.</p>
+                <summary>Does it work with my editor?</summary>
+                <p>Yes. Any MCP-compatible client works. Claude Desktop, Cursor, Windsurf, VS Code, and even terminal-based clients. If it speaks MCP, it connects to Relay. Run <code>npx userelay init</code> to set up your editor automatically.</p>
             </details>
 
             <details class="faq-item fade-in">
