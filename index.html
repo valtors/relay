@@ -1206,6 +1206,39 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, { threshold: 0.1 });
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Click ripple effect
+(function() {
+    var colors = ['#FF6B35', '#7C3AED', '#059669', '#2563EB', '#1a1a1a'];
+    var fxLayer = document.createElement('div');
+    fxLayer.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:visible';
+    document.body.appendChild(fxLayer);
+
+    document.addEventListener('click', function(e) {
+        var x = e.clientX, y = e.clientY;
+
+        var ripple = document.createElement('div');
+        var color = colors[Math.floor(Math.random() * colors.length)];
+        ripple.style.cssText = 'position:absolute;left:' + (x-15) + 'px;top:' + (y-15) + 'px;width:30px;height:30px;border-radius:50%;border:2px solid ' + color + ';pointer-events:none;animation:rippleExp 0.6s ease-out forwards';
+        fxLayer.appendChild(ripple);
+        setTimeout(function() { ripple.remove(); }, 600);
+
+        var n = 8;
+        for (var i = 0; i < n; i++) {
+            var spark = document.createElement('div');
+            var c = colors[Math.floor(Math.random() * colors.length)];
+            var angle = (Math.PI * 2 * i) / n + Math.random() * 0.4;
+            var dist = 25 + Math.random() * 35;
+            spark.style.cssText = 'position:absolute;left:' + (x-3) + 'px;top:' + (y-3) + 'px;width:6px;height:6px;border-radius:50%;background:' + c + ';pointer-events:none;--dx:' + Math.cos(angle)*dist + 'px;--dy:' + Math.sin(angle)*dist + 'px;animation:sparkFly 0.5s ease-out forwards';
+            fxLayer.appendChild(spark);
+            (function(s) { setTimeout(function() { s.remove(); }, 500); })(spark);
+        }
+    });
+
+    var style = document.createElement('style');
+    style.textContent = '@keyframes rippleExp{0%{transform:scale(0);opacity:0.7}100%{transform:scale(4);opacity:0}}@keyframes sparkFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}';
+    document.head.appendChild(style);
+})();
 </script>
 
 </body>
