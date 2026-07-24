@@ -35,11 +35,12 @@ func runConfigCommand(args []string, stdout, stderr io.Writer, ui cliUI) int {
 
 	for _, env := range envKeys {
 		val := os.Getenv(env.key)
-		if val == "" {
+		switch {
+		case val == "":
 			fmt.Fprintf(stdout, "  %-28s not set\n", env.label)
-		} else if env.key == "ANTHROPIC_API_KEY" {
+		case env.key == "ANTHROPIC_API_KEY":
 			fmt.Fprintf(stdout, "  %-28s %s...\n", env.label, val[:min(8, len(val))])
-		} else {
+		default:
 			fmt.Fprintf(stdout, "  %-28s %s\n", env.label, val)
 		}
 	}

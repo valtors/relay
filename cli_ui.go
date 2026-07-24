@@ -22,11 +22,6 @@ type commandSummary struct {
 	description string
 }
 
-type namedValue struct {
-	label string
-	value string
-}
-
 func newCLIUI(w io.Writer, noColor bool) cliUI {
 	color := !noColor && os.Getenv("NO_COLOR") == "" && isTerminalWriter(w)
 	return cliUI{
@@ -170,10 +165,7 @@ func categoryMeta(category string) (icon, label string) {
 
 func shortToolName(entry toolInfo) string {
 	prefix := entry.Category + "_"
-	name := entry.Name
-	if strings.HasPrefix(name, prefix) {
-		name = strings.TrimPrefix(name, prefix)
-	}
+	name := strings.TrimPrefix(entry.Name, prefix)
 
 	switch entry.Name {
 	case "data_csv_to_json":

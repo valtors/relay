@@ -33,7 +33,7 @@ func TestRunTool_HappyPathReturnsNil(t *testing.T) {
 
 func TestRunTool_NilResultIsError(t *testing.T) {
 	bad := func(_ context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		return nil, nil
+		return nil, nil //nolint:nilnil // intentional: testing nil result handling
 	}
 	err := runTool(bad, context.Background(), nil)
 	require.Error(t, err)

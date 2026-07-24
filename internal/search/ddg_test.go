@@ -234,7 +234,7 @@ func TestDDG_CancelledContext(t *testing.T) {
 func TestDDGMulti_SkipsEmptyQueries(t *testing.T) {
 	withHTTPClient(t, &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
 		t.Fatalf("DDGMulti should not issue requests for empty queries")
-		return nil, nil
+		return nil, nil //nolint:nilnil // intentional: test assertion path
 	})})
 
 	results := DDGMulti(context.Background(), []string{"", "  ", "\t\n"}, 5)

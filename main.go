@@ -282,7 +282,7 @@ func serveHTTP(s *server.MCPServer, addr string) error {
 			"version", Version, "transport", "streamable-http",
 			"addr", addr, "endpoint", addr+"/mcp",
 		)
-		if err := httpSrv.Start(addr); err != nil && err != http.ErrServerClosed {
+		if err := httpSrv.Start(addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errCh <- err
 		}
 	}()

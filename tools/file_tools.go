@@ -391,7 +391,7 @@ func unzipArchive(archivePath, outputDir string) error {
 
 		dst, err := os.OpenFile(cleanTarget, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, file.Mode())
 		if err != nil {
-			src.Close()
+			_ = src.Close()
 			return err
 		}
 

@@ -331,7 +331,7 @@ func loadImage(path string) (image.Image, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	img, format, err := image.Decode(file)
 	if err != nil {
@@ -349,7 +349,7 @@ func saveImage(img image.Image, path string, format string, quality int) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	switch normalizeImageFormat(format) {
 	case "png":

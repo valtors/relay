@@ -39,7 +39,7 @@ func PDFInfoTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResul
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("open pdf: %v", err)), nil
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	info, err := api.PDFInfo(file, filepath.Base(resolved), nil, false, nil)
 	if err != nil {
@@ -532,7 +532,7 @@ func parsePDFArrayText(content []byte, start int) (string, int, error) {
 			i = next
 			continue
 		}
-		if ch == '<' && !(i+1 < len(content) && content[i+1] == '<') {
+		if ch == '<' && (i+1 >= len(content) || content[i+1] != '<') {
 			text, next, err := parsePDFHexString(content, i)
 			if err != nil {
 				return "", 0, err

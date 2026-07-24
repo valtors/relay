@@ -148,7 +148,7 @@ func renderMarkdownHTML(input string) string {
 		if level := headingLevel(trimmed); level > 0 {
 			flushParagraph()
 			content := strings.TrimSpace(trimmed[level:])
-			output.WriteString(fmt.Sprintf("<h%d>%s</h%d>\n", level, applyInlineMarkdown(content), level))
+			fmt.Fprintf(&output, "<h%d>%s</h%d>\n", level, applyInlineMarkdown(content), level)
 			continue
 		}
 		paragraph = append(paragraph, trimmed)

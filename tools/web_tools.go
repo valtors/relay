@@ -3,6 +3,7 @@ package tools
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -61,7 +62,7 @@ func WebFetch(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("fetch url: %v", err)), nil
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, truncated, err := readResponseCapped(resp.Body, maxToolFileBytes)
 	if err != nil {
@@ -94,7 +95,7 @@ func WebStatus(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResul
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("check url: %v", err)), nil
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4096))
 
 	return mcp.NewToolResultText(fmt.Sprintf("%d (%s)", resp.StatusCode, time.Since(start).Round(time.Millisecond))), nil
@@ -124,7 +125,7 @@ func readHeaderArgs(raw any) map[string][]string {
 func readResponseCapped(reader io.Reader, maxBytes int64) ([]byte, bool, error) {
 	var buf bytes.Buffer
 	read, err := io.CopyN(&buf, reader, maxBytes+1)
-	if err != nil && err != io.EOF {
+	if err != nil && !errors.Is(err, io.EOF) {
 		return nil, false, err
 	}
 	data := buf.Bytes()
