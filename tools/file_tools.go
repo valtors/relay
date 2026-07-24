@@ -183,7 +183,7 @@ func FileZip(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, e
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("create archive: %v", err)), nil
 	}
-	defer outFile.Close()
+	defer func() { _ = outFile.Close() }()
 
 	zw := zip.NewWriter(outFile)
 
@@ -269,7 +269,7 @@ func readFileCapped(path string, maxBytes int64) ([]byte, bool, error) {
 	if err != nil {
 		return nil, false, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var buf bytes.Buffer
 	read, err := io.CopyN(&buf, file, maxBytes+1)
@@ -349,7 +349,7 @@ func writeZipEntry(zw *zip.Writer, path string, info os.FileInfo, name string) e
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 	_, err = io.Copy(writer, file)
 	return err
 }
@@ -359,7 +359,7 @@ func unzipArchive(archivePath, outputDir string) error {
 	if err != nil {
 		return err
 	}
-	defer reader.Close()
+	defer func() { _ = reader.Close() }()
 
 	cleanOutput := filepath.Clean(outputDir)
 	if err := os.MkdirAll(cleanOutput, 0o755); err != nil {

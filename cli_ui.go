@@ -17,7 +17,6 @@ type cliUI struct {
 }
 
 type commandSummary struct {
-	name        string
 	usage       string
 	description string
 }

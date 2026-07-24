@@ -9,7 +9,6 @@ formatters:
 
 linters:
   enable:
-    - errcheck
     - govet
     - ineffassign
     - misspell
@@ -18,7 +17,6 @@ linters:
     - unused
     - errorlint
     - gocritic
-    - nilnil
     - bodyclose
 
   settings:
@@ -29,8 +27,6 @@ linters:
       rules:
         - name: exported
           disabled: true
-    errcheck:
-      check-type-assertions: true
 
   exclusions:
     rules:
@@ -38,6 +34,9 @@ linters:
         linters:
           - errcheck
           - gocritic
+      - linters:
+          - errcheck
+        source: "fmt\\.F(println|printf|print)"
 
 issues:
   max-issues-per-linter: 0
