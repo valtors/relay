@@ -233,7 +233,7 @@ func (c *Client) doCall(ctx context.Context, system, user string, tools []anthro
 	}
 
 	stream := c.inner.Messages.NewStreaming(callCtx, params)
-	defer stream.Close()
+	defer func() { _ = stream.Close() }()
 
 	msg := anthropic.Message{}
 	lastLog := time.Now()

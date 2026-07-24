@@ -44,7 +44,7 @@ func DDG(ctx context.Context, query string, limit int) ([]Result, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ddg request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("ddg read: %w", err)

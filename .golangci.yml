@@ -32,11 +32,7 @@ linters:
     rules:
       - path: _test\.go
         linters:
-          - errcheck
           - gocritic
-      - linters:
-          - errcheck
-        source: "fmt\\.F(println|printf|print)"
 
 issues:
   max-issues-per-linter: 0

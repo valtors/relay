@@ -345,7 +345,7 @@ func checkNetwork() doctorCheck {
 	if err != nil {
 		return doctorCheck{"GitHub connectivity", "!", fmt.Sprintf("cannot reach GitHub releases: %v", err)}
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return doctorCheck{"GitHub connectivity", "!", fmt.Sprintf("GitHub returned status %d", resp.StatusCode)}
