@@ -15,6 +15,7 @@ jobs:
         with:
           go-version: "1.25"
           cache: true
+
       - name: gofmt
         run: |
           out=$(gofmt -l .)
@@ -23,5 +24,25 @@ jobs:
             echo "$out"
             exit 1
           fi
-      - run: go vet ./...
-      - run: go test -count=1 ./...
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.0.2
+          working-directory: .
+
+      - name: go test
+        run: go test -count=1 -race -coverprofile=coverage.out ./...
+
+      - name: coverage check
+        run: |
+          total=$(go tool cover -func=coverage.out | grep total | awk '{print $NF}' | tr -d '%')
+          echo "Coverage: ${total}%"
+          threshold=60
+          if (( $(echo "$total < $threshold" | bc -l) )); then
+            echo "Coverage ${total}% below threshold ${threshold}%"
+            exit 1
+          fi
