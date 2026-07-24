@@ -1,1254 +1,434 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relay - it just figures out and gets it done</title>
-    <meta name="description" content="One MCP server that gives your AI agents memory, coordination, and hands. Orchestration + tools. Single binary. Zero config.">
-    <meta property="og:image" content="assets/images/og-image.png">
-    <meta property="og:title" content="Relay - it just figures out and gets it done">
-    <meta property="og:description" content="All-in-one MCP server. Agents get memory, tools, and coordination in one binary.">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Relay - it just figures out and gets it done">
-    <meta name="twitter:description" content="All-in-one MCP server. Agents get memory, tools, and coordination in one binary.">
-    <meta name="twitter:image" content="assets/images/og-image.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --serif: 'Instrument Serif', Georgia, serif;
-            --sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
-            --hand: 'Caveat', cursive;
-            --mono: 'SF Mono', 'Cascadia Code', monospace;
-            --bg: #FFFDF9;
-            --ink: #1a1a1a;
-            --ink-light: #555;
-            --ink-faint: #999;
-            --accent: #FF6B35;
-            --purple: #7C3AED;
-            --green: #059669;
-            --blue: #2563EB;
-            --line: rgba(0,0,0,0.06);
-            --radius: 16px;
-            --shadow: 0 2px 16px rgba(0,0,0,0.04);
-            --shadow-hover: 0 8px 32px rgba(0,0,0,0.08);
-        }
-
-        html { scroll-behavior: smooth; }
-
-        body {
-            font-family: var(--sans);
-            color: var(--ink);
-            background: var(--bg);
-            line-height: 1.6;
-            overflow-x: hidden;
-            font-size: 15px;
-        }
-
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        .wide-container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        nav {
-            padding: 20px 0;
-            position: sticky;
-            top: 0;
-            background: rgba(255,253,249,0.92);
-            backdrop-filter: blur(12px);
-            z-index: 100;
-            border-bottom: 1px solid var(--line);
-        }
-
-        nav .container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: var(--ink);
-        }
-
-        .logo img {
-            height: 40px;
-            width: auto;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-
-        .logo span {
-            font-family: var(--sans);
-            font-weight: 700;
-            font-size: 18px;
-            letter-spacing: -0.5px;
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .nav-right a {
-            color: var(--ink-light);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .nav-right a:hover { color: var(--ink); }
-
-        .nav-right a.pill,
-        .nav-right a.pill:hover {
-            color: white;
-        }
-
-        .pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: var(--ink);
-            color: white;
-            border-radius: 999px;
-            font-size: 14px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-
-        .pill:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
-
-        .pill-outline {
-            background: transparent;
-            color: var(--ink);
-            border: 1.5px solid rgba(0,0,0,0.15);
-        }
-
-        .pill-outline:hover {
-            background: var(--ink);
-            color: white;
-            border-color: var(--ink);
-        }
-
-        .hero {
-            padding: 56px 0 32px;
-            text-align: center;
-        }
-
-        .hero-illustration {
-            width: 200px;
-            height: auto;
-            margin: 0 auto 24px;
-            display: block;
-            animation: float 4s ease-in-out infinite;
-            border-radius: 12px;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .hero h1 {
-            font-family: var(--serif);
-            font-size: clamp(40px, 7vw, 60px);
-            font-weight: 400;
-            line-height: 1.05;
-            letter-spacing: -1.5px;
-            margin-bottom: 16px;
-        }
-
-        .hero h1 em {
-            font-style: italic;
-            color: var(--accent);
-        }
-
-        .hero-sub {
-            font-size: 17px;
-            color: var(--ink-light);
-            max-width: 460px;
-            margin: 0 auto 32px;
-            line-height: 1.65;
-        }
-
-        .hero-buttons {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
-        }
-
-        .hero-annotation {
-            font-family: var(--hand);
-            font-size: 20px;
-            color: var(--accent);
-            transform: rotate(-2deg);
-            display: inline-block;
-            margin-top: 8px;
-        }
-
-        .baton-scene {
-            margin: 32px auto 0;
-            max-width: 520px;
-        }
-
-        .baton-scene img {
-            width: 100%;
-            height: auto;
-        }
-
-        .baton-caption {
-            text-align: center;
-            font-family: var(--hand);
-            font-size: 18px;
-            color: var(--ink-faint);
-            margin-top: 12px;
-        }
-
-        .divider {
-            width: 60px;
-            height: 1px;
-            background: var(--line);
-            margin: 64px auto;
-        }
-
-        .doodle-divider {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin: 32px 0;
-        }
-
-        .doodle-divider img {
-            width: 40px;
-            height: 40px;
-            opacity: 0.85;
-        }
-
-        .doodle-divider span {
-            width: 40px;
-            height: 1px;
-            background: var(--line);
-        }
-
-        section {
-            padding: 32px 0;
-        }
-
-        .problem-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 32px;
-            align-items: center;
-        }
-
-        .problem-section .text h2 {
-            font-family: var(--serif);
-            font-size: 32px;
-            font-weight: 400;
-            margin-bottom: 12px;
-            line-height: 1.2;
-        }
-
-        .problem-section .text p {
-            color: var(--ink-light);
-            line-height: 1.7;
-        }
-
-        .problem-section img {
-            width: 100%;
-            max-width: 220px;
-            height: auto;
-            margin: 0 auto;
-            display: block;
-        }
-
-        .solution-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 32px;
-            align-items: center;
-        }
-
-        .solution-section img {
-            width: 100%;
-            max-width: 220px;
-            height: auto;
-            display: block;
-        }
-
-        .solution-section .text h2 {
-            font-family: var(--serif);
-            font-size: 32px;
-            font-weight: 400;
-            margin-bottom: 12px;
-            line-height: 1.2;
-        }
-
-        .solution-section .text p {
-            color: var(--ink-light);
-            line-height: 1.7;
-        }
-
-        .marginal-note {
-            font-family: var(--hand);
-            font-size: 18px;
-            color: var(--accent);
-            margin-top: 12px;
-            display: block;
-        }
-
-        .agents-section {
-            text-align: center;
-            padding: 40px 0;
-        }
-
-        .agents-section h2 {
-            font-family: var(--serif);
-            font-size: 32px;
-            font-weight: 400;
-            margin-bottom: 8px;
-        }
-
-        .agents-section > p {
-            color: var(--ink-light);
-            margin-bottom: 40px;
-        }
-
-        .agent-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        .agent-card {
-            text-align: center;
-            padding: 28px 16px;
-            border-radius: var(--radius);
-            border: 1px solid var(--line);
-            background: white;
-            transition: all 0.25s;
-        }
-
-        .agent-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .agent-card img {
-            width: 120px;
-            height: 120px;
-            object-fit: contain;
-            margin: 0 auto 12px;
-            display: block;
-        }
-
-        .agent-card h3 {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .agent-card p {
-            font-size: 12px;
-            color: var(--ink-faint);
-            line-height: 1.4;
-        }
-
-        .how-section {
-            padding: 40px 0;
-        }
-
-        .how-section h2 {
-            font-family: var(--serif);
-            font-size: 32px;
-            font-weight: 400;
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .steps {
-            display: grid;
-            gap: 28px;
-            max-width: 520px;
-            margin: 0 auto;
-        }
-
-        .step {
-            display: flex;
-            gap: 16px;
-            align-items: flex-start;
-        }
-
-        .step-num {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: var(--ink);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        .step h3 {
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 2px;
-        }
-
-        .step p {
-            font-size: 14px;
-            color: var(--ink-light);
-        }
-
-        .step code {
-            display: inline-block;
-            margin-top: 6px;
-            font-family: var(--mono);
-            font-size: 12px;
-            background: #f5f5f4;
-            padding: 4px 10px;
-            border-radius: 6px;
-            color: var(--purple);
-            font-weight: 500;
-        }
-
-        .terminal-section {
-            margin: 32px auto;
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 32px;
-            align-items: center;
-            max-width: 800px;
-        }
-
-        .terminal-section img {
-            width: 100%;
-            max-width: 240px;
-            height: auto;
-        }
-
-        .terminal-block {
-            background: #1C1C1C;
-            border-radius: 12px;
-            padding: 20px;
-            overflow: hidden;
-        }
-
-        .terminal-dots {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 16px;
-        }
-
-        .terminal-dots span {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-
-        .terminal-dots .r { background: #FF5F56; }
-        .terminal-dots .y { background: #FFBD2E; }
-        .terminal-dots .g { background: #27C93F; }
-
-        .terminal-block pre {
-            font-family: var(--mono);
-            font-size: 12px;
-            line-height: 1.8;
-            color: #E4E4E4;
-            overflow-x: auto;
-        }
-
-        .terminal-block .dim { color: #666; }
-        .terminal-block .grn { color: #A8CC8C; }
-        .terminal-block .blu { color: #71BEF2; }
-        .terminal-block .prp { color: #D290E4; }
-        .terminal-block .org { color: #DBAB79; }
-
-        .sleep-section {
-            text-align: center;
-            padding: 32px 0 24px;
-        }
-
-        .sleep-section img {
-            width: 240px;
-            height: auto;
-            margin: 0 auto 20px;
-            display: block;
-        }
-
-        .sleep-section h2 {
-            font-family: var(--serif);
-            font-size: 28px;
-            font-weight: 400;
-            margin-bottom: 8px;
-        }
-
-        .sleep-section p {
-            color: var(--ink-light);
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .comparison {
-            margin: 32px auto;
-            max-width: 700px;
-            text-align: center;
-        }
-
-        .comparison img {
-            width: 100%;
-            height: auto;
-            border-radius: 12px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-        }
-
-        .cta-section {
-            text-align: center;
-            padding: 48px 0 40px;
-        }
-
-        .cta-section h2 {
-            font-family: var(--serif);
-            font-size: 36px;
-            font-weight: 400;
-            margin-bottom: 12px;
-        }
-
-        .cta-section p {
-            color: var(--ink-light);
-            margin-bottom: 28px;
-            font-size: 16px;
-        }
-
-        .cta-section .doodle-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-
-        .cta-section .doodle-row img {
-            width: 40px;
-            height: 40px;
-            opacity: 0.85;
-        }
-
-        .cta-annotation {
-            font-family: var(--hand);
-            font-size: 20px;
-            color: var(--accent);
-            margin-top: 16px;
-            display: block;
-            transform: rotate(-1.5deg);
-        }
-
-        footer {
-            border-top: 1px solid var(--line);
-            padding: 40px 0;
-            text-align: center;
-            background: #F9F8F6;
-        }
-
-        footer .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 28px;
-            margin-bottom: 14px;
-        }
-
-        footer a {
-            color: var(--ink-light);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        footer a:hover { color: var(--ink); }
-
-        footer p {
-            font-size: 13px;
-            color: var(--ink-light);
-        }
-
-        footer p a {
-            color: var(--ink);
-            font-weight: 600;
-        }
-
-        .fade-in {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .tools-overview {
-            padding: 20px 0;
-        }
-
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-top: 32px;
-        }
-
-        .tool-category {
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--line);
-            background: white;
-            text-align: center;
-            transition: all 0.2s;
-        }
-
-        .tool-category:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .tool-cat-icon {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-
-        .tool-category h4 {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .tool-category p {
-            font-size: 12px;
-            color: var(--ink-light);
-            line-height: 1.4;
-        }
-
-        .roadmap-section {
-            padding: 20px 0;
-        }
-
-        .roadmap {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .roadmap-phase {
-            display: flex;
-            gap: 16px;
-            align-items: flex-start;
-            padding: 16px 0;
-            border-left: 2px solid var(--line);
-            margin-left: 15px;
-            padding-left: 24px;
-            position: relative;
-        }
-
-        .roadmap-phase:last-child { border-left-color: transparent; }
-
-        .phase-marker {
-            position: absolute;
-            left: -12px;
-            top: 16px;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 700;
-            background: var(--bg);
-            border: 2px solid var(--line);
-            color: var(--ink-faint);
-        }
-
-        .roadmap-phase.done .phase-marker {
-            background: #D1FAE5;
-            border-color: #059669;
-            color: #059669;
-        }
-
-        .roadmap-phase.active .phase-marker {
-            background: #FEF3C7;
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .roadmap-phase.active .phase-marker.pulse {
-            animation: pulse-glow 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,53,0.3); }
-            50% { box-shadow: 0 0 0 6px rgba(255,107,53,0); }
-        }
-
-        .phase-content h4 {
-            font-size: 15px;
-            font-weight: 700;
-            margin-bottom: 2px;
-        }
-
-        .phase-content p {
-            font-size: 13px;
-            color: var(--ink-light);
-            line-height: 1.5;
-        }
-
-        .section-header h2 {
-            font-family: var(--serif);
-            font-size: 32px;
-            font-weight: 400;
-            margin-bottom: 8px;
-        }
-
-        .section-header p {
-            color: var(--ink-light);
-        }
-
-        @media (max-width: 768px) {
-            .tools-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        @media (max-width: 480px) {
-            .tools-grid { grid-template-columns: 1fr; }
-        }
-
-        .compare-section {
-            padding: 20px 0;
-        }
-
-        .compare-table-wrap {
-            overflow-x: auto;
-            margin-top: 32px;
-            border-radius: 12px;
-            border: 1px solid var(--line);
-        }
-
-        .compare-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            text-align: center;
-        }
-
-        .compare-table thead {
-            background: #f9f8f6;
-        }
-
-        .compare-table th {
-            padding: 14px 12px;
-            font-weight: 700;
-            font-size: 13px;
-            border-bottom: 1px solid var(--line);
-        }
-
-        .compare-table th:nth-child(2) {
-            background: #FFF3ED;
-            color: var(--accent);
-        }
-
-        .compare-table td {
-            padding: 12px;
-            border-bottom: 1px solid var(--line);
-            color: var(--ink-light);
-        }
-
-        .compare-table td:first-child {
-            text-align: left;
-            font-weight: 600;
-            color: var(--ink);
-        }
-
-        .compare-table td:nth-child(2) {
-            background: #FFFBF8;
-            color: var(--ink);
-            font-weight: 500;
-        }
-
-        .compare-table tr:last-child td { border-bottom: none; }
-
-        .faq-section {
-            padding: 40px 0;
-        }
-
-        .faq-list {
-            max-width: 600px;
-            margin: 24px auto 0;
-        }
-
-        .faq-item {
-            border-bottom: 1px solid var(--line);
-            padding: 16px 0;
-        }
-
-        .faq-item summary {
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
-            list-style: none;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .faq-item summary::-webkit-details-marker { display: none; }
-
-        .faq-item summary::after {
-            content: '+';
-            font-size: 20px;
-            font-weight: 400;
-            color: var(--ink-faint);
-            transition: transform 0.2s;
-        }
-
-        .faq-item[open] summary::after {
-            transform: rotate(45deg);
-        }
-
-        .faq-item p {
-            margin-top: 10px;
-            font-size: 14px;
-            color: var(--ink-light);
-            line-height: 1.7;
-        }
-
-        .faq-item a {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        @media (max-width: 768px) {
-            .problem-section,
-            .solution-section,
-            .terminal-section { grid-template-columns: 1fr; }
-            .agent-grid { grid-template-columns: repeat(2, 1fr); }
-            .comparison { grid-template-columns: 1fr; }
-            .hero-illustration { width: 160px; }
-            .solution-section img,
-            .problem-section img { max-width: 200px; }
-        }
-
-        @media (max-width: 480px) {
-            .hero h1 { font-size: 36px; }
-            .nav-right .hide-sm { display: none; }
-            .agent-grid { gap: 12px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>relay - one MCP server, 40 tools, one binary.</title>
+<meta name="description" content="one MCP server for files, images, PDFs, web, and workflows. your files stay local. no telemetry. no account. no cloud.">
+<style>
+:root {
+  --bg: #060606;
+  --fg: #e8e8e8;
+  --dim: #555;
+  --dimmer: #2a2a2a;
+  --accent: #c8c8c8;
+  --hot: #e8e8e8;
+  --mono: 'SF Mono', 'Courier New', monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);overflow-x:hidden}
+::selection{background:#e8e8e8;color:#060606}
+
+/* noise */
+.noise{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;
+  padding:1rem 2rem;background:rgba(6,6,6,.8);backdrop-filter:blur(12px);border-bottom:1px solid #111}
+nav .logo{font-family:var(--mono);font-size:1rem;letter-spacing:-.02em}
+nav .links{display:flex;gap:1.5rem;align-items:center}
+nav a{color:var(--dim);text-decoration:none;font-size:.8rem;transition:color .2s}
+nav a:hover{color:var(--fg)}
+nav .star{border:1px solid #222;padding:.35rem .8rem;border-radius:3px;font-family:var(--mono);font-size:.75rem}
+nav .star:hover{border-color:var(--fg);background:#0c0c0c}
+
+/* hero */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;padding:2rem}
+.hero-bg{position:absolute;inset:0;z-index:0;opacity:.07;pointer-events:none;overflow:hidden}
+.hero-bg pre{font-family:var(--mono);font-size:.45rem;line-height:.85;color:#333;white-space:pre;
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-12deg);
+  animation:slowspin 120s linear infinite}
+@keyframes slowspin{0%{transform:translate(-50%,-50%) rotate(-12deg)}100%{transform:translate(-50%,-50%) rotate(348deg)}}
+
+.hero-content{position:relative;z-index:1;text-align:center}
+.hero-content h1{font-size:clamp(2.2rem,7vw,5.5rem);font-weight:800;letter-spacing:-.04em;line-height:.95;margin-bottom:1.2rem}
+.hero-content h1 .dim{color:#333}
+.hero-content .sub{font-size:clamp(.85rem,1.8vw,1.1rem);color:var(--dim);max-width:480px;margin:0 auto 2.5rem;line-height:1.6}
+.hero-content .sub em{font-style:italic;color:var(--fg)}
+.hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.btn{font-family:var(--mono);font-size:.82rem;padding:.65rem 1.4rem;border-radius:3px;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:.4rem}
+.btn-primary{background:var(--fg);color:var(--bg);border:1px solid var(--fg)}
+.btn-primary:hover{background:#d0d0d0}
+.btn-ghost{background:transparent;color:var(--dim);border:1px solid #222}
+.btn-ghost:hover{color:var(--fg);border-color:#444}
+
+.scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:.65rem;color:#222;letter-spacing:.3em;animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0);opacity:.3}50%{transform:translateX(-50%) translateY(6px);opacity:.7}}
+
+/* sections */
+section{padding:7rem 2rem;position:relative}
+.section-label{font-family:var(--mono);font-size:.65rem;color:#222;letter-spacing:.3em;text-transform:uppercase;margin-bottom:1.5rem}
+
+/* spaced letters */
+.spaced{font-size:clamp(1.3rem,3.5vw,2.8rem);font-weight:800;letter-spacing:.3em;line-height:1.2;margin-bottom:2.5rem}
+.spaced .d{color:#1a1a1a}
+
+/* fade-in */
+.fade{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease}
+.fade.visible{opacity:1;transform:translateY(0)}
+
+/* problem section */
+.problem{max-width:750px;margin:0 auto;text-align:center}
+.problem .manifesto{font-family:var(--mono);font-size:clamp(.85rem,1.8vw,1.05rem);color:var(--dim);line-height:2.2;margin:3rem 0;text-align:left;border-left:2px solid #1a1a1a;padding-left:2rem}
+.problem .manifesto .hl{color:var(--fg)}
+.problem .manifesto .strike{text-decoration:line-through;text-decoration-color:#333}
+
+/* tool grid */
+.tools-section{max-width:900px;margin:0 auto}
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;margin-top:2.5rem;background:#111}
+.tool-cat{background:var(--bg);padding:1.5rem;transition:background .3s}
+.tool-cat:hover{background:#0a0a0a}
+.tool-cat .cat-name{font-family:var(--mono);font-size:.7rem;color:#444;letter-spacing:.15em;text-transform:uppercase;margin-bottom:.8rem}
+.tool-cat .cat-tools{font-size:.8rem;color:var(--dim);line-height:1.8}
+.tool-cat .cat-tools .tool{display:inline-block;padding:0 .3rem}
+.tool-cat .cat-count{font-family:var(--mono);font-size:.65rem;color:#1a1a1a;margin-top:.5rem}
+
+/* comparison table */
+.compare-section{max-width:700px;margin:0 auto}
+.compare-table{width:100%;margin-top:2.5rem;border-collapse:collapse}
+.compare-table th{font-family:var(--mono);font-size:.65rem;color:#222;letter-spacing:.2em;text-transform:uppercase;padding:.8rem 1rem;text-align:left;border-bottom:1px solid #1a1a1a}
+.compare-table th.right{text-align:right}
+.compare-table td{padding:1rem;border-bottom:1px solid #0d0d0d;font-size:.85rem}
+.compare-table td.feature{color:var(--fg)}
+.compare-table td.relay{color:var(--fg);text-align:right;font-family:var(--mono);font-size:.8rem}
+.compare-table td.others{color:var(--dim);text-align:right;font-family:var(--mono);font-size:.8rem}
+.compare-table td.relay .check{color:var(--fg)}
+.compare-table td.others .cross{color:#333}
+.compare-table tr:hover td{background:#080808}
+
+/* terminal demo */
+.terminal{max-width:650px;margin:2.5rem auto 0;border:1px solid #111;border-radius:6px;overflow:hidden;font-family:var(--mono)}
+.terminal-head{background:#0a0a0a;padding:.5rem 1rem;display:flex;align-items:center;gap:.4rem;border-bottom:1px solid #111}
+.terminal-head .dot{width:7px;height:7px;border-radius:50%;background:#222}
+.terminal-head .t{font-size:.7rem;color:#222;margin-left:.3rem}
+.terminal-body{padding:1.2rem;font-size:.8rem;line-height:1.9;min-height:200px}
+.terminal-body .p{color:#222}
+.terminal-body .c{color:var(--fg)}
+.terminal-body .o{color:var(--accent)}
+.terminal-body .d{color:#333}
+.terminal-body .cursor{display:inline-block;width:7px;height:13px;background:var(--fg);animation:blink 1s step-end infinite;vertical-align:middle}
+@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+
+/* stats */
+.stats{text-align:center}
+.stats-row{display:flex;justify-content:center;gap:3.5rem;flex-wrap:wrap;margin-top:3rem}
+.stat{text-align:center}
+.stat .n{font-size:clamp(2.2rem,5vw,4rem);font-weight:800;letter-spacing:-.04em;line-height:1}
+.stat .l{font-family:var(--mono);font-size:.65rem;color:var(--dim);letter-spacing:.2em;text-transform:uppercase;margin-top:.4rem}
+
+/* install */
+.install{text-align:center}
+.install-cmd{font-family:var(--mono);font-size:clamp(.85rem,2vw,1.1rem);background:#0a0a0a;padding:.8rem 1.8rem;border-radius:4px;border:1px solid #111;display:inline-block;margin-top:1.5rem;cursor:pointer;transition:all .2s;position:relative}
+.install-cmd:hover{border-color:#333;background:#0e0e0e}
+.install-cmd .pre{color:#222}
+.install-cmd .cmd{color:var(--fg)}
+.install-cmd .copied{position:absolute;top:-1.8rem;left:50%;transform:translateX(-50%);font-size:.65rem;color:var(--accent);opacity:0;transition:opacity .3s}
+.install-cmd .copied.show{opacity:1}
+
+.install-extras{margin-top:2.5rem;font-family:var(--mono);font-size:.8rem;color:var(--dim);line-height:2;text-align:left;max-width:450px;margin-left:auto;margin-right:auto}
+.install-extras .c{color:#222}
+.install-extras .f{color:var(--fg)}
+
+/* workflow cards */
+.workflows{max-width:800px;margin:0 auto}
+.workflow-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-top:2.5rem}
+.workflow-card{border:1px solid #111;padding:1.5rem;border-radius:5px;transition:all .3s;position:relative;overflow:hidden}
+.workflow-card::before{content:'';position:absolute;top:0;left:0;width:0;height:1px;background:var(--accent);transition:width .5s}
+.workflow-card:hover{border-color:#222;background:#080808}
+.workflow-card:hover::before{width:100%}
+.workflow-card .num{font-family:var(--mono);font-size:.65rem;color:#222;margin-bottom:.6rem}
+.workflow-card h4{font-size:.95rem;font-weight:700;margin-bottom:.5rem}
+.workflow-card p{font-size:.82rem;color:var(--dim);line-height:1.6;margin-bottom:.8rem}
+.workflow-card .tools{font-family:var(--mono);font-size:.7rem;color:#333;display:flex;flex-wrap:wrap;gap:.3rem}
+.workflow-card .tools span{border:1px solid #1a1a1a;padding:.15rem .4rem;border-radius:2px}
+
+/* interactive tui mock */
+.tui-mock{max-width:500px;margin:2.5rem auto 0;border:1px solid #111;border-radius:6px;overflow:hidden;font-family:var(--mono)}
+.tui-mock .head{background:#0a0a0a;padding:.5rem 1rem;border-bottom:1px solid #111;font-size:.7rem;color:#222}
+.tui-mock .body{padding:1.5rem;font-size:.8rem;line-height:2;color:var(--dim)}
+.tui-mock .body .selected{color:var(--fg)}
+.tui-mock .body .selected::before{content:"> "}
+.tui-mock .body .item::before{content:"  "}
+.tui-mock .body .box{color:#333;margin:1rem 0;padding:.5rem 1rem;border:1px solid #1a1a1a;border-radius:3px;display:inline-block}
+
+/* ascii art relay logo */
+.ascii-logo{font-family:var(--mono);font-size:.6rem;line-height:1;color:#1a1a1a;text-align:center;margin:2rem 0;white-space:pre;opacity:.4}
+
+/* footer */
+footer{padding:4rem 2rem 2rem;text-align:center;border-top:1px solid #111}
+footer .logo{font-family:var(--mono);font-size:1rem;margin-bottom:.8rem}
+footer .logo span{color:#222}
+footer p{font-size:.8rem;color:var(--dim);margin-bottom:1.5rem}
+footer .links{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap}
+footer .links a{color:var(--dim);text-decoration:none;font-size:.8rem;transition:color .2s}
+footer .links a:hover{color:var(--fg)}
+footer .copy{font-family:var(--mono);font-size:.65rem;color:#1a1a1a;margin-top:2.5rem;letter-spacing:.1em}
+
+@media(max-width:640px){
+  nav{padding:.8rem 1rem}
+  nav .links{gap:1rem}
+  section{padding:5rem 1.5rem}
+  .tool-grid{grid-template-columns:1fr}
+  .stats-row{gap:2rem}
+  .compare-table th.right,.compare-table td.relay,.compare-table td.others{font-size:.75rem}
+  .problem .manifesto{font-size:.8rem;padding-left:1rem}
+}
+</style>
 </head>
 <body>
+<div class="noise"></div>
 
+<!-- NAV -->
 <nav>
-    <div class="container">
-        <a href="#" class="logo">
-            <img src="assets/images/relay-logo.png" alt="Relay">
-            <span>relay</span>
-        </a>
-        <div class="nav-right">
-            <a href="https://github.com/valtors/relay" class="hide-sm">GitHub</a>
-            <a href="#how" class="hide-sm">Docs</a>
-            <a href="https://github.com/valtors/relay" class="pill">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                Star on GitHub
-            </a>
-        </div>
-    </div>
+  <div class="logo">relay</div>
+  <div class="links">
+    <a href="#problem">why</a>
+    <a href="#tools">tools</a>
+    <a href="#install">install</a>
+    <a href="https://github.com/valtors/relay" class="star">star on github</a>
+  </div>
 </nav>
 
-<section class="hero">
-    <div class="container">
-        <img src="assets/images/relay-logo.png" alt="Relay cat mascot" class="hero-illustration">
-
-        <h1>It just figures out<br>and <em>gets it done</em></h1>
-
-        <p class="hero-sub">One MCP server for files, images, PDFs, web, and workflows. Your files stay local. No telemetry. No account. No cloud. Single binary. Zero config.</p>
-
-        <div class="hero-buttons">
-            <a href="https://github.com/valtors/relay" class="pill">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-                Get Started
-            </a>
-            <a href="#how" class="pill pill-outline">How it works</a>
-        </div>
-
-        <span class="hero-annotation">^ open source, free forever</span>
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg">
+<pre>
+  ____  _   _ __  __ __  __ ____
+ |  _ \| | | |  \/  |  \/  / ___|
+ | |_) | | | | |\/| | |\/| \___ \
+ |  _ <| |_| | |  | | |  | |___) |
+ |_| \_\\___/|_|  |_|_|  |_|____/
+</pre>
+  </div>
+  <div class="hero-content">
+    <h1>one MCP server<span class="dim">,</span><br>40 tools<span class="dim">,</span> one binary<span class="dim">.</span></h1>
+    <div class="sub">other people install 5 MCP servers to do what relay does alone. files, images, PDFs, web, data, text, workflows. <em>one Go binary, zero runtime dependencies</em>.</div>
+    <div class="hero-btns">
+      <a href="#install" class="btn btn-primary">npx userelay</a>
+      <a href="https://github.com/valtors/relay" class="btn btn-ghost">read the source</a>
     </div>
-</section>
-
-<div class="wide-container">
-    <div class="baton-scene fade-in">
-        <img src="assets/images/baton-pass.png" alt="Agents passing the baton">
-        <p class="baton-caption">PM passes to Dev, Dev passes to QA, QA ships it &#10024;</p>
-    </div>
+  </div>
+  <div class="scroll-hint">SCROLL</div>
 </div>
 
-<div class="doodle-divider">
-    <span></span>
-    <img src="assets/images/doodles/star.png" alt="">
-    <span></span>
-</div>
-
-<section>
-    <div class="wide-container">
-        <div class="problem-section fade-in">
-            <div class="text">
-                <h2>AI agents forget everything</h2>
-                <p>You spent an hour explaining your architecture. The agent wrote perfect code. Next morning, new chat, blank slate. You start over. Again.</p>
-                <span class="marginal-note">^ goldfish with PhDs</span>
-            </div>
-            <img src="assets/images/confused.png" alt="Confused agent forgetting context">
-        </div>
+<!-- PROBLEM -->
+<section id="problem" class="fade">
+  <div class="problem">
+    <div class="section-label">the problem</div>
+    <div class="spaced">F I V E <span class="d">S E R V E R S</span> . <span class="d">F I V E</span> H E A D A C H E S .</div>
+    <div class="manifesto">
+      <span class="strike">file server</span> + <span class="strike">image server</span> + <span class="strike">pdf server</span> + <span class="strike">web fetch server</span> + <span class="strike">data server</span><br><br>
+      <span class="hl">each one has its own install.</span><br>
+      <span class="hl">each one has its own config.</span><br>
+      <span class="hl">each one has its own update cycle.</span><br>
+      <span class="hl">each one has its own way of breaking.</span><br><br>
+      relay is one binary with 40 tools across 7 categories.<br>
+      one install. one config. one process.<br>
+      <span class="hl">when it breaks, you know which thing broke.</span>
     </div>
+  </div>
 </section>
 
-<div class="doodle-divider">
-    <span></span>
-    <img src="assets/images/doodles/lightning.png" alt="">
-    <span></span>
-</div>
-
-<section>
-    <div class="wide-container">
-        <div class="solution-section fade-in">
-            <img src="assets/images/connected.png" alt="Agents connected and sharing context">
-            <div class="text">
-                <h2>What if they could pass notes?</h2>
-                <p>Relay gives your agents persistent memory and structured handoffs. Agent A checkpoints its work, Agent B picks up exactly where A left off. Like a relay race, but for shipping software.</p>
-                <span class="marginal-note">context flows, never lost</span>
-            </div>
-        </div>
+<!-- TOOL GRID -->
+<section id="tools" class="fade">
+  <div class="tools-section">
+    <div class="section-label">40 tools, 7 categories</div>
+    <div class="spaced" style="font-size:clamp(1rem,2.5vw,2rem)">E V E R Y T H I N G <span class="d">I N</span> O N E .</div>
+    <div class="tool-grid">
+      <div class="tool-cat">
+        <div class="cat-name">FILE</div>
+        <div class="cat-tools">read write list size hash zip unzip</div>
+        <div class="cat-count">7 tools</div>
+      </div>
+      <div class="tool-cat">
+        <div class="cat-name">IMAGE</div>
+        <div class="cat-tools">info resize crop convert rotate grayscale flip</div>
+        <div class="cat-count">7 tools</div>
+      </div>
+      <div class="tool-cat">
+        <div class="cat-name">PDF</div>
+        <div class="cat-tools">info page_count extract_text extract_pages merge split</div>
+        <div class="cat-count">6 tools</div>
+      </div>
+      <div class="tool-cat">
+        <div class="cat-name">TEXT</div>
+        <div class="cat-tools">word_count replace extract_regex base64_encode base64_decode md_to_html</div>
+        <div class="cat-count">6 tools</div>
+      </div>
+      <div class="tool-cat">
+        <div class="cat-name">DATA</div>
+        <div class="cat-tools">csv_to_json json_to_csv format_json query_json</div>
+        <div class="cat-count">4 tools</div>
+      </div>
+      <div class="tool-cat">
+        <div class="cat-name">WEB</div>
+        <div class="cat-tools">fetch status</div>
+        <div class="cat-count">2 tools</div>
+      </div>
+      <div class="tool-cat">
+        <div class="cat-name">WORKFLOW</div>
+        <div class="cat-tools">run_workflow pm_plan research brand ux gtm approval assemble_plan</div>
+        <div class="cat-count">8 tools</div>
+      </div>
     </div>
+  </div>
 </section>
 
-<div class="doodle-divider">
-    <span></span>
-    <img src="assets/images/doodles/sparkle.png" alt="">
-    <span></span>
-</div>
-
-<section class="agents-section">
-    <div class="wide-container">
-        <h2>Meet the agents</h2>
-        <p>Each one has a role. Together, they ship products.</p>
-
-        <div class="agent-grid">
-            <div class="agent-card fade-in">
-                <img src="assets/images/agents/agent-pm.png" alt="PM Agent">
-                <h3>PM Agent</h3>
-                <p>Breaks down features, creates issues, writes specs</p>
-            </div>
-            <div class="agent-card fade-in">
-                <img src="assets/images/agents/agent-dev.png" alt="Dev Agent">
-                <h3>Dev Agent</h3>
-                <p>Writes code, runs tests, opens pull requests</p>
-            </div>
-            <div class="agent-card fade-in">
-                <img src="assets/images/agents/agent-qa.png" alt="QA Agent">
-                <h3>QA Agent</h3>
-                <p>Reviews diffs, catches bugs, approves merges</p>
-            </div>
-            <div class="agent-card fade-in">
-                <img src="assets/images/agents/agent-ship.png" alt="Ship Agent">
-                <h3>Ship Agent</h3>
-                <p>Deploys, writes changelogs, announces launches</p>
-            </div>
-        </div>
+<!-- TERMINAL DEMO -->
+<section class="fade">
+  <div class="problem">
+    <div class="section-label">see it work</div>
+    <div class="spaced" style="font-size:clamp(1rem,2.5vw,2rem)"><span class="d">T R Y</span> O N E <span class="d">R E S U L T .</span></div>
+    <div class="terminal">
+      <div class="terminal-head">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="t">relay status</div>
+      </div>
+      <div class="terminal-body">
+        <span class="p">$ </span><span class="c">npx userelay status</span><br>
+        <span class="o">relay v0.3.0</span><br>
+        <span class="o">tools: 40 registered (7 categories)</span><br>
+        <span class="o">transport: stdio (default) | http (with --http)</span><br><br>
+        <span class="p">$ </span><span class="c">npx userelay init --list</span><br>
+        <span class="o">detected editors:</span><br>
+        <span class="o">  1. Cursor</span><br>
+        <span class="o">  2. VS Code</span><br><br>
+        <span class="p">$ </span><span class="c">npx userelay</span><br>
+        <span class="d">// launches interactive TUI, configures your editor, starts the server</span><br>
+        <span class="p">$ </span><span class="cursor"></span>
+      </div>
     </div>
+  </div>
 </section>
 
-<div class="doodle-divider">
-    <span></span>
-    <img src="assets/images/doodles/heart.png" alt="">
-    <span></span>
-</div>
-
-<section class="how-section" id="how">
-    <div class="container">
-        <h2>Get started in 3 steps</h2>
-
-        <div class="steps">
-            <div class="step fade-in">
-                <div class="step-num">1</div>
-                <div>
-                    <h3>Install Relay</h3>
-                    <p>One command. Mac, Linux, Windows. Zero dependencies.</p>
-                    <code>npx userelay</code>
-                </div>
-            </div>
-            <div class="step fade-in">
-                <div class="step-num">2</div>
-                <div>
-                    <h3>Connect your MCP client</h3>
-                    <p>Works with Claude Desktop, Cursor, Windsurf, VS Code, or any MCP tool.</p>
-                    <code>npx userelay init</code>
-                </div>
-            </div>
-            <div class="step fade-in">
-                <div class="step-num">3</div>
-                <div>
-                    <h3>Let your agents cook</h3>
-                    <p>40 tools across 7 categories. Files, images, PDFs, web, and more.</p>
-                    <code>npx userelay status</code>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- STATS -->
+<section class="fade stats">
+  <div class="section-label">the numbers</div>
+  <div class="stats-row">
+    <div class="stat"><div class="n" data-target="40">0</div><div class="l">TOOLS</div></div>
+    <div class="stat"><div class="n" data-target="7">0</div><div class="l">CATEGORIES</div></div>
+    <div class="stat"><div class="n" data-target="1">0</div><div class="l">BINARY</div></div>
+    <div class="stat"><div class="n" data-target="0">0</div><div class="l">DEPENDENCIES</div></div>
+  </div>
 </section>
 
-<section>
-    <div class="wide-container">
-        <div class="terminal-section fade-in">
-            <img src="assets/images/terminal-cozy.png" alt="Terminal with agent peeking">
-            <div class="terminal-block">
-                <div class="terminal-dots">
-                    <span class="r"></span>
-                    <span class="y"></span>
-                    <span class="g"></span>
-                </div>
-                <pre><span class="dim">$</span> <span class="blu">userelay</span> <span class="org">status</span>
-
-<span class="prp">  relay</span>        <span class="grn">&#10003;</span> v0.3.0 running
-<span class="prp">  tools</span>        <span class="grn">&#10003;</span> 40 registered (7 categories)
-<span class="prp">  transport</span>    <span class="dim">&#9676;</span> stdio (default)
-
-  <span class="grn">&#10003; files, images, pdfs, web, data</span>
-  <span class="dim">  your files stay local. no cloud.</span></pre>
-            </div>
-        </div>
-    </div>
+<!-- COMPARISON -->
+<section class="fade compare-section">
+  <div class="section-label">relay vs stitching servers together</div>
+  <div class="spaced" style="font-size:clamp(1rem,2.5vw,2rem)">O N E <span class="d">V S</span> F I V E .</div>
+  <table class="compare-table">
+    <thead>
+      <tr><th>Capability</th><th class="right">Relay</th><th class="right">Multiple servers</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="feature">One-command install</td><td class="relay"><span class="check">yes</span></td><td class="others"><span class="cross">one per server</span></td></tr>
+      <tr><td class="feature">One repo / one binary</td><td class="relay"><span class="check">yes</span></td><td class="others"><span class="cross">no</span></td></tr>
+      <tr><td class="feature">40 built-in tools</td><td class="relay"><span class="check">yes</span></td><td class="others"><span class="cross">whatever you assembled</span></td></tr>
+      <tr><td class="feature">Minutes to first result</td><td class="relay"><span class="check">yes</span></td><td class="others"><span class="cross">hours</span></td></tr>
+      <tr><td class="feature">Local file workflows</td><td class="relay"><span class="check">yes</span></td><td class="others"><span class="cross">maybe</span></td></tr>
+      <tr><td class="feature">Cross-platform release</td><td class="relay"><span class="check">yes</span></td><td class="others"><span class="cross">varies</span></td></tr>
+      <tr><td class="feature">Low ops overhead</td><td class="relay"><span class="check">yes</span></td><td class="others"><span class="cross">N processes</span></td></tr>
+      <tr><td class="feature">Memory footprint</td><td class="relay"><span class="check">1 process</span></td><td class="others"><span class="cross">N processes</span></td></tr>
+    </tbody>
+  </table>
 </section>
 
-<div class="doodle-divider">
-    <span></span>
-    <img src="assets/images/doodles/arrow.png" alt="">
-    <span></span>
-</div>
-
-<section class="sleep-section fade-in">
-    <div class="container">
-        <img src="assets/images/sleeping-dev.png" alt="Developer sleeping while agents work">
-        <h2>Ships while you sleep</h2>
-        <p>Your agents keep working after you log off. Wake up to merged PRs, updated docs, and a shipped product. Seriously.</p>
+<!-- WORKFLOWS -->
+<section class="fade">
+  <div class="workflows">
+    <div class="section-label">workflows to try first</div>
+    <div class="spaced" style="font-size:clamp(1rem,2.5vw,2rem)"><span class="d">N O T</span> T O O L S . <span class="d">W O R K F L O W S .</span></div>
+    <div class="workflow-cards">
+      <div class="workflow-card">
+        <div class="num">01</div>
+        <h4>research a repo or docs page</h4>
+        <p>fetch a github repo, summarize what it does, list 3 commands worth trying, save notes to local markdown.</p>
+        <div class="tools"><span>web_fetch</span><span>file_write</span></div>
+      </div>
+      <div class="workflow-card">
+        <div class="num">02</div>
+        <h4>turn PDFs into structured data</h4>
+        <p>read every PDF in a folder, extract text, pull out all dollar amounts, save one JSON file.</p>
+        <div class="tools"><span>file_list</span><span>pdf_extract_text</span><span>data_json_format</span><span>file_write</span></div>
+      </div>
+      <div class="workflow-card">
+        <div class="num">03</div>
+        <h4>fetch web, ship an artifact</h4>
+        <p>fetch a pricing page, turn important points into markdown, convert to HTML, save as a file you can open and share.</p>
+        <div class="tools"><span>web_fetch</span><span>text_md_to_html</span><span>file_write</span></div>
+      </div>
     </div>
+  </div>
 </section>
 
-<section>
-    <div class="container">
-        <div class="comparison fade-in">
-            <a href="https://github.com/valtors/relay#how-does-relay-compare" style="display:block;max-width:700px;margin:0 auto;text-decoration:none;">
-                <img src="assets/images/comparison.png" alt="Without Relay vs With Relay comparison" style="width:100%;height:auto;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.06);transition:transform 0.2s;cursor:pointer;" onmouseover="this.style.transform='translateY(-3px)';" onmouseout="this.style.transform='';">
-            </a>
-        </div>
+<!-- TUI MOCK -->
+<section class="fade">
+  <div class="problem">
+    <div class="section-label">interactive mode</div>
+    <div class="spaced" style="font-size:clamp(1rem,2.5vw,2rem)"><span class="d">N O T</span> A <span class="d">D A E M O N .</span> A <span class="d">T U I .</span></div>
+    <div class="tui-mock">
+      <div class="head">relay v0.3.0 -- 40 tools, 7 categories</div>
+      <div class="body">
+        <div class="box">  relay v0.3.0                    </div>
+        <div class="box">  40 tools, 7 categories          </div><br><br>
+        <div class="selected">Start MCP server (stdio)</div>
+        <div class="item">  Start MCP server (HTTP)</div>
+        <div class="item">  Initialize -- detect &amp; configure editors</div>
+        <div class="item">  Browse tools</div>
+        <div class="item">  Status</div>
+        <div class="item">  Quit</div>
+      </div>
     </div>
+    <p style="font-family:var(--mono);font-size:.75rem;color:#333;margin-top:1.5rem;text-align:center">animated RELAY wordmark on launch. keyboard-navigable. if stdin is not a TTY, starts the server directly.</p>
+  </div>
 </section>
 
-<div class="doodle-divider">
-    <span></span>
-    <img src="assets/images/doodles/lightning.png" alt="">
-    <span></span>
-</div>
-
-<section class="tools-overview">
-    <div class="wide-container fade-in" style="text-align:center;">
-        <a href="https://github.com/valtors/relay#what-it-does" style="display:inline-block;max-width:100%;text-decoration:none;">
-            <img src="assets/images/tools-section.png" alt="Tools built in - Image, PDF, Files, Text, Web, Data" style="max-width:100%;height:auto;border-radius:12px;transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 32px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
-        </a>
-    </div>
+<!-- INSTALL -->
+<section id="install" class="fade install">
+  <div class="section-label">install</div>
+  <div class="spaced" style="font-size:clamp(1.1rem,3vw,2.2rem)"><span class="d">O N E</span> C O M M A N D . <span class="d">T H A T ' S</span> I T .</div>
+  <div class="install-cmd" onclick="copyCmd(this)">
+    <div class="copied">copied to clipboard</div>
+    <span class="pre">$ </span><span class="cmd">npx userelay</span>
+  </div>
+  <div class="install-extras">
+    <div><span class="c">#</span> or use subcommands</div>
+    <div><span class="f">npx userelay tui</span> <span class="c"># launch interactive menu</span></div>
+    <div><span class="f">npx userelay init</span> <span class="c"># configure your editor</span></div>
+    <div><span class="f">npx userelay status</span> <span class="c"># check version and tools</span></div>
+    <div><span class="f">npx userelay --help</span> <span class="c"># see all commands</span></div>
+    <br>
+    <div><span class="c"># or install from source</span></div>
+    <div><span class="f">go install github.com/valtors/relay@latest</span></div>
+  </div>
 </section>
 
-<div class="doodle-divider">
-    <span></span>
-    <img src="assets/images/doodles/star.png" alt="">
-    <span></span>
-</div>
-
-<section class="roadmap-section">
-    <div class="wide-container fade-in" style="text-align:center;">
-        <a href="https://github.com/valtors/relay#roadmap" style="display:inline-block;max-width:100%;text-decoration:none;">
-            <img src="assets/images/roadmap-section.png" alt="Roadmap - Foundation, Tools + CLI, Orchestration, Hermes Bridge" style="max-width:100%;height:auto;border-radius:12px;transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 32px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
-        </a>
-    </div>
-</section>
-
-<div class="doodle-divider">
-    <span></span>
-    <img src="assets/images/doodles/heart.png" alt="">
-    <span></span>
-</div>
-
-<section class="compare-section">
-    <div class="wide-container fade-in" style="text-align:center;">
-        <a href="https://github.com/valtors/relay/blob/main/docs/comparison.md" style="display:inline-block;max-width:100%;text-decoration:none;">
-            <img src="assets/images/comparison-section.png" alt="Why Relay wins - comparison table vs CrewAI, LangGraph, AutoGen, Swarm" style="max-width:100%;height:auto;border-radius:12px;transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 32px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
-        </a>
-    </div>
-</section>
-
-<section class="faq-section">
-    <div class="container">
-        <div class="section-header fade-in" style="text-align:center;">
-            <h2>FAQ</h2>
-        </div>
-
-        <div class="faq-list">
-            <details class="faq-item fade-in">
-                <summary>What exactly is an MCP server?</summary>
-                <p>MCP (Model Context Protocol) is a standard that lets AI tools like Claude Desktop and Cursor connect to external servers for extra capabilities. Relay is one of those servers. You plug it in, and your AI gets access to tools, memory, and coordination it didn't have before.</p>
-            </details>
-
-            <details class="faq-item fade-in">
-                <summary>Do I need to know Go to use Relay?</summary>
-                <p>Nope. You install the binary and connect it. It works with whatever AI client you already use. If you want to contribute or extend it, then yes, the codebase is Go.</p>
-            </details>
-
-            <details class="faq-item fade-in">
-                <summary>How is this different from just using Claude/GPT directly?</summary>
-                <p>AI models forget everything between chats. Relay gives them persistent memory (checkpoints), the ability to hand off work to other agents (orchestration), and real-world capabilities like resizing images or parsing PDFs (tools). Think of it as upgrading your AI from a chatbot to a coworker.</p>
-            </details>
-
-            <details class="faq-item fade-in">
-                <summary>Is it actually free? What's the catch?</summary>
-                <p>MIT licensed, fully open source, no telemetry, no paid tier planned. We build in the open because we use it ourselves and want others to benefit. The "catch" is it's early and we'd love your contributions.</p>
-            </details>
-
-            <details class="faq-item fade-in">
-                <summary>Can I use this with Cursor / Windsurf / other tools?</summary>
-                <p>Yes. Any MCP-compatible client works. Claude Desktop, Cursor, Windsurf, and even terminal-based clients. If it speaks MCP, it connects to Relay.</p>
-            </details>
-
-            <details class="faq-item fade-in">
-                <summary>Does it work with my editor?</summary>
-                <p>Yes. Any MCP-compatible client works. Claude Desktop, Cursor, Windsurf, VS Code, and even terminal-based clients. If it speaks MCP, it connects to Relay. Run <code>npx userelay init</code> to set up your editor automatically.</p>
-            </details>
-
-            <details class="faq-item fade-in">
-                <summary>How can I contribute?</summary>
-                <p>Check out our <a href="https://github.com/valtors/relay/blob/main/CONTRIBUTING.md">contributing guide</a>. We have open issues tagged for first-timers. The codebase is clean Go with zero magic. Pick a tool that interests you and send a PR.</p>
-            </details>
-
-            <details class="faq-item fade-in">
-                <summary>Is my data safe? Does Relay phone home?</summary>
-                <p>Relay runs 100% locally on your machine. No cloud, no analytics, no telemetry. Your checkpoints and agent data stay in your project directory. We never see them.</p>
-            </details>
-        </div>
-    </div>
-</section>
-
-<div class="doodle-divider">
-    <span></span>
-    <img src="assets/images/doodles/sparkle.png" alt="">
-    <span></span>
-</div>
-
-<section class="cta-section">
-    <div class="container fade-in">
-        <div class="doodle-row">
-            <img src="assets/images/doodles/star.png" alt="">
-            <img src="assets/images/doodles/sparkle.png" alt="">
-            <img src="assets/images/doodles/heart.png" alt="">
-        </div>
-
-        <h2>Ready to let your agents<br>do the heavy lifting?</h2>
-        <p>Open source. Written in Go. Free forever.</p>
-
-        <a href="https://github.com/valtors/relay" class="pill">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-            Get Relay on GitHub
-        </a>
-        <span class="cta-annotation">^ takes 30 seconds, promise</span>
-    </div>
-</section>
-
+<!-- FOOTER -->
 <footer>
-    <div class="container">
-        <div class="footer-links">
-            <a href="https://github.com/valtors/relay">GitHub</a>
-            <a href="https://github.com/valtors/relay/blob/main/CONTRIBUTING.md">Contribute</a>
-            <a href="https://github.com/valtors/relay/blob/main/SECURITY.md">Security</a>
-        </div>
-        <p>Built by <a href="https://github.com/tamish560">Tamish</a> &middot; Open source under MIT</p>
-    </div>
+  <div class="logo">relay<span>.</span></div>
+  <p>one MCP server for files, images, PDFs, web, and workflows. MIT licensed. no telemetry. no account. no cloud.</p>
+  <div class="links">
+    <a href="https://github.com/valtors/relay">github</a>
+    <a href="https://github.com/valtors/relay/blob/main/README.md">readme</a>
+    <a href="https://github.com/valtors/relay/blob/main/docs/comparison.md">comparison</a>
+    <a href="https://github.com/valtors/relay/issues">issues</a>
+    <a href="https://www.npmjs.com/package/userelay">npm</a>
+  </div>
+  <div class="copy">MIT. NO TELEMETRY. NO ACCOUNT. NO CLOUD. YOUR FILES STAY ON YOUR MACHINE.</div>
 </footer>
 
 <script>
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) entry.target.classList.add('visible');
-    });
-}, { threshold: 0.1 });
-document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+const obs=new IntersectionObserver((e)=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('visible')})},{threshold:.15});
+document.querySelectorAll('.fade').forEach(el=>obs.observe(el));
 
-// Click ripple effect
-(function() {
-    var colors = ['#FF6B35', '#7C3AED', '#059669', '#2563EB', '#1a1a1a'];
-    var fxLayer = document.createElement('div');
-    fxLayer.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:visible';
-    document.body.appendChild(fxLayer);
+function copyCmd(el){const t=el.querySelector('.cmd').textContent;navigator.clipboard.writeText(t).then(()=>{const c=el.querySelector('.copied');c.classList.add('show');setTimeout(()=>c.classList.remove('show'),1500)})}
 
-    document.addEventListener('click', function(e) {
-        var x = e.clientX, y = e.clientY;
-
-        var ripple = document.createElement('div');
-        var color = colors[Math.floor(Math.random() * colors.length)];
-        ripple.style.cssText = 'position:absolute;left:' + (x-15) + 'px;top:' + (y-15) + 'px;width:30px;height:30px;border-radius:50%;border:2px solid ' + color + ';pointer-events:none;animation:rippleExp 0.6s ease-out forwards';
-        fxLayer.appendChild(ripple);
-        setTimeout(function() { ripple.remove(); }, 600);
-
-        var n = 8;
-        for (var i = 0; i < n; i++) {
-            var spark = document.createElement('div');
-            var c = colors[Math.floor(Math.random() * colors.length)];
-            var angle = (Math.PI * 2 * i) / n + Math.random() * 0.4;
-            var dist = 25 + Math.random() * 35;
-            spark.style.cssText = 'position:absolute;left:' + (x-3) + 'px;top:' + (y-3) + 'px;width:6px;height:6px;border-radius:50%;background:' + c + ';pointer-events:none;--dx:' + Math.cos(angle)*dist + 'px;--dy:' + Math.sin(angle)*dist + 'px;animation:sparkFly 0.5s ease-out forwards';
-            fxLayer.appendChild(spark);
-            (function(s) { setTimeout(function() { s.remove(); }, 500); })(spark);
-        }
-    });
-
-    var style = document.createElement('style');
-    style.textContent = '@keyframes rippleExp{0%{transform:scale(0);opacity:0.7}100%{transform:scale(4);opacity:0}}@keyframes sparkFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}';
-    document.head.appendChild(style);
-})();
+const statObs=new IntersectionObserver((e)=>{e.forEach(x=>{if(!x.isIntersecting)return;const el=x.target,tgt=parseInt(el.dataset.target);let cur=0;const step=Math.max(1,Math.ceil(tgt/30));const tk=setInterval(()=>{cur+=step;if(cur>=tgt){cur=tgt;clearInterval(tk)}el.textContent=cur},40);statObs.unobserve(el)})},{threshold:.5});
+document.querySelectorAll('.stat .n').forEach(el=>statObs.observe(el));
 </script>
-
 </body>
 </html>
