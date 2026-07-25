@@ -1,12 +1,83 @@
-# Relay Examples
+# relay examples
 
-Common configurations for using Relay with different editors and setups.
+## quick start
 
-## Files
+```bash
+# zero config - opens setup wizard
+npx userelay
+```
 
-- `claude-desktop.json` - Claude Desktop MCP config
-- `cursor.json` - Cursor MCP config
-- `vscode.json` - VS Code MCP config
-- `http-server.sh` - Run Relay as an HTTP server
-- `docker-compose.yml` - Run Relay in Docker
-- `env-file.example` - Environment variables for workflow tools
+## with claude desktop
+
+```json
+{
+  "mcpServers": {
+    "relay": {
+      "command": "npx",
+      "args": ["-y", "userelay"]
+    }
+  }
+}
+```
+
+## file tools
+
+```bash
+# relay provides these MCP tools to your agent:
+# - read_file: read any file
+# - write_file: write files
+# - list_files: list directory contents
+# - search_files: search file contents
+# - move_file: move or rename files
+```
+
+## web tools
+
+relay gives your agent web access without leaving the terminal:
+
+```
+agent: "what's on hacker news?"
+-> relay fetches https://news.ycombinator.com
+-> returns clean markdown to the agent
+-> agent summarizes
+```
+
+## pdf tools
+
+```
+agent: "read the pdf at /tmp/paper.pdf and summarize"
+-> relay extracts text from the pdf
+-> returns text to the agent
+-> agent summarizes
+```
+
+## image tools
+
+```
+agent: "analyze the screenshot at /tmp/screen.png"
+-> relay reads the image
+-> returns metadata (dimensions, format, size)
+```
+
+## configuration
+
+relay reads its config from `~/.relay/config.json`:
+
+```json
+{
+  "allowedPaths": ["/home/user", "/tmp"],
+  "webFetch": true,
+  "maxFileSize": "10MB"
+}
+```
+
+## multiple agents
+
+relay works with any MCP-compatible agent:
+- claude desktop
+- cline
+- goose
+- codex
+- any client that speaks MCP
+
+just point the client at relay. it gets all tools in one server.
