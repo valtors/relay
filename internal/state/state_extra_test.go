@@ -103,3 +103,45 @@ func mustOutputDir(t *testing.T) string {
 	}
 	return dir
 }
+
+func TestIsStageComplete_NotFound(t *testing.T) {
+	dir := t.TempDir()
+	os.Setenv("RELAY_SESSION_DIR", dir)
+	defer os.Unsetenv("RELAY_SESSION_DIR")
+	result := IsStageComplete("nonexistent_stage")
+	if result {
+		t.Error("expected false for nonexistent stage")
+	}
+}
+
+func TestIncrementIteration(t *testing.T) {
+	dir := t.TempDir()
+	os.Setenv("RELAY_SESSION_DIR", dir)
+	defer os.Unsetenv("RELAY_SESSION_DIR")
+	n, err := IncrementIteration("test_stage")
+	if err != nil {
+		t.Fatalf("IncrementIteration: %v", err)
+	}
+	if n != 1 {
+		t.Errorf("expected 1, got %d", n)
+	}
+	n2, _ := IncrementIteration("test_stage")
+	if n2 != 2 {
+		t.Errorf("expected 2, got %d", n2)
+	}
+}
+
+func TestAcquireLock_DoubleAcquire(t *testing.T) {
+	dir := t.TempDir()
+	os.Setenv("RELAY_SESSION_DIR", dir)
+	defer os.Unsetenv("RELAY_SESSION_DIR")
+	err := AcquireLock("test_double")
+	if err != nil {
+		t.Fatalf("first AcquireLock: %v", err)
+	}
+	err2 := AcquireLock("test_double")
+	if err2 == nil {
+		t.Error("expected error on second acquire")
+	}
+	ReleaseLock("test_double")
+}
