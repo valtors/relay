@@ -8,6 +8,8 @@
 
 Run it with `npx userelay`.
 
+[landing](https://valtors.github.io/relay/) - [github](https://github.com/valtors/relay) - [npm](https://www.npmjs.com/package/userelay)
+
 [![CI](https://img.shields.io/github/actions/workflow/status/valtors/relay/ci.yml?style=for-the-badge&logo=githubactions&label=ci)](https://github.com/valtors/relay/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/userelay?style=for-the-badge&logo=npm&label=npm)](https://www.npmjs.com/package/userelay)
 [![License](https://img.shields.io/github/license/valtors/relay?style=for-the-badge&label=license)](LICENSE)
