@@ -16,3 +16,4 @@ keys/signing_key.pem
 keys/*.private
 *.private.pem
 npm/tui/node_modules/
+coverage.out
