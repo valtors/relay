@@ -3,6 +3,8 @@ package state
 import (
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -144,4 +146,72 @@ func TestAcquireLock_DoubleAcquire(t *testing.T) {
 		t.Error("expected error on second acquire")
 	}
 	ReleaseLock("test_double")
+}
+
+func TestAcquireLock_StaleLock(t *testing.T) {
+	dir := t.TempDir()
+	oldDir, _ := os.Getwd()
+	defer os.Chdir(oldDir)
+	os.Chdir(dir)
+
+	filename := "test.txt"
+	lp, _ := lockPath(filename)
+	os.MkdirAll(filepath.Dir(lp), 0755)
+	os.WriteFile(lp, []byte("999999"), 0o644)
+
+	err := AcquireLock(filename)
+	if err != nil {
+		t.Fatalf("should clear stale lock: %v", err)
+	}
+
+	b, _ := os.ReadFile(lp)
+	pid, _ := strconv.Atoi(strings.TrimSpace(string(b)))
+	if pid != os.Getpid() {
+		t.Errorf("expected own pid, got %d", pid)
+	}
+	ReleaseLock(filename)
+}
+
+func TestAcquireLock_OwnPid(t *testing.T) {
+	dir := t.TempDir()
+	filename := filepath.Join(dir, "test2.txt")
+
+	lp, _ := lockPath(filename)
+	os.WriteFile(lp, []byte(strconv.Itoa(os.Getpid())), 0o644)
+
+	err := AcquireLock(filename)
+	if err == nil {
+		t.Error("should error when locked by own pid")
+		ReleaseLock(filename)
+	}
+}
+
+func TestWriteOutput_NestedDir(t *testing.T) {
+	dir := t.TempDir()
+	oldDir, _ := os.Getwd()
+	defer os.Chdir(oldDir)
+	os.Chdir(dir)
+
+	err := WriteOutput("test.txt", "hello world")
+	if err != nil {
+		t.Errorf("WriteOutput failed: %v", err)
+	}
+
+	od, _ := OutputDir()
+	data, _ := os.ReadFile(filepath.Join(od, "test.txt"))
+	if string(data) != "hello world" {
+		t.Errorf("content mismatch: %s", data)
+	}
+}
+
+func TestReadBrief_NonExistent(t *testing.T) {
+	dir := t.TempDir()
+	oldDir, _ := os.Getwd()
+	defer os.Chdir(oldDir)
+	os.Chdir(dir)
+
+	_, err := ReadBrief(filepath.Join(dir, "nonexistent.md"))
+	if err == nil {
+		t.Error("should error on nonexistent file")
+	}
 }
