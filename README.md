@@ -426,7 +426,7 @@ To explicitly launch the TUI: `npx userelay tui`
 
 ## Tests
 
-50 tests. 65.9% coverage. all pass.
+60 tests. 67.0% coverage. all pass.
 
 ```bash
 go test ./... -count=1
