@@ -16,7 +16,7 @@ Run it with `npx userelay`.
 [![GitHub stars](https://img.shields.io/github/stars/valtors/relay?style=for-the-badge&logo=github)](https://github.com/valtors/relay/stargazers)
 [![npm downloads](https://img.shields.io/npm/dm/userelay?style=for-the-badge&logo=npm&label=downloads)](https://www.npmjs.com/package/userelay)
 [![contributors](https://img.shields.io/github/contributors/valtors/relay?style=for-the-badge&label=contributors)](https://github.com/valtors/relay/graphs/contributors)
-[![tests](https://img.shields.io/badge/tests-50-green?style=for-the-badge)](https://github.com/valtors/relay)
+[![tests](https://img.shields.io/badge/tests-60-green?style=for-the-badge)](https://github.com/valtors/relay)
 
 </div>
 
