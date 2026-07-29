@@ -442,6 +442,7 @@ go test ./... -count=1
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/leemeo3"><img src="https://avatars.githubusercontent.com/u/117142323?v=4?s=64" width="64px;" alt="Lee Sang Hoon"/><br /><sub><b>Lee Sang Hoon</b></sub></a><br /><a href="https://github.com/valtors/relay/commits?author=leemeo3" title="Code">💻</a> <a href="https://github.com/valtors/relay/commits?author=leemeo3" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/rubysnewjourney"><img src="https://avatars.githubusercontent.com/u/283093796?v=4?s=64" width="64px;" alt="rubysnewjourney"/><br /><sub><b>rubysnewjourney</b></sub></a><br /><a href="https://github.com/valtors/relay/commits?author=rubysnewjourney" title="Code">💻</a> <a href="https://github.com/valtors/relay/commits?author=rubysnewjourney" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/apps/dependabot"><img src="https://avatars.githubusercontent.com/in/29110?v=4?s=64" width="64px;" alt="dependabot[bot]"/><br /><sub><b>dependabot[bot]</b></sub></a><br /><a href="https://github.com/valtors/relay/commits?author=dependabot[bot]" title="Code">💻</a> <a href="https://github.com/valtors/relay/commits?author=dependabot[bot]" title="Documentation">📖</a></td>
     </tr>
   </tbody>
   <tfoot>
