@@ -25,6 +25,15 @@ jobs:
             exit 1
           fi
 
+      - name: license headers
+        run: |
+          missing=$(find . -name "*.go" -not -path "./vendor/*" -exec grep -L "SPDX-License-Identifier: MIT" {} \;)
+          if [ -n "$missing" ]; then
+            echo "Missing license headers:"
+            echo "$missing"
+            exit 1
+          fi
+
       - name: go vet
         run: go vet ./...
 
