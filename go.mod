@@ -8,7 +8,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/mark3labs/mcp-go v0.58.0
 	github.com/muesli/termenv v0.16.0
-	github.com/pdfcpu/pdfcpu v0.14.0
+	github.com/pdfcpu/pdfcpu v0.15.0
 	github.com/stretchr/testify v1.12.1
 )
 
