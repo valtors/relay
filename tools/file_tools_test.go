@@ -221,3 +221,27 @@ func TestFileRead_PathTraversal(t *testing.T) {
 	assert.True(t, result.IsError)
 	assert.Contains(t, resultText(t, result), "outside working directory")
 }
+
+func TestFileRead_RejectsSymlinkEscape(t *testing.T) {
+	dir := tempWorkDir(t)
+	outside := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(outside, "secret.txt"), []byte("secret"), 0o600))
+	require.NoError(t, os.Symlink(outside, filepath.Join(dir, "outside")))
+
+	result := callTool(t, FileRead, map[string]any{"path": "outside/secret.txt"})
+
+	require.True(t, result.IsError)
+	assert.Contains(t, resultText(t, result), "outside working directory")
+}
+
+func TestFileWrite_RejectsSymlinkParentEscape(t *testing.T) {
+	dir := tempWorkDir(t)
+	outside := t.TempDir()
+	require.NoError(t, os.Symlink(outside, filepath.Join(dir, "outside")))
+
+	result := callTool(t, FileWrite, map[string]any{"path": "outside/pwned.txt", "content": "nope"})
+
+	require.True(t, result.IsError)
+	assert.Contains(t, resultText(t, result), "outside working directory")
+	assert.NoFileExists(t, filepath.Join(outside, "pwned.txt"))
+}
