@@ -40,6 +40,16 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "tamish560",
+      "name": "Tamish Mhatre",
+      "avatar_url": "https://avatars.githubusercontent.com/u/189916421?v=4",
+      "profile": "https://github.com/tamish560",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
