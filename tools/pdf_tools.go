@@ -26,7 +26,7 @@ type pdfPageDimension struct {
 	Height float64 `json:"height"`
 }
 
-func PDFInfoTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func PDFInfoTool(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	path := strings.TrimSpace(req.GetString("path", ""))
 	if path == "" {
 		return mcp.NewToolResultError("path is required"), nil
@@ -43,12 +43,12 @@ func PDFInfoTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResul
 	}
 	defer func() { _ = file.Close() }()
 
-	info, err := api.PDFInfo(file, filepath.Base(resolved), nil, false, nil)
+	info, err := api.PDFInfo(ctx, file, filepath.Base(resolved), nil, false, nil)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("read pdf info: %v", err)), nil
 	}
 
-	dims, err := api.PageDimsFile(resolved)
+	dims, err := api.PageDimsFile(ctx, resolved)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("read page dimensions: %v", err)), nil
 	}
@@ -71,7 +71,7 @@ func PDFInfoTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResul
 	}), nil
 }
 
-func PDFExtractTextTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func PDFExtractTextTool(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	path := strings.TrimSpace(req.GetString("path", ""))
 	if path == "" {
 		return mcp.NewToolResultError("path is required"), nil
@@ -87,23 +87,23 @@ func PDFExtractTextTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 
-	ctx, err := api.ReadContextFile(resolved)
+	pdfCtx, err := api.ReadContextFile(ctx, resolved)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("read pdf: %v", err)), nil
 	}
 
-	pages, err := api.PagesForPageSelection(ctx.PageCount, selectedPages, true, true)
+	pages, err := api.PagesForSelection(pdfCtx.PageCount, selectedPages, true)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("parse pages: %v", err)), nil
 	}
 
-	parts := make([]string, 0, ctx.PageCount)
-	for page := 1; page <= ctx.PageCount; page++ {
+	parts := make([]string, 0, pdfCtx.PageCount)
+	for page := 1; page <= pdfCtx.PageCount; page++ {
 		if !pages[page] {
 			continue
 		}
 
-		reader, err := pdfcpu.ExtractPageContent(ctx, page)
+		reader, err := pdfcpu.ExtractPageContent(ctx, pdfCtx, page)
 		if err != nil {
 			return mcp.NewToolResultError(fmt.Sprintf("extract page %d content: %v", page, err)), nil
 		}
@@ -122,7 +122,7 @@ func PDFExtractTextTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	return mcp.NewToolResultText(strings.TrimSpace(strings.Join(parts, "\n\n"))), nil
 }
 
-func PDFPageCountTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func PDFPageCountTool(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	path := strings.TrimSpace(req.GetString("path", ""))
 	if path == "" {
 		return mcp.NewToolResultError("path is required"), nil
@@ -133,7 +133,7 @@ func PDFPageCountTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallTool
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 
-	count, err := api.PageCountFile(resolved)
+	count, err := api.PageCountFile(ctx, resolved)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("count pdf pages: %v", err)), nil
 	}
@@ -141,7 +141,7 @@ func PDFPageCountTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallTool
 	return mcp.NewToolResultText(strconv.Itoa(count)), nil
 }
 
-func PDFMergeTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func PDFMergeTool(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	paths, err := req.RequireStringSlice("paths")
 	if err != nil || len(paths) == 0 {
 		return mcp.NewToolResultError("paths is required"), nil
@@ -172,14 +172,14 @@ func PDFMergeTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResu
 		return mcp.NewToolResultError(fmt.Sprintf("create output directory: %v", err)), nil
 	}
 
-	if err := api.MergeCreateFile(resolvedPaths, outputPath, false, nil); err != nil {
+	if err := api.MergeCreateFile(ctx, resolvedPaths, outputPath, false, nil); err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("merge pdfs: %v", err)), nil
 	}
 
 	return mcp.NewToolResultText(outputPath), nil
 }
 
-func PDFSplitTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func PDFSplitTool(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	path := strings.TrimSpace(req.GetString("path", ""))
 	if path == "" {
 		return mcp.NewToolResultError("path is required"), nil
@@ -207,7 +207,7 @@ func PDFSplitTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResu
 		return mcp.NewToolResultError(fmt.Sprintf("create output directory: %v", err)), nil
 	}
 
-	if err := api.SplitFile(resolved, outputDir, 1, nil); err != nil {
+	if err := api.SplitFile(ctx, resolved, outputDir, 1, nil); err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("split pdf: %v", err)), nil
 	}
 
@@ -232,7 +232,7 @@ func PDFSplitTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResu
 	return pdfJSONResult(newFiles), nil
 }
 
-func PDFExtractPagesTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func PDFExtractPagesTool(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	path := strings.TrimSpace(req.GetString("path", ""))
 	if path == "" {
 		return mcp.NewToolResultError("path is required"), nil
@@ -261,7 +261,7 @@ func PDFExtractPagesTool(_ context.Context, req mcp.CallToolRequest) (*mcp.CallT
 		return mcp.NewToolResultError(fmt.Sprintf("create output directory: %v", err)), nil
 	}
 
-	if err := api.TrimFile(resolved, outputPath, selectedPages, nil); err != nil {
+	if err := api.TrimFile(ctx, resolved, outputPath, selectedPages, nil); err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("extract pdf pages: %v", err)), nil
 	}
 
