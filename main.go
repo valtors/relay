@@ -67,6 +67,8 @@ func runCLI(args []string, stdout, stderr io.Writer) int {
 		return runToolsCommand(args[1:], stdout, stderr, stdoutUI)
 	case "init":
 		return runInitCommand(args[1:], os.Stdin, stdout, stderr, stdoutUI)
+	case "config":
+		return runConfigCommand(args[1:], stdout, stderr, stdoutUI)
 	case "status":
 		return runStatusCommand(args[1:], stdout, stderr, stdoutUI)
 	case "doctor":
