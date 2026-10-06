@@ -12,6 +12,6 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /build/relay /usr/local/bin/relay
 
-EXPOSE 3000
+EXPOSE 8080
 
 ENTRYPOINT ["relay"]

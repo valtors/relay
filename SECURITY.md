@@ -19,7 +19,7 @@ Do **not** open a public GitHub issue for undisclosed vulnerabilities. Include a
 
 Relay is primarily a local tool, but it **can** use the network:
 
-- It can listen for inbound HTTP connections when started with `relay start --http` or `relay --http`, using a configurable address such as `--addr :8080`.
+- It can listen for inbound HTTP connections when started with `relay start --http` or `relay --http`. The default is loopback-only (`127.0.0.1:8080`). Binding to a wildcard or non-loopback address exposes Relay's tools to the network and must only be done behind appropriate authentication and network controls.
 - It makes outbound API requests required by configured features, including Anthropic integration.
 - `tools/web_tools.go` can fetch arbitrary user-supplied URLs.
 - `internal/search/ddg.go` sends search requests to DuckDuckGo.
