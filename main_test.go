@@ -124,6 +124,19 @@ func TestRunCLI_Status(t *testing.T) {
 	assert.Empty(t, stderr.String())
 }
 
+func TestRunCLI_Config(t *testing.T) {
+	t.Setenv("ANTHROPIC_API_KEY", "test-secret-value")
+	var stdout, stderr bytes.Buffer
+
+	code := runCLI([]string{"config"}, &stdout, &stderr)
+
+	assert.Equal(t, 0, code)
+	assert.Contains(t, stdout.String(), "relay config")
+	assert.Contains(t, stdout.String(), "ANTHROPIC_API_KEY")
+	assert.NotContains(t, stdout.String(), "test-secret-value")
+	assert.Empty(t, stderr.String())
+}
+
 func TestRenderBanner_StylingToggle(t *testing.T) {
 	plain := (cliUI{}).renderBanner(Version, 40, "stdio")
 
