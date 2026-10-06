@@ -4,6 +4,7 @@ package tools
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -96,7 +98,7 @@ func TestPdfMerge(t *testing.T) {
 	require.False(t, result.IsError)
 	assert.Contains(t, resultText(t, result), "merged.pdf")
 
-	count, err := api.PageCountFile(output)
+	count, err := api.PageCountFile(context.Background(), output)
 	require.NoError(t, err)
 	assert.Equal(t, 3, count)
 }
@@ -135,7 +137,7 @@ func TestPdfExtractPages(t *testing.T) {
 	require.False(t, result.IsError)
 	assert.Contains(t, resultText(t, result), "extracted.pdf")
 
-	count, err := api.PageCountFile(output)
+	count, err := api.PageCountFile(context.Background(), output)
 	require.NoError(t, err)
 	assert.Equal(t, 2, count)
 }
@@ -156,6 +158,65 @@ func TestPdfErrors(t *testing.T) {
 		require.True(t, result.IsError)
 		assert.Contains(t, resultText(t, result), "read pdf info")
 	})
+}
+
+func TestPdfToolsHonorCanceledContext(t *testing.T) {
+	tempWorkDir(t)
+	path := "canceled.pdf"
+	secondPath := "second.pdf"
+	writeTestPDF(t, path, testPDFSpec{Pages: 1})
+	writeTestPDF(t, secondPath, testPDFSpec{Pages: 1})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	for _, test := range []struct {
+		name       string
+		handler    func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error)
+		args       map[string]any
+		outputPath string
+	}{
+		{name: "info", handler: PDFInfoTool, args: map[string]any{"path": path}},
+		{name: "extract text", handler: PDFExtractTextTool, args: map[string]any{"path": path}},
+		{name: "page count", handler: PDFPageCountTool, args: map[string]any{"path": path}},
+		{
+			name:       "merge",
+			handler:    PDFMergeTool,
+			args:       map[string]any{"paths": []string{path, secondPath}, "output": "merged.pdf"},
+			outputPath: "merged.pdf",
+		},
+		{
+			name:       "split",
+			handler:    PDFSplitTool,
+			args:       map[string]any{"path": path, "output_dir": "split-output"},
+			outputPath: "split-output",
+		},
+		{
+			name:       "extract pages",
+			handler:    PDFExtractPagesTool,
+			args:       map[string]any{"path": path, "pages": "1", "output": "extracted.pdf"},
+			outputPath: "extracted.pdf",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			req := mcp.CallToolRequest{}
+			req.Params.Arguments = test.args
+
+			result, err := test.handler(ctx, req)
+			require.NoError(t, err)
+			require.True(t, result.IsError)
+			assert.Contains(t, resultText(t, result), "context canceled")
+
+			if test.outputPath != "" {
+				entries, err := filepath.Glob(filepath.Join(test.outputPath, "*.pdf"))
+				require.NoError(t, err)
+				assert.Empty(t, entries, "canceled operation must not publish PDF output")
+				if filepath.Ext(test.outputPath) == ".pdf" {
+					assert.NoFileExists(t, test.outputPath)
+				}
+			}
+		})
+	}
 }
 
 type testPDFSpec struct {

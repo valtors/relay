@@ -10,7 +10,7 @@ You will add one small improvement to Relay and open a pull request.
 
 You need:
 - Git
-- Go 1.22 or newer
+- Go 1.26 or newer
 
 ## Steps
 
