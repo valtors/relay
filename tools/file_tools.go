@@ -246,7 +246,10 @@ func resolveToolPath(path string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("get current directory: %w", err)
 	}
-	wd = filepath.Clean(wd)
+	wd, err = filepath.EvalSymlinks(filepath.Clean(wd))
+	if err != nil {
+		return "", fmt.Errorf("resolve working directory: %w", err)
+	}
 
 	var resolved string
 	if filepath.IsAbs(path) {
@@ -255,15 +258,45 @@ func resolveToolPath(path string) (string, error) {
 		resolved = filepath.Clean(filepath.Join(wd, path))
 	}
 
-	rel, err := filepath.Rel(wd, resolved)
+	canonical, err := canonicalizeToolPath(resolved)
 	if err != nil {
-		return "", fmt.Errorf("path outside working directory: %s", path)
+		return "", err
 	}
-	if strings.HasPrefix(rel, "..") {
+
+	rel, err := filepath.Rel(wd, canonical)
+	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
 		return "", fmt.Errorf("path outside working directory: %s", path)
 	}
 
-	return resolved, nil
+	return canonical, nil
+}
+
+// canonicalizeToolPath resolves all existing symlink components. For a path
+// that does not exist yet, it resolves the nearest existing ancestor and then
+// rejoins the missing suffix. This prevents writes through a symlinked parent.
+func canonicalizeToolPath(path string) (string, error) {
+	current := filepath.Clean(path)
+	missing := make([]string, 0)
+
+	for {
+		canonical, err := filepath.EvalSymlinks(current)
+		if err == nil {
+			for i := len(missing) - 1; i >= 0; i-- {
+				canonical = filepath.Join(canonical, missing[i])
+			}
+			return filepath.Clean(canonical), nil
+		}
+		if !os.IsNotExist(err) {
+			return "", fmt.Errorf("resolve path: %w", err)
+		}
+
+		parent := filepath.Dir(current)
+		if parent == current {
+			return "", fmt.Errorf("resolve path: %w", err)
+		}
+		missing = append(missing, filepath.Base(current))
+		current = parent
+	}
 }
 
 func readFileCapped(path string, maxBytes int64) ([]byte, bool, error) {
