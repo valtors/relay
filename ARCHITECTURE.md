@@ -164,7 +164,7 @@ Each stage:
 
 Relay runs as a single process. Two transport modes:
 - **stdio** (default): MCP over stdin/stdout. Claude Desktop or CLI connects directly.
-- **HTTP** (`--http`): MCP over HTTP. Listens on `$RELAY_HTTP_ADDR` (default `:8080`).
+- **HTTP** (`--http`): MCP over HTTP. Defaults to loopback-only at `127.0.0.1:8080`; use `--addr` to override it. A wildcard or non-loopback bind exposes powerful local tools and requires external authentication and network controls.
 
 No daemon. No background service. The process starts, registers tools, and serves until the client disconnects or a signal is received.
 

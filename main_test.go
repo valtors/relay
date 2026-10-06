@@ -198,6 +198,22 @@ func TestRunCLI_UnknownCommand(t *testing.T) {
 	assert.Contains(t, stderr.String(), `'bogus' is not a command`)
 }
 
+func TestParseStartOptions_DefaultHTTPAddressIsLoopback(t *testing.T) {
+	opts, err := parseStartOptions([]string{"--http"})
+
+	require.NoError(t, err)
+	assert.True(t, opts.http)
+	assert.Equal(t, "127.0.0.1:8080", opts.addr)
+}
+
+func TestParseStartOptions_ExplicitHTTPAddressIsPreserved(t *testing.T) {
+	opts, err := parseStartOptions([]string{"--http", "--addr", ":8080"})
+
+	require.NoError(t, err)
+	assert.True(t, opts.http)
+	assert.Equal(t, ":8080", opts.addr)
+}
+
 func TestTruncateDescription(t *testing.T) {
 	got := truncateDescription("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 60)
 	assert.Equal(t, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234...", got)

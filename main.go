@@ -188,7 +188,7 @@ func parseStartOptions(args []string) (startOptions, error) {
 
 	opts := startOptions{}
 	fs.BoolVar(&opts.http, "http", false, "serve over Streamable-HTTP instead of stdio")
-	fs.StringVar(&opts.addr, "addr", ":8080", "HTTP listen address")
+	fs.StringVar(&opts.addr, "addr", "127.0.0.1:8080", "HTTP listen address")
 
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -398,7 +398,7 @@ func printUsage(w io.Writer, ui cliUI) {
 func printStartUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage:")
 	fmt.Fprintln(w, "  relay")
-	fmt.Fprintln(w, "  relay start [--http] [--addr :8080]")
+	fmt.Fprintln(w, "  relay start [--http] [--addr 127.0.0.1:8080]")
 	fmt.Fprintln(w, "  relay -http")
 	fmt.Fprintln(w, "  relay -addr :9090")
 }
