@@ -30,8 +30,8 @@ github.com/google/jsonschema-go v0.4.3 h1:/DBOLZTfDow7pe2GmaJNhltueGTtDKICi8V8p+
 github.com/google/jsonschema-go v0.4.3/go.mod h1:r5quNTdLOYEz95Ru18zA0ydNbBuYoo9tgaYcxEYhJVE=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-github.com/hhrutter/tiff v1.0.6 h1:p5I4Oi20jit3uWIBBaAoMDqrKztw/1JQCQC2TgqK1qU=
-github.com/hhrutter/tiff v1.0.6/go.mod h1:9+PDcnTBkMrJ8fWXkN1ZPv5ZNcKsFuTGVQU3ysaQbco=
+github.com/hhrutter/tiff v1.0.7 h1:Oelnv46vb9gycPsotT0q1IoJ6Ywkzd77I1smgQvkP7g=
+github.com/hhrutter/tiff v1.0.7/go.mod h1:XsBnsIe/pJedrn5ppmL1zu2DIGfwXqlfQFK60vztqCE=
 github.com/invopop/jsonschema v0.14.0 h1:MHQqLhvpNUZfw+hM3AZDYK7jxO8FZoQeQM77g8iyZjg=
 github.com/invopop/jsonschema v0.14.0/go.mod h1:ygm6C2EaVNMBDPpaPlnOA2pFAxBnxGjFlMZABxm9n2I=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
@@ -52,8 +52,8 @@ github.com/muesli/termenv v0.16.0 h1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc
 github.com/muesli/termenv v0.16.0/go.mod h1:ZRfOIKPFDYQoDFF4Olj7/QJbW60Ol/kL1pU3VfY/Cnk=
 github.com/pb33f/ordered-map/v2 v2.3.1 h1:5319HDO0aw4DA4gzi+zv4FXU9UlSs3xGZ40wcP1nBjY=
 github.com/pb33f/ordered-map/v2 v2.3.1/go.mod h1:qxFQgd0PkVUtOMCkTapqotNgzRhMPL7VvaHKbd1HnmQ=
-github.com/pdfcpu/pdfcpu v0.16.0 h1:RGlFwlu8r0UsbHKf3ft+B1qWZWjytvaGbBgiUtPNFk0=
-github.com/pdfcpu/pdfcpu v0.16.0/go.mod h1:WztWAYSGdXVxYYqXwqLjS9p/xIVoY3lJYVuXfwce6O0=
+github.com/pdfcpu/pdfcpu v0.16.1 h1:Sh6XZwaaCQaEN17eQItF0uQY8E4xFU+5BTHuDnhVTYI=
+github.com/pdfcpu/pdfcpu v0.16.1/go.mod h1:tnZgbllgsd8cGfbwRgOVUdlSS/mpsWjQMWSAI1vfltA=
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
 github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
